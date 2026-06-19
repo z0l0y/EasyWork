@@ -294,6 +294,13 @@ Agent 在生成 HTML 时，为每个步骤创建结构化的卡片：
     <tr><td>性能</td><td>✅</td><td>无</td></tr>
     <tr><td>可观测性</td><td>⚠️</td><td>catch块缺少日志</td></tr>
 </table>
+
+<h3>二次独立抽查（v2.2）</h3>
+<table>
+    <tr><th>抽查维度</th><th>原结论</th><th>交叉结论</th><th>新发现</th></tr>
+    <tr><td>{维度A}</td><td>✅ pass</td><td>✅ 一致</td><td>无</td></tr>
+    <tr><td>{维度B}</td><td>✅ pass</td><td>⚠️ 发现问题</td><td>{描述}</td></tr>
+</table>
 ```
 
 **EXAMINE 步骤内容块**：
@@ -421,6 +428,35 @@ Agent 在生成 HTML 时，为每个步骤创建结构化的卡片：
     <div class="step-card-body" style="display:none">
         <p><strong>跳过原因</strong>：{跳过理由}</p>
     </div>
+</div>
+```
+
+### 步骤自检记录（v2.2）
+
+```html
+<h2>每步产出自检</h2>
+<table>
+    <tr><th>步骤</th><th>必填字段</th><th>状态</th></tr>
+    <tr><td>1. READ</td><td>goal, scope, constraints, acceptance_criteria, non_goals</td><td>✅</td></tr>
+    <tr><td>2. CODE</td><td>files_changed, impact_assessment, implementation_notes</td><td>✅</td></tr>
+    <tr><td>3. REVIEW</td><td>verdict, dimensions, blocking_issues</td><td>✅</td></tr>
+    <tr><td>...</td><td>...</td><td>✅ / ⚠️ 缺 {N} 项</td></tr>
+</table>
+```
+
+### 干跑预览（v2.2 — 中高风险任务）
+
+```html
+<div class="card" style="background: #e8f0fe; border-left: 4px solid #1a73e8;">
+    <h2>🔍 执行预览</h2>
+    <p><em>以下内容在用户确认前仅做展示，不实际执行。</em></p>
+    <table>
+        <tr><th>步骤</th><th>预计操作</th><th>涉及文件</th><th>预计产出</th></tr>
+        <tr><td>1. READ</td><td>阅读 3 个文件，提取需求</td><td>auth.service.ts, user.model.ts</td><td>五要素需求说明</td></tr>
+        <tr><td>2. CODE</td><td>修改 2 个文件，约 30 行</td><td>auth.service.ts, auth.test.ts</td><td>变更记录</td></tr>
+        <tr><td>...</td><td>...</td><td>...</td><td>...</td></tr>
+    </table>
+    <p>⚠️ <strong>风险提示</strong>：{风险点及缓解措施}</p>
 </div>
 ```
 

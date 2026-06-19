@@ -220,6 +220,9 @@ examine_output 显示 test_results.passed=12，
 | 1.0 → 2.0 | 新增 | `graph_output`（整个步骤为 v2.0 新增） |
 | 2.0 → 2.1 | 新增 | `ask_output.quick_mode`（可选快速模式标记） |
 | 2.0 → 2.1 | 无破坏 | 所有字段向后兼容，无删除/重命名 |
+| 2.1 → 2.2 | 新增 | `review_output.cross_check`（可选二次独立抽查结果） |
+| 2.1 → 2.2 | 新增 | `step_selfcheck`（每步自检记录，含必填字段完整性） |
+| 2.1 → 2.2 | 无破坏 | 所有字段向后兼容，无删除/重命名 |
 
 ### 快照迁移规则
 

@@ -18,10 +18,11 @@
 |------|------|
 | 🔍 纯理解 | READ → GRAPH → SUM |
 | 🔎 纯审查 | READ → REVIEW |
+| 📝 纯文档 | READ → CODE → REVIEW → GIT → SUM → ASK |
 | ⚡ 微调 | READ → CODE → REVIEW → GIT |
 | 🐛 Bug修复 | READ → CODE → REVIEW → EXAMINE → GIT → SUM → TALK → ASK |
 | 🔧 重构 | READ → CODE → REVIEW → EXAMINE → GIT → GRAPH → SUM → TALK → ASK |
-| 🚀 功能开发 | 全部 9 步 |
+| 🚀 功能开发 | READ → CODE → REVIEW → EXAMINE → GIT → GRAPH → SUM → ASK（8步，跳过TALK） |
 
 ## 每步产出
 
@@ -49,11 +50,12 @@
 - **核心原则**：只加载当前步骤的 SKILL.md，不一次性加载全部
 - **恢复方式**：每步完成自动输出 JSON 快照，清上下文后粘贴即可从中断处继续
 
-## 三条救命规则
+## 四条救命规则
 
 1. **不确定就挂起**：任何技术决策没有 100% 把握 → 停止 → 描述问题 → 给出选项 → 等用户指示
 2. **回退不超 3 次**：CODE↔REVIEW 来回到第 4 轮 → 挂起，可能有更深层问题
 3. **默认输出 HTML**：用户没指定输出格式 → 生成 `.claude/easywork/EasyWork_Report_{时间}.html`
+4. **每步自检必填字段**：每步结束对照 data-contract 检查产出，缺失立即补全
 
 ## 🆕 v2.2 新特性
 
@@ -78,6 +80,8 @@
 | 每步验收标准 | `skills/fullchain-dev-workflow/references/acceptance-gates.md` |
 | 语言/框架适配速查 | `skills/fullchain-dev-workflow/references/language-matrix.md` |
 | 渐进式成熟度 L1/L2/L3 | `skills/fullchain-dev-workflow/references/maturity-levels.md` |
+| 编排引擎机制（DAG/自检/日志） | `skills/fullchain-dev-workflow/references/orchestration-engine.md` |
+| JSONL 日志分析 | `skills/fullchain-dev-workflow/references/log-analysis-guide.md` |
 | 安装脚本 | `install.bat` (Win) / `install.sh` (Unix) |
 | 故障排查 | `TROUBLESHOOTING.md` |
 | 版本历史 | `CHANGELOG.md` |
