@@ -23,7 +23,7 @@ comment_language: chinese  # chinese | english | auto
 # auto = 跟随项目现有注释语言，Agent 自动检测
 ```
 
-**说明**：v2.2 默认值为 `chinese`（中文注释）。国际化团队或英文项目设置为 `english`。
+**说明**：v2.3 默认值为 `chinese`（中文注释）。国际化团队或英文项目设置为 `english`。
 
 ---
 
@@ -119,7 +119,7 @@ custom_steps:
 ### REVIEW 约束
 
 ```markdown
-<!-- 追加到六维度之外的审查维度 -->
+<!-- 追加到七维度之外的审查维度 -->
 <!-- 示例：所有 PR 必须至少有一个人类审批人（非 AI） -->
 ```
 

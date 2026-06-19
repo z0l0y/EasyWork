@@ -11,7 +11,7 @@ EasyWork 的所有重要变更记录。
 
 ### 新增
 - **Gotchas 知识库**（`references/gotchas.md`）：项目特定反直觉陷阱记录，Agent 踩坑后自动追加，后续执行时主动扫描预警
-- **Skill 自测提示词集**（`references/self-test-prompts.md`）：10 个覆盖全部任务类型的测试场景，修改 Skill 后验证未退化
+- **Skill 自测提示词集**（`references/self-test-prompts.md`）：16 个覆盖全部任务类型 + v2.3 新特性的测试场景，修改 Skill 后验证未退化
 - **并行审查**：高风险任务（重构/功能开发）的 REVIEW 可启用 3 个并行子 Agent（安全/性能/兼容性），与主审查同步
 - **反合理化防御**：`code-review/SKILL.md` 新增 9 条 Agent 自我欺骗话术及反驳表，每次审查前先过目
 - **团队策略覆盖**（`references/team-policy.md`）：团队可在不修改核心文件前提下声明强制/建议/提示规则。支持 `comment_language` 配置
@@ -30,7 +30,7 @@ EasyWork 的所有重要变更记录。
 ### 变更
 - 编排中枢 §2 铁律 #7 新增 `data-contract.schema.json` 引用
 - 编排中枢 §4 新增团队策略加载、Gotchas 扫描、逐步骤预览子节
-- 编排中枢 §6 步骡表更新：REVIEW 6维→7维、CODE 注释可配置、GIT 含 Conventional Commits
+- 编排中枢 §6 步骤表更新：REVIEW 6维→7维、CODE 注释可配置、GIT 含 Conventional Commits
 - 编排中枢 §6 新增自定义步骤注入说明
 - 编排中枢 §10 新增 2 条反模式（自欺审查、不记录 Gotchas）
 - `code-review/SKILL.md` 审查维度 6→7，新增反合理化防御表、供应链检查流程

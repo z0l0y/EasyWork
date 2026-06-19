@@ -72,6 +72,10 @@
 | **可访问性审查** | 前端代码自动检查 a11y（第 7 维度） |
 | **供应链检查** | 新增依赖自动检查 CVE + 许可证 + 维护状态 |
 | **Conventional Commits** | 提交消息自动生成 feat/fix/refactor 等格式 |
+| **JSON Schema 数据契约** | `data-contract.schema.json` 提供机器可读验证 |
+| **条件分支扩展** | 17 条条件分支覆盖步骤间+上下文自适应场景 |
+| **Skill 自测提示词** | 16 个测试场景覆盖全部任务类型 + v2.3 新特性 |
+| **增强技能模板** | `skill-template/` 含 Gotchas/反合理化/测试提示词 |
 | **JSONL 日志分析** | `bash .claude/easywork/analyze-logs.sh` 一键分析 |
 | **故障 Runbook** | 常见故障有预置诊断和修复方案 |
 
@@ -87,11 +91,10 @@
 | 每步验收标准 | `skills/fullchain-dev-workflow/references/acceptance-gates.md` |
 | 语言/框架适配速查 | `skills/fullchain-dev-workflow/references/language-matrix.md` |
 | 渐进式成熟度 L1/L2/L3 | `skills/fullchain-dev-workflow/references/maturity-levels.md` |
-| 编排引擎机制（DAG/自检/日志） | `skills/fullchain-dev-workflow/references/orchestration-engine.md` |
+| 编排引擎机制（DAG/并行审查/自定义步骤） | `skills/fullchain-dev-workflow/references/orchestration-engine.md` |
 | JSONL 日志分析 | `skills/fullchain-dev-workflow/references/log-analysis-guide.md` |
-| 编排引擎（并行审查/自定义步骤） | `skills/fullchain-dev-workflow/references/orchestration-engine.md` |
-| JSONL 日志分析 | `skills/fullchain-dev-workflow/references/log-analysis-guide.md` |
-| Gochas 知识库 | `skills/fullchain-dev-workflow/references/gotchas.md` |
+| JSON Schema 数据契约 | `skills/fullchain-dev-workflow/references/data-contract.schema.json` |
+| Gotchas 知识库 | `skills/fullchain-dev-workflow/references/gotchas.md` |
 | 团队策略覆盖 | `skills/fullchain-dev-workflow/references/team-policy.md` |
 | 故障 Runbook | `skills/fullchain-dev-workflow/references/failure-runbooks.md` |
 | Skill 自测提示词 | `skills/fullchain-dev-workflow/references/self-test-prompts.md` |

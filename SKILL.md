@@ -4,7 +4,10 @@ description: >
   EasyWork 全链路 AI 辅助开发工作流技能包索引。9 步流程按需裁剪：
   READ → CODE → REVIEW → EXAMINE → GIT → GRAPH → SUM → TALK → ASK。
   入口技能：fullchain-dev-workflow（含任务分类器，自动判断需要哪些步骤）。
-  v2.3: 并行审查、反合理化防御、Gotchas知识库、团队策略覆盖、自定义步骤注入。
+  v2.3: 并行审查、反合理化防御、Gotchas知识库、团队策略覆盖、自定义步骤注入、
+  可访问性审查、供应链检查、Conventional Commits、交互式入门、故障Runbook。
+version: 2.3
+model: sonnet
 ---
 
 # EasyWork 技能包索引
@@ -52,6 +55,7 @@ skills/<skill-name>/
 - `references/self-test-prompts.md` — 🆕 Skill 自测提示词集（10 个测试场景）
 - `references/team-policy.md` — 🆕 团队策略覆盖（强制/建议/提示规则 + 注释语言配置）
 - `references/failure-runbooks.md` — 🆕 故障模式诊断与预置方案（5 种重复故障）
+- `skill-template/`（根目录）— 🆕 增强技能创建模板（含 Gotchas/反合理化/测试提示词/Before-After）
 
 ## 使用入口
 

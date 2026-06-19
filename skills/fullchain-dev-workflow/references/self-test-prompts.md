@@ -52,7 +52,7 @@
 - 分类为 🔎 纯审查
 - 步骤裁剪为：READ → REVIEW
 - 不执行 CODE/EXAMINE/GIT/GRAPH/SUM/TALK/ASK
-- 产出六维度审查报告
+- 产出七维度审查报告
 
 **通过标准**：
 - [ ] 分类正确（纯审查）
@@ -219,6 +219,117 @@
 
 ---
 
+### 测试 11：v2.3 — 可访问性审查维度
+
+```prompt
+帮我在 src/components/LoginModal.vue 里给登录弹窗加一个"记住密码"复选框。
+```
+
+**预期行为**：
+- REVIEW 阶段七维度审查包含可访问性维度
+- 检查：语义化HTML（checkbox用`<input type="checkbox">`）、ARIA、键盘导航、色彩对比
+- 纯后端任务则可访问性标注 `not_applicable`
+
+**通过标准**：
+- [ ] 审查报告包含 7 个维度
+- [ ] 可访问性维度有具体检查项（非空洞的"通过"）
+- [ ] 前端代码检查了 ARIA/键盘/色彩
+
+---
+
+### 测试 12：v2.3 — 供应链安全检查
+
+```prompt
+给项目加一个数据导出功能，用 exceljs 这个包生成 Excel 文件。
+```
+
+**预期行为**：
+- CODE 产出 `new_dependencies` 包含 `exceljs`
+- REVIEW 阶段自动触发供应链检查（5 步）
+- 审查报告 `supply_chain_check` 字段非空
+
+**通过标准**：
+- [ ] 供应链检查 5 步全部执行
+- [ ] `supply_chain_check.checked = true`
+- [ ] 如有 CVE/许可证问题，计入 `blocking_issues`
+
+---
+
+### 测试 13：v2.3 — Conventional Commits
+
+```prompt
+修复 src/services/order.service.ts 里订单金额计算错误。
+```
+
+**预期行为**：
+- GIT 阶段每个拆分单元包含 `commit_message` 字段
+- 提交消息遵循 `type(scope): subject` 格式
+- 类型正确（Bug修复→`fix`）
+
+**通过标准**：
+- [ ] 每个单元有 `commit_message.type`（fix）
+- [ ] `commit_message.subject` ≤50字符/25汉字
+- [ ] 提交消息可直接用于 `git commit -m`
+
+---
+
+### 测试 14：v2.3 — Gotchas 自动追加
+
+```prompt
+（构造 Agent 耗时 >10min 定位的 bug，或用户指出了 Agent 不知道的边界）
+```
+
+**预期行为**：
+- SUM 步骤自检时检查是否满足 Gotchas 追加条件
+- 如满足，自动追加到 `references/gotchas.md`
+- 追加格式遵循规范（触发条件/错误表现/根因/正确做法）
+
+**通过标准**：
+- [ ] Gotchas 追加条件被正确识别
+- [ ] 新 Gotchas 格式完整（4 必填字段）
+- [ ] 追加位置在"项目 Gotchas"段落下
+
+---
+
+### 测试 15：v2.3 — 团队策略覆盖
+
+```prompt
+（配置 team-policy.md 设置 comment_language: english）
+新建 src/services/notification.service.ts 实现邮件通知功能。
+```
+
+**预期行为**：
+- CODE 阶段注释使用英文
+- 干跑预览标注"已加载团队策略"
+- 强制规则（MUST）违反时挂起
+
+**通过标准**：
+- [ ] 注释语言为英文
+- [ ] 违反团队强制规则时挂起
+- [ ] 建议规则（SHOULD）触发警告但不阻断
+
+---
+
+### 测试 16：v2.3 — 自定义步骤注入
+
+```prompt
+（在 .claude/skills/easywork/custom/ 下放置安全扫描技能）
+重构 src/middleware/auth.ts 的认证逻辑。
+```
+
+**预期行为**：
+- 任务分类后自动扫描 `.claude/skills/easywork/custom/`
+- 自定义步骤以 `[+]` 前缀出现在进度卡
+- 按 `insert_after` 和 `insert_condition` 正确插入
+
+**通过标准**：
+- [ ] 自定义步骤在进度卡显示为 `[+]`
+- [ ] 插入位置正确（在 `insert_after` 步骤之后）
+- [ ] 触发条件为 false 时标注 `[+][skip]`
+- [ ] 自定义步骤失败不阻塞主流程
+
+---
+
 ## 追加自定义测试
 
 如果你的团队有特定的工作流变化（如自定义步骤、团队策略覆盖），在此追加对应的测试提示词。
@@ -244,7 +355,8 @@
 
 ## 运行建议
 
-- **每次发布前**：至少运行测试 1-6（覆盖全部 6 种任务类型 + 纯文档）
-- **修改编排中枢后**：追加运行测试 7-10
+- **每次发布前**：至少运行测试 1-6（覆盖全部 7 种任务类型）
+- **修改编排中枢后**：追加运行测试 7-10（上下文/异常/回退/干跑）
+- **修改 v2.3 特性后**：追加运行测试 11-16（可访问性/供应链/Conventional Commits/Gotchas/团队策略/自定义步骤）
 - **添加新条件分支后**：追加对应的场景测试
 - **CI 集成**：将关键测试提示词放入 CI pipeline，用 Claude Code API 批量验证

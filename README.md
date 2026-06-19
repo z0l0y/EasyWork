@@ -21,6 +21,9 @@ EasyWork 是一套为 AI 编码助手（Claude Code、Cursor、GitHub Copilot）
 - **Conventional Commits**：提交消息强制规范化（feat/fix/refactor/test/docs/style/chore/perf/ci）
 - **JSON Schema 数据契约**：`data-contract.schema.json` 提供机器可读验证
 - **故障 Runbook**：5 种重复故障的预置诊断与修复方案
+- **条件分支扩展**：17 条条件分支（步骤间 + 上下文自适应），覆盖更多实战场景
+- **Skill 自测提示词集**：16 个测试场景，修改 Skill 后验证未退化
+- **增强技能模板**：`skill-template/` 新增 Gotchas/反合理化/测试提示词/Before-After 对比
 - **日志分析脚本**：`analyze-logs.sh` 一键分析（总览/步骤/瓶颈/趋势）
 
 v1.0 强制所有任务走完 9 步，这很安全但也很烦——改一个文案不需要画架构图。
@@ -61,7 +64,7 @@ flowchart TD
 |------|------|---------|--------|---------|------|------|--------|--------|--------|
 | 1 | READ | 理解需求（文档/图片/日志/代码） | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | 2 | CODE | 克制编码（中文注释/复用模式） | ✅ | ✅ | ✅ | ✅ | ⏭️ | ✅ | ⏭️ |
-| 3 | REVIEW | 六维度自审查 | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ⏭️ |
+| 3 | REVIEW | 七维度自审查 | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ⏭️ |
 | 4 | EXAMINE | 跑测试/补测试 | ✅ | ✅ | ✅ | ⏭️ | ⏭️ | ⏭️ | ⏭️ |
 | 5 | GIT | 拆分提交（按维度） | ✅ | ✅ | ✅ | ✅ | ⏭️ | ✅ | ⏭️ |
 | 6 | GRAPH | Mermaid 图表 | ⏭️ | ✅ | ✅ | ⏭️ | ⏭️ | ⏭️ | ✅ |
@@ -185,7 +188,7 @@ install.bat 然后手动删除                      # Windows
 ## 任务分类
 在动手之前先判断任务类型：
 - 纯理解（只看不改）→ 需求分析 + 总结
-- 纯审查 → 需求分析 + 六维度审查
+- 纯审查 → 需求分析 + 七维度审查
 - 微调 → 需求分析 + 实现 + 审查 + 提交拆分
 - Bug修复 → 需求分析 + 实现 + 审查 + 测试 + 提交拆分 + 总结 + 复盘 + 人工确认
 - 重构 → READ + CODE + REVIEW + EXAMINE + GIT + GRAPH + SUM + TALK + ASK（9步）
@@ -198,8 +201,8 @@ install.bat 然后手动删除                      # Windows
 4. 修改必须严格限定在需求范围内，不顺手重构无关代码
 5. CODE→REVIEW 回退循环最多3轮
 
-## 六维度审查
-每次写代码后自审查：正确性、安全性、兼容性、可维护性、性能、可观测性
+## 七维度审查
+每次写代码后自审查：正确性、安全性、兼容性、可维护性、性能、可观测性、可访问性
 
 ## 提交拆分
 改动 ≥3 个文件时按维度拆分：配置/核心逻辑/UI/测试，每个单元附风险分析和验证方式
@@ -230,7 +233,7 @@ install.bat 然后手动删除                      # Windows
 1. 先分类任务：纯理解/纯审查/微调/Bug修复/重构/功能开发
 2. 根据任务类型执行对应步骤（见 QUICKREF.md 速查表）
 3. 写代码时：中文注释、复用模式、不过度设计、不碰范围外代码
-4. 写完后：六维度自审查（正确性/安全性/兼容性/可维护性/性能/可观测性）
+4. 写完后：七维度自审查（正确性/安全性/兼容性/可维护性/性能/可观测性/可访问性）
 5. 不确定时：停止 → 描述问题 → 给选项 → 等用户指示
 6. 改动 ≥3 文件：输出按维度拆分的提交方案
 7. 默认 HTML 输出
@@ -249,7 +252,7 @@ install.bat 然后手动删除                      # Windows
 "帮我 review 下这段代码"
 ```
 
-如果 Agent 加载了 code-review 技能（输出六维度审查结果），则安装成功。
+如果 Agent 加载了 code-review 技能（输出七维度审查结果），则安装成功。
 
 **自检命令**（在新对话中输入）：
 ```
@@ -312,10 +315,18 @@ EasyWork/
     │   └── references/
     │       ├── acceptance-gates.md    #   每步验收关卡
     │       ├── data-contract.md       #   步骤间数据传递契约（含版本迁移）
-    │       └── language-matrix.md     #   🆕 语言/技术栈适配速查
+    │       ├── data-contract.schema.json  #   🆕 JSON Schema 机器可读验证
+    │       ├── orchestration-engine.md    #   编排引擎（DAG/并行/条件分支/自定义步骤）
+    │       ├── language-matrix.md     #   🆕 语言/技术栈适配速查
+    │       ├── maturity-levels.md     #   🆕 渐进式成熟度 L1/L2/L3
+    │       ├── gotchas.md             #   🆕 项目踩坑知识库
+    │       ├── team-policy.md         #   🆕 团队策略覆盖
+    │       ├── failure-runbooks.md    #   🆕 故障模式诊断
+    │       ├── self-test-prompts.md   #   🆕 Skill 自测提示词集
+    │       └── log-analysis-guide.md  #   🆕 JSONL 日志分析指南
     ├── read-requirements/             # 📖 步骤1：多态输入 → 结构化需求
     ├── code-implement/                # ⌨️ 步骤2：克制编码（中文注释/复用/反炫技）
-    ├── code-review/                   # 🔍 步骤3：六维度自审查
+    ├── code-review/                   # 🔍 步骤3：七维度自审查 + 反合理化防御
     ├── examine-quality/               # 🧪 步骤4：测试执行与质量验证
     ├── git-split-commit/              # 📦 步骤5：多维提交拆分（HITL 关键环节）
     ├── graph-fullchain/               # 📊 步骤6：Mermaid/飞书 可视化图表

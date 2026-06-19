@@ -50,7 +50,7 @@ code_output:
 ```
 review_output:
   verdict: string           # [必填] "pass" | "pass_with_fixes" | "blocked"
-  dimensions:               # [必填] 六维度审查结果
+  dimensions:               # [必填] 七维度审查结果
     correctness:
       status: string        #   "pass" | "issues_found" | "not_applicable"
       issues: string[]      #   发现的问题（如有）
@@ -69,8 +69,28 @@ review_output:
     observability:
       status: string
       issues: string[]
+    accessibility:            # 🆕 v2.3 第7维度
+      status: string          #   "pass" | "issues_found" | "not_applicable"
+      issues: string[]        #   (纯后端/CLI变更标注 not_applicable)
   blocking_issues: int      # [必填] 阻断性问题数量
   fixes_applied: string[]   # [可选] 回退到 CODE 修复并重新审查后，记录修复内容
+  supply_chain_check:       # 🆕 v2.3 [可选] 供应链检查结果（有新增依赖时）
+    checked: bool
+    findings: string[]
+  parallel_reviews:         # 🆕 v2.3 [可选] 并行审查结果（仅高风险任务启用）
+    security_reviewer:
+      verdict: string       #   "pass" | "issues_found"
+      blocking_count: int
+      findings: string[]
+    performance_reviewer:
+      verdict: string
+      blocking_count: int
+      findings: string[]
+    compatibility_reviewer:
+      verdict: string
+      blocking_count: int
+      findings: string[]
+  cross_check:              # [可选] 二次独立抽查结果
 ```
 
 **消费方**：EXAMINE（用 dimensions 确定测试重点，如 security 有问题则加强安全测试）、SUM（引用审查结论）、ASK（用 blocking_issues 判断风险）
@@ -110,6 +130,11 @@ git_output:
       risk_level: string    #   "low" | "medium" | "high"
       risk_detail: string   #   具体风险分析
       verification: string  #   验证方式（引用 review_output 和 examine_output）
+      commit_message:       # 🆕 v2.3 [必填] Conventional Commits 格式
+        type: string        #   "feat" | "fix" | "refactor" | "test" | "docs" | "style" | "chore" | "perf" | "ci"
+        scope: string       #   模块/服务名（可选但建议填写）
+        subject: string     #   提交主题（≤50字符/25汉字）
+        body: string        #   提交正文
   mixed_files_warning: string[]  # [可选] 无法拆分的混合变更文件及警示
 ```
 

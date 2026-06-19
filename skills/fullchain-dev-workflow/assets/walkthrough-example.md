@@ -54,7 +54,7 @@ const hashedPassword = user.password;
 | `src/services/auth.service.ts` | `login()` 方法加 user 空值判断 | 防止空指针 |
 | `tests/auth.service.test.ts` | 新增"用户不存在返回401"测试 | 回归验证 |
 
-### 步骤 3：REVIEW（六维度自审查）
+### 步骤 3：REVIEW（七维度自审查）
 
 - ✅ 正确性：null/undefined/空对象全部处理，if-else 覆盖完整
 - ✅ 安全性：返回统一错误信息，不泄露"用户是否存在"；无硬编码凭证
@@ -62,6 +62,7 @@ const hashedPassword = user.password;
 - ✅ 可维护性：中文注释解释了为什么用通用错误信息
 - ✅ 性能：无新增查询，无循环内查询
 - ✅ 可观测性：UnauthorizedError 已包含在现有日志中间件中
+- N/A 可访问性：本次为纯后端变更，不涉及 UI 交互
 
 → 审查通过，放行到 EXAMINE。
 
@@ -327,7 +328,7 @@ const result = await db.query(
 - ✓ 收藏按钮组件风格参照项目现有的 `AddToCartButton.vue`
 - ✓ 未碰商品模块的任何现有代码
 
-### 步骤 3：REVIEW（六维度自审查）
+### 步骤 3：REVIEW（七维度自审查）
 
 | 维度 | 结论 | 发现 |
 |------|------|------|
@@ -337,6 +338,7 @@ const result = await db.query(
 | 可维护性 | ✅ 通过 | 中文注释充分；FavoriteService 四个方法职责单一；组件命名与项目一致(PascalCase) |
 | 性能 | ✅ 通过 | 收藏列表有分页(20条/页)；联合索引覆盖查询；收藏按钮用防抖(300ms)防止连点 |
 | 可观测性 | ✅ 通过 | 收藏/取消收藏 catch 分支有日志；关键操作(收藏成功/失败)有 info 日志 |
+| 可访问性 | ✅ 通过 | FavoriteButton 使用 `<button>` 语义标签、支持 Tab 聚焦、防抖期间有 `aria-busy` 状态；收藏列表图标按钮有 `aria-label` |
 
 → **发现 1 个问题**：add 时未校验商品是否存在。回退 CODE 修复。
 
@@ -349,7 +351,7 @@ if (!product || product.status !== 'online') {
 }
 ```
 
-修复后重新审查 → 六维度全部通过 ✅。
+修复后重新审查 → 七维度全部通过 ✅。
 
 ### 步骤 4：EXAMINE（测试执行）
 

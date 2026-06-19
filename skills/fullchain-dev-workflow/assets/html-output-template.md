@@ -293,13 +293,33 @@ Agent 在生成 HTML 时，为每个步骤创建结构化的卡片：
     <tr><td>可维护性</td><td>✅</td><td>无</td></tr>
     <tr><td>性能</td><td>✅</td><td>无</td></tr>
     <tr><td>可观测性</td><td>⚠️</td><td>catch块缺少日志</td></tr>
+    <tr><td>可访问性</td><td>✅</td><td>N/A（本次为后端变更）</td></tr>
 </table>
 
-<h3>二次独立抽查（v2.2）</h3>
+<h3>供应链安全检查（🆕 v2.3 — 如有新增依赖）</h3>
+<p>检查结论：{无新增依赖 / 通过 / ⚠️ 发现问题}</p>
+<ul>
+    <li>依赖必要性：{结论}</li>
+    <li>版本稳定性：{结论}</li>
+    <li>已知漏洞：{结论}</li>
+    <li>许可证兼容：{结论}</li>
+    <li>维护状态：{结论}</li>
+</ul>
+
+<h3>二次独立抽查</h3>
 <table>
     <tr><th>抽查维度</th><th>原结论</th><th>交叉结论</th><th>新发现</th></tr>
     <tr><td>{维度A}</td><td>✅ pass</td><td>✅ 一致</td><td>无</td></tr>
     <tr><td>{维度B}</td><td>✅ pass</td><td>⚠️ 发现问题</td><td>{描述}</td></tr>
+</table>
+
+<!-- 🆕 v2.3 仅高风险任务启用并行审查时显示 -->
+<h3>并行审查结果</h3>
+<table>
+    <tr><th>审查者</th><th>结论</th><th>阻断数</th><th>发现</th></tr>
+    <tr><td>🔒 安全审查者</td><td>✅ pass</td><td>0</td><td>无</td></tr>
+    <tr><td>⚡ 性能审查者</td><td>⚠️ issues_found</td><td>0</td><td>N+1查询一处（非阻断）</td></tr>
+    <tr><td>🔄 兼容性审查者</td><td>✅ pass</td><td>0</td><td>无</td></tr>
 </table>
 ```
 
@@ -335,6 +355,12 @@ Agent 在生成 HTML 时，为每个步骤创建结构化的卡片：
 </table>
 <p><strong>风险分析</strong>：...</p>
 <p><strong>验证方式</strong>：...</p>
+<p><strong>🆕 建议提交消息</strong>：<code>fix(auth): handle null user in login flow</code></p>
+<pre><code>Add null check for user object in auth.service.ts login() method.
+Previously would throw 500 when user lookup returned null.
+Now returns 401 with unified error message.
+
+Closes #123</code></pre>
 ```
 
 **GRAPH 步骤内容块**：
