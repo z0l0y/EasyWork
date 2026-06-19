@@ -125,7 +125,7 @@ else
 - 质量验证: .claude/skills/easywork/examine-quality/SKILL.md
 - 提交拆分: .claude/skills/easywork/git-split-commit/SKILL.md
 - 图表绘制: .claude/skills/easywork/graph-fullchain/SKILL.md
-- 总结报告: .clauce/skills/easywork/sum-session/SKILL.md
+- 总结报告: .claude/skills/easywork/sum-session/SKILL.md
 - 深度复盘: .claude/skills/easywork/talk-retro/SKILL.md
 - 人工确认: .claude/skills/easywork/ask-change-questions/SKILL.md
 EOF
@@ -153,5 +153,5 @@ echo "  在项目目录中发起 Claude Code 会话，输入："
 echo "  \"帮我 review 下这段代码\""
 echo "  如果 Agent 加载了 code-review 技能并开始审查，则安装成功。"
 echo ""
-echo "故障排查: 见 F:\\AIG\\EasyWork\\TROUBLESHOOTING.md"
+echo "故障排查: 见 EasyWork 包目录下的 TROUBLESHOOTING.md"
 echo ""

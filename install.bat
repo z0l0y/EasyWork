@@ -142,6 +142,6 @@ echo   在项目目录中发起 Claude Code 会话，输入：
 echo   "帮我 review 下这段代码"
 echo   如果 Agent 加载了 code-review 技能并开始审查，则安装成功。
 echo.
-echo 故障排查: 见 F:\AIG\EasyWork\TROUBLESHOOTING.md
+echo 故障排查: 见 EasyWork 包目录下的 TROUBLESHOOTING.md
 echo.
 pause

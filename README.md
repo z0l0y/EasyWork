@@ -89,13 +89,13 @@ flowchart TD
 
 **Windows**：
 ```cmd
-F:\AIG\EasyWork\install.bat  [目标项目路径]
+.\install.bat  [目标项目路径]
 :: 不传参数则安装到当前目录
 ```
 
 **macOS / Linux**：
 ```bash
-chmod +x F:\AIG\EasyWork\install.sh
+chmod +x ./install.sh
 ./install.sh  [目标项目路径]
 # 不传参数则安装到当前目录
 ```

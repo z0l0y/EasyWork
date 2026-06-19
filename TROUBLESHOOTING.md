@@ -204,7 +204,7 @@ Mermaid 代码在渲染时显示空白或语法错误。
 
 ### 检查清单
 
-- [ ] `CLAUDE.md` 中的路径是否写成了绝对路径 `F:\AIG\EasyWork\` 但项目在别的机器上？
+- [ ] `CLAUDE.md` 中的路径是否写成了绝对路径（如 `C:\Users\xxx\EasyWork\`）但项目在别的机器上？
   - **修复**：改用相对路径 `.claude/skills/easywork/`（先运行安装脚本）
 - [ ] 技能目录是否确实在 `.claude/skills/easywork/` 下？
   - **验证**：`ls .claude/skills/easywork/` 应看到 10 个子目录
