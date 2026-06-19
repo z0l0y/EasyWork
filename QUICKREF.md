@@ -55,6 +55,17 @@
 2. **回退不超 3 次**：CODE↔REVIEW 来回到第 4 轮 → 挂起，可能有更深层问题
 3. **默认输出 HTML**：用户没指定输出格式 → 生成 `.claude/easywork/EasyWork_Report_{时间}.html`
 
+## 🆕 v2.2 新特性
+
+| 特性 | 怎么用 |
+|------|--------|
+| **干跑预览** | 中高风险任务自动先出预览，你说"执行"才开始 |
+| **步骤自检** | 每步结束自动对照 data-contract 检查必填字段 |
+| **交叉审查** | REVIEW 后自动切换视角做二次安全抽查 |
+| **JSONL 日志** | 每步追加 `.claude/easywork/workflow.log.jsonl` |
+| **模型分层** | 不同步骤推荐不同模型（Haiku/Sonnet/Opus） |
+| **成熟度 L1/L2/L3** | 团队可按阶段选装 4/7/10 个技能 |
+
 ## 项目文件导航
 
 | 想看什么 | 去这里 |
@@ -66,6 +77,7 @@
 | 步骤间数据契约 | `skills/fullchain-dev-workflow/references/data-contract.md` |
 | 每步验收标准 | `skills/fullchain-dev-workflow/references/acceptance-gates.md` |
 | 语言/框架适配速查 | `skills/fullchain-dev-workflow/references/language-matrix.md` |
+| 渐进式成熟度 L1/L2/L3 | `skills/fullchain-dev-workflow/references/maturity-levels.md` |
 | 安装脚本 | `install.bat` (Win) / `install.sh` (Unix) |
 | 故障排查 | `TROUBLESHOOTING.md` |
 | 版本历史 | `CHANGELOG.md` |

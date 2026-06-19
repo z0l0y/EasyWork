@@ -42,6 +42,7 @@ skills/<skill-name>/
 - `assets/html-skeleton.html` — HTML 报告骨架（Agent 直接复制填充，无需从零生成）
 - `references/data-contract.md` — 步骤间数据传递契约（含版本迁移规则）
 - `references/language-matrix.md` — 语言/技术栈适配速查（Node/Python/Go/Java/Rust）
+- `references/maturity-levels.md` — 🆕 渐进式成熟度配置（L1/L2/L3）
 
 ## 使用入口
 
@@ -56,3 +57,7 @@ skills/<skill-name>/
 - **命令式语气**：用"检查 X"、"确保 Y"而非"你应该检查 X"
 - **反模式显式化**：每个技能都有"禁止做"清单，比"应该做"清单更有效
 - **术语一致**：全项目统一使用"阻断性问题"、"挂起"、"打卡"等术语
+- **步骤自检**：🆕 每步结束强制对照 data-contract 自检必填字段
+- **干跑预览**：🆕 中高风险任务先输出预览，用户确认后才执行
+- **交叉审查**：🆕 REVIEW 后用不同视角做二次独立抽查
+- **结构化日志**：🆕 每步追加 JSONL 日志，用于后续分析和优化
