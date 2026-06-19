@@ -145,9 +145,10 @@ if exist "%CLAUDE_MD%" (
 (
     echo.
     echo # EasyWork 全链路工作流 ^(v2.4, %LEVEL%级^)
-    echo 当用户需要进行代码开发、Bug 修复、代码审查或需求分析时，
+    echo 仅当用户明确说"用 EasyWork"、"走 EasyWork 流程"、"EasyWork 模式"时，
     echo 加载 .claude/skills/easywork/fullchain-dev-workflow/SKILL.md
     echo 并严格遵循其任务分类与流程编排规则。
+    echo 普通开发任务（用户说"修 bug""加功能""帮我 review"但未提及 EasyWork）不自动加载。
     echo.
     echo ## 可单独调用的子技能
     echo - 需求理解: .claude/skills/easywork/read-requirements/SKILL.md

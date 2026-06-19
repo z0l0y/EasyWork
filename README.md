@@ -192,7 +192,7 @@ install.bat 然后手动删除                      # Windows
 ```markdown
 # EasyWork 全链路工作流规则
 
-你需要在每次代码任务中遵守以下 EasyWork 工作流规则：
+当用户明确说"用 EasyWork"时，遵守以下 EasyWork 工作流规则（普通任务不自动套用）：
 
 ## 任务分类
 在动手之前先判断任务类型：
@@ -237,7 +237,7 @@ install.bat 然后手动删除                      # Windows
 ```
 # EasyWork AI 工作流规则
 
-在每次代码任务中遵守以下流程：
+当用户明确说"用 EasyWork"时遵守以下流程（普通任务不自动套用）：
 
 1. 先分类任务：纯理解/纯审查/微调/Bug修复/重构/功能开发
 2. 根据任务类型执行对应步骤（见 QUICKREF.md 速查表）

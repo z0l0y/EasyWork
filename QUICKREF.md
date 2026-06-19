@@ -4,13 +4,14 @@
 
 ## 触发方式
 
+> **🆕 v2.4**：EasyWork 仅在用户**明确说"用 EasyWork"**后才启用。普通开发任务不自动套用。
+
 | 你说的话 | Agent 做什么 |
 |---------|-------------|
-| "帮我修一下 XX bug" / "实现 XX 功能" | → 全链路（分类 → 裁剪 → 执行） |
-| "帮我看下这段代码在干嘛" | → 纯理解（只走 READ+GRAPH+SUM） |
-| "帮我 review 下这段代码" | → 纯审查（只走 READ+REVIEW） |
-| "帮我画下这个模块的流程图" | → 单步 GRAPH |
-| "帮我拆分下这次提交" | → 单步 GIT |
+| "用 EasyWork 修一下 XX bug" / "走 EasyWork 流程实现 XX 功能" | → 全链路（分类 → 裁剪 → 执行） |
+| "用 EasyWork 帮我看下这段代码" | → 纯理解（只走 READ+GRAPH+SUM） |
+| "用 EasyWork review 这段代码" | → 纯审查（只走 READ+REVIEW） |
+| "帮我修一下 XX bug" / "实现 XX 功能"（没说"用 EasyWork"） | → **普通模式**，不套用 EasyWork 流程 |
 
 ## 任务类型 → 步骤裁剪
 

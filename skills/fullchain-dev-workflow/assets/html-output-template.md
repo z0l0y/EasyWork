@@ -499,6 +499,38 @@ Closes #123</code></pre>
 5. **代码块**：使用 `<pre><code>` 包裹，语法高亮使用纯 CSS 实现
 6. **不依赖外部 CSS 文件**：所有样式内联在 `<style>` 标签中
 
+## ⛔ HTML 注入防护（🆕 v2.4）
+
+**Agent 在替换 HTML 占位符时必须进行 HTML 转义。** 所有数据契约字段在嵌入 HTML 前，必须对以下字符做实体编码：
+
+| 字符 | 替换为 |
+|------|--------|
+| `<` | `&lt;` |
+| `>` | `&gt;` |
+| `"` | `&quot;` |
+| `'` | `&#39;` |
+| `&` | `&amp;` |
+
+**特别关注的字段**（来自 data-contract，可直接含用户或代码内容）：
+- `test_output_snippet` — 可能含 `<` `>` 标签
+- `sum_output.discovery` — 可能含粘贴的日志/代码片段
+- `code_output.files_changed[].path` — 文件路径
+- `review_output.dimensions.*.issues[]` — 审查发现描述
+- `read_output.goal` / `read_output.acceptance_criteria[]` — 用户输入
+- 所有 `{summary}` / `{body}` / `{description}` 类自由文本字段
+
+**反例**（会导致 XSS）：
+```html
+<p>发现：<script>alert(1)</script></p>
+```
+
+**正确做法**：
+```html
+<p>发现：&lt;script&gt;alert(1)&lt;/script&gt;</p>
+```
+
+> 详细规则见 `../references/security-policy.md` §2.5。
+
 ## ⛔ 敏感信息脱敏（🆕 v2.4）
 
 **Agent 在保存 HTML 报告前，必须执行脱敏自检。** 报告内容不得包含以下任何信息：

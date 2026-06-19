@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://easywork.dev/data-contract.schema.json",
   "title": "EasyWork Data Contract",
-  "description": "Machine-readable JSON Schema for EasyWork step output validation. Generated from data-contract.md v2.3.",
+  "description": "Machine-readable JSON Schema for EasyWork step output validation. Generated from data-contract.md v2.4.",
   "type": "object",
   "properties": {
     "easywork_version": {

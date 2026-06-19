@@ -47,6 +47,7 @@ flowchart TD
 **并行执行约束**：
 - 上下文 🟡 预警及以上 → 禁止并行，回归串行
 - 平台不支持并发 → 按默认顺序先 GRAPH 后 SUM
+- 🆕 v2.4 安全：GRAPH 和 SUM 都需向 `workflow.log.jsonl` 追加日志。**并发写入 JSONL 会导致日志行交错或损坏。** 必须确保日志追加串行：先完成的步骤先写入，后完成的步骤等待前一个写入完成后再追加。Agent 在执行并行步骤时，需在内存中暂存日志行，串行化写入操作
 
 ---
 
@@ -308,7 +309,7 @@ triggers_branch:
 每步完成后，Agent 向 `.claude/easywork/workflow.log.jsonl` 追加一行：
 
 ```jsonl
-{"session":"{session_id}","step":"READ","status":"pass","skipped":false,"tokens_est":4200,"duration_s":18,"ts":"2026-06-19T15:30:00Z"}
+{"session":"20260619-task-001","step":"READ","status":"pass","skipped":false,"tokens_est":4200,"duration_s":18,"ts":"2026-06-19T15:30:00Z"}
 ```
 
 ### 字段说明

@@ -33,13 +33,14 @@ version: 2.4
 5. **回退循环上限 3 次**：任何"发现问题→回退→修复→重新检查"的循环（如 CODE→REVIEW 发现 bug→回退 CODE→修复→再次 REVIEW），**最多 3 轮**。超过 3 轮 → 挂起向用户报告，可能涉及更深层的设计或需求问题
 6. **步骤预算**：每步最多搜索/读取 15 个文件，超过时挂起向用户确认是否继续
 7. **步骤间数据传递**：每步结束按 `references/data-contract.md` 中定义的字段输出，后续步骤引用前序字段而非靠上下文回忆。可选引用 `references/data-contract.schema.json` 做机器验证
-8. **默认输出为 HTML**：当用户未指定输出格式时（没有提供飞书链接、md文档路径、PR模板等），必须将完整工作流结果生成一个自包含的 HTML 文件（格式规范见 `assets/html-output-template.md`）。生成路径：`{项目根目录}/.claude/easywork/EasyWork_Report_{时间戳}.html`
+8. **默认输出为 HTML**：当用户未指定输出格式时（没有提供飞书链接、md文档路径、PR模板等），必须将完整工作流结果生成一个自包含的 HTML 文件（格式规范见 `assets/html-output-template.md`）。生成路径：`{项目根目录}/.claude/easywork/EasyWork_Report_{时间戳}.html`。写入前先确保 `.claude/easywork/` 目录存在（不存在则 `mkdir -p`）
 9. **步骤产出自检**：每步结束时，Agent 必须对照 `references/data-contract.md` 自检是否产出了所有 `[必填]` 字段。任一必填字段缺失或为空占位符（"无"/"N/A"）→ 补全后再进入下一步。此检查不可跳过
-10. **变更前 checkpoint**：在执行任何会修改文件的步骤前（CODE、以及 CODE↔REVIEW 回退修复），若项目为 git 仓库，先确保工作区干净或已 stash（stash 前须告知用户并等待 3 秒——详见 `references/security-policy.md` §1.5）。如果 REVIEW 回退达 3 轮上限 → `git stash pop` 恢复修改前的状态，挂起用户确认
+10. **变更前 checkpoint**：在执行任何会修改文件的步骤前（CODE、以及 CODE↔REVIEW 回退修复），若项目为 git 仓库，先确保工作区干净。需 stash 时，**必须等待用户明确回复同意**，禁止倒计时默认执行（详见 `references/security-policy.md` §1.5）。如果 REVIEW 回退达 3 轮上限 → 请求用户确认后 `git stash pop` 恢复修改前状态
 11. **Git 写操作必须用户确认**：`git add`/`commit`/`push`/`stash`/`reset`/`rebase`/`tag`/`branch -D`/PR创建/部署等操作，**绝对禁止**在用户明确说"可以执行"之前自动执行。GIT 步骤产出拆分方案后，将具体命令写入 `.claude/easywork/git-commands.sh`（或 `.bat`）供用户审查后手动执行。详见 `references/security-policy.md` §1
 12. **输出内容脱敏**：HTML 报告和 `workflow.log.jsonl` 不得包含 API Key/Token/密码/内部URL/完整日志/大段源码（>30行）/手机号/邮箱/数据库连接串。Agent 在保存报告前必须执行脱敏自检。详见 `references/security-policy.md` §2
 13. **自定义步骤必须预确认**：Agent 在任务分类后，列出所有发现的 custom skill（路径+名称+用途），等待用户确认后才执行。每次会话重新确认，不可沿用上次。详见 `references/security-policy.md` §3
 14. **文件写入限于项目目录**：所有 Write/Edit/Bash 写操作不得超出当前项目根目录。不得写入系统目录、上级目录、或 `/tmp` 中的敏感项目数据。详见 `references/security-policy.md` §5
+15. **仅在被显式调用时激活**：EasyWork 不是默认工作模式。Agent 仅在用户明确说"用 EasyWork"、"走 EasyWork 流程"、"EasyWork 模式"或类似显式调用时才启用完整 9 步流程。普通开发任务（用户说"修一下这个 bug"、"加个功能"、"帮我 review"）不自动套用 EasyWork 流程，除非用户明确要求。详见 `references/security-policy.md` §8
 
 ## 3. 上下文管理（防止爆上下文）
 

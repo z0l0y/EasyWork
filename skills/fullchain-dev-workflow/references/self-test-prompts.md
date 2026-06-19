@@ -24,17 +24,18 @@
 ### 测试 1：任务分类 — 纯理解
 
 ```prompt
-帮我看下 src/services/auth.service.ts 里的登录流程是怎么实现的，我想理解一下。
+用 EasyWork 帮我看下 src/services/auth.service.ts 里的登录流程是怎么实现的，我想理解一下。
 ```
 
 **预期行为**：
-- 自动加载 fullchain-dev-workflow
+- 用户说"用 EasyWork" → 加载 fullchain-dev-workflow
 - 分类为 🔍 纯理解
 - 步骤裁剪为：READ → GRAPH → SUM
 - 不执行 CODE/REVIEW/EXAMINE/GIT/TALK/ASK
 - 进度卡中 2-6、8-9 步标记 `[skip]`
 
 **通过标准**：
+- [ ] 仅在"用 EasyWork"触发后才加载（非自动加载）
 - [ ] 分类正确（纯理解）
 - [ ] 步骤裁剪正确（3步执行，6步跳过）
 - [ ] 没有修改任何代码
@@ -45,7 +46,7 @@
 ### 测试 2：任务分类 — 纯审查
 
 ```prompt
-帮我 review 下最近改的 src/utils/validator.ts，看有没有安全问题。
+用 EasyWork 帮我 review 下最近改的 src/utils/validator.ts，看有没有安全问题。
 ```
 
 **预期行为**：
@@ -96,7 +97,7 @@
 **通过标准**：
 - [ ] 分类正确（Bug修复）
 - [ ] GRAPH 正确跳过，其余 8 步执行
-- [ ] CODE 前执行 git stash（铁律#10）
+- [ ] CODE 前请求用户确认 git stash（铁律#10，禁止倒计时）
 - [ ] TALK 追溯到系统性根因（非表面原因）
 - [ ] 如果 REVIEW 发现安全问题，EXAMINE 自动追加安全测试
 
@@ -196,7 +197,7 @@
 - [ ] 回退循环正确计数
 - [ ] 第 3 轮后如果仍失败 → 挂起
 - [ ] 挂起时报告完整的问题和修复历程
-- [ ] 自动 git stash pop 恢复修改前状态
+- [ ] 请求用户确认后 git stash pop 恢复修改前状态
 
 ---
 

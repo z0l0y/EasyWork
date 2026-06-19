@@ -19,7 +19,7 @@ RESET="\033[0m"
 echo ""
 echo -e "${BOLD}╔══════════════════════════════════════════════╗${RESET}"
 echo -e "${BOLD}║     EasyWork 技能包安装脚本 (Unix)           ║${RESET}"
-echo -e "${BOLD}║     v2.2 — AI 全链路开发工作流               ║${RESET}"
+echo -e "${BOLD}║     v2.4 — AI 全链路开发工作流               ║${RESET}"
 echo -e "${BOLD}╚══════════════════════════════════════════════╝${RESET}"
 echo ""
 
@@ -185,9 +185,10 @@ else
     cat >> "$CLAUDE_MD" << EOF
 
 # EasyWork 全链路工作流 (v2.4, ${LEVEL}级)
-当用户需要进行代码开发、Bug 修复、代码审查或需求分析时，
+仅当用户明确说"用 EasyWork"、"走 EasyWork 流程"、"EasyWork 模式"时，
 加载 .claude/skills/easywork/fullchain-dev-workflow/SKILL.md
 并严格遵循其任务分类与流程编排规则。
+普通开发任务（用户说"修 bug""加功能""帮我 review"但未提及 EasyWork）不自动加载。
 
 ## 可单独调用的子技能
 - 需求理解: .claude/skills/easywork/read-requirements/SKILL.md

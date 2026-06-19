@@ -13,7 +13,7 @@
 每行一条 JSON，每步完成时追加：
 
 ```json
-{"session":"20260619-fix-login-500","step":"REVIEW","status":"pass","skipped":false,"tokens_est":4500,"duration_s":42,"ts":"2026-06-19T15:30:00Z"}
+{"session":"20260619-task-001","step":"REVIEW","status":"pass","skipped":false,"tokens_est":4500,"duration_s":42,"ts":"2026-06-19T15:30:00Z"}
 ```
 
 ---

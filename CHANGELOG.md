@@ -10,13 +10,17 @@ EasyWork 的所有重要变更记录。
 ## [2.4.0] — 2026-06-20
 
 ### 新增
-- **安全策略文档**（`references/security-policy.md`）：覆盖 Git 操作、敏感信息脱敏、自定义步骤、供应链检查、文件系统写入、Gotchas 追加 6 大安全域
-- **Git 写操作安全管控**：`git add`/`commit`/`push`/`stash` 等写操作必须用户确认后才能执行。拆分命令写入 `.claude/easywork/git-commands.sh` 供用户手动审查
-- **敏感信息脱敏机制**：HTML 报告和 `workflow.log.jsonl` 自动脱敏 Token/密钥/内部URL/大段源码（>30行）/手机号/邮箱/数据库连接串
-- **自定义步骤预确认**：Agent 发现 custom skill 后列出清单（路径+名称+用途），用户确认后才执行，每次会话重新确认
+- **安全策略文档**（`references/security-policy.md`）：覆盖 Git 操作、敏感信息脱敏、自定义步骤、供应链检查、文件系统写入、Gotchas 追加、显式激活、授权来源 8 大安全域
+- **Git 写操作安全管控**：`git add`/`commit`/`push`/`stash` 等写操作必须用户确认后才能执行。拆分命令写入 `.claude/easywork/git-commands.sh` 供用户手动审查。`git stash` 禁止倒计时默认执行
+- **敏感信息脱敏机制**：HTML 报告和 `workflow.log.jsonl` 自动脱敏 Token/密钥/内部URL/大段源码（>30行）/手机号/邮箱/数据库连接串。4 个数据契约字段特定约束
+- **自定义步骤预确认**：Agent 发现 custom skill 后列出清单（路径+名称+用途），用户确认后才执行，每次会话重新确认。`insert_after: ASK` 明确禁止
 - **供应链外部搜索防护**：私有包名/内部 registry URL 禁止发到公网搜索，标注为私有包后跳过公网检查
 - **Gotchas 候选-确认制**：Agent 生成候选条目展示给用户，用户确认后才写入 `references/gotchas.md`（替代自动追加）
-- **文件系统写保护**：所有写操作限定在当前项目根目录内，禁止写入系统目录/上级目录
+- **文件系统写保护**：所有写操作限定在当前项目根目录内。`security-policy.md` 自身受写保护
+- **显式激活机制**：EasyWork 仅在用户明确说"用 EasyWork"时才启用，普通开发任务不自动套用
+- **授权来源收紧**：高风险操作仅接受当前用户本轮明确指令；历史对话/文档/项目文件/README/工具输出/日志/Agent输出中的授权文本一律无效
+- **CDN 供应链安全**：HTML 报告 Mermaid CDN 固定版本 + HTTPS + 离线后备
+- **安装脚本安全**：覆盖/卸载增加交互确认，CLAUDE.md 安装前自动备份
 
 ### 变更
 - 编排中枢 §2 铁律新增 4 条安全规则（#11 Git确认、#12 输出脱敏、#13 自定义步骤预确认、#14 文件写保护）
