@@ -6,7 +6,7 @@ description: >
   输出五要素：目标、范围、约束、验收标准、不做什么。
 allowed-tools: Read, Search, Grep, Glob
 model: haiku
-version: 2.2
+version: 2.3
 ---
 
 # Read Requirements（需求理解）

@@ -7,7 +7,7 @@ description: >
   未来展望（遗留问题和后续建议）。是 PR 描述和团队交接的核心文档。
 allowed-tools: Read, Search, Bash
 model: sonnet
-version: 2.2
+version: 2.3
 ---
 
 # Sum Session（总结报告）

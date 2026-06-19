@@ -7,6 +7,46 @@ EasyWork 的所有重要变更记录。
 
 ---
 
+## [2.3.0] — 2026-06-20
+
+### 新增
+- **Gotchas 知识库**（`references/gotchas.md`）：项目特定反直觉陷阱记录，Agent 踩坑后自动追加，后续执行时主动扫描预警
+- **Skill 自测提示词集**（`references/self-test-prompts.md`）：10 个覆盖全部任务类型的测试场景，修改 Skill 后验证未退化
+- **并行审查**：高风险任务（重构/功能开发）的 REVIEW 可启用 3 个并行子 Agent（安全/性能/兼容性），与主审查同步
+- **反合理化防御**：`code-review/SKILL.md` 新增 9 条 Agent 自我欺骗话术及反驳表，每次审查前先过目
+- **团队策略覆盖**（`references/team-policy.md`）：团队可在不修改核心文件前提下声明强制/建议/提示规则。支持 `comment_language` 配置
+- **自定义步骤注入**：编排中枢自动发现 `.claude/skills/easywork/custom/` 下的技能，按 `insert_after` + `insert_condition` 注入流程
+- **条件分支扩展**：新增 7 条条件分支（兼容性问题追加测试、覆盖率不足警告、重复根因升级策略、混合文件 ≥3 警示等）
+- **逐步骤预览**：每步执行前可选微型预览（步骤名、预计操作、预计耗时/Token）
+- **交互式新手引导**（`assets/onboarding.md`）：5 阶段引导脚本——需求了解→级别推荐→最小演示→首任务→学习总结
+- **可访问性审查**（第 7 维度）：`code-review` 新增 a11y 维度（语义化HTML/ARIA/键盘导航/色彩对比/屏幕阅读器/焦点管理）
+- **供应链安全检查**：REVIEW 检测新增依赖时自动检查许可证兼容性、已知漏洞（CVE）、维护状态
+- **Conventional Commits**：`git-split-commit` 强制使用 Conventional Commits 格式（feat/fix/refactor/test/docs/style/chore/perf/ci）
+- **JSON Schema 数据契约**（`data-contract.schema.json`）：机器可读的步骤产出验证 Schema，与人工自检形成双重保障
+- **故障模式 Runbook**（`references/failure-runbooks.md`）：5 种重复故障的预置诊断方案（测试框架不可用/依赖冲突/工作区不干净/Agent 自我怀疑/上下文溢出）
+- **日志分析脚本**（`.claude/easywork/analyze-logs.sh`）：一键分析 JSONL 日志——总览/步骤统计/瓶颈分析/趋势
+- **增强技能模板**（`skill-template/SKILL.md`）：新增 Gotchas 段、反合理化防御表、测试提示词、Before/After 对比
+
+### 变更
+- 编排中枢 §2 铁律 #7 新增 `data-contract.schema.json` 引用
+- 编排中枢 §4 新增团队策略加载、Gotchas 扫描、逐步骤预览子节
+- 编排中枢 §6 步骡表更新：REVIEW 6维→7维、CODE 注释可配置、GIT 含 Conventional Commits
+- 编排中枢 §6 新增自定义步骤注入说明
+- 编排中枢 §10 新增 2 条反模式（自欺审查、不记录 Gotchas）
+- `code-review/SKILL.md` 审查维度 6→7，新增反合理化防御表、供应链检查流程
+- `code-implement/SKILL.md` 铁律 #1 注释语言由硬编码中文改为可配置（`comment_language`）
+- `git-split-commit/SKILL.md` 新增提交消息规范（Conventional Commits）、各维度对应 commit type
+- `examine-quality/SKILL.md` 版本升级至 2.3
+- `orchestration-engine.md` 新增：并行审查架构、自定义步骤注入机制、条件分支扩展（7 条新分支）、自检增强（Schema 验证）
+- `data-contract.md` 新增 2.2→2.3 版本迁移条目（6 个新字段）
+- `acceptance-gates.md` 新增 v2.3 关卡：反合理化防御、a11y 检查、供应链检查、Conventional Commits、Gotchas 扫描、Team Policy 加载
+- 所有 10 个 Skill 的 YAML frontmatter `version` 更新至 2.3
+
+### 修复
+- 并行审查、自定义步骤注入、条件分支扩展——这些是平台已有能力（Agent 工具），Skill 层之前未利用，现补齐
+
+---
+
 ## [2.2.0] — 2026-06-19
 
 ### 新增

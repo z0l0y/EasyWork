@@ -6,7 +6,7 @@ description: >
   人脑处理图像比文字快 10 倍——好的图表让审查者瞬间理解你在做什么。
 allowed-tools: Read, Search
 model: haiku
-version: 2.2
+version: 2.3
 ---
 
 # Graph Fullchain（架构可视化）
@@ -47,9 +47,25 @@ Mermaid 代码下方必须跟一个对照表：
 
 ### 规则 3：控制复杂度
 
-- 单张图 >20 个节点 → 拆成主图 + 子图
+- 单张图 >20 个节点 → 自动拆为主图 + 子图（而非硬截断）。主图展示顶层模块关系，子图展开关键模块内部细节
 - 连线交叉 >3 处 → 重排节点顺序
 - 嵌套 >5 层 → 用 subgraph 归组
+
+**主图+子图拆分示例**：
+```
+主图（顶层）:
+flowchart TD
+    A[API Gateway] --> B[Auth Service]
+    B --> C[User DB]
+    B --> D[Cache]
+
+子图（Auth Service 内部）:
+flowchart TD
+    B1[login()] --> B2[validateToken()]
+    B2 --> B3{角色检查}
+    B3 -->|admin| B4[返回全部权限]
+    B3 -->|user| B5[返回基础权限]
+```
 
 ### 规则 4：验证渲染
 

@@ -29,10 +29,10 @@
 | 步骤 | 产出物 |
 |------|--------|
 | READ | 五要素需求说明（目标/范围/约束/验收/不做） |
-| CODE | 变更记录（文件清单 + 改动原因 + 影响面） |
-| REVIEW | 审查报告（六维度扫描结果 + 问题清单） |
+| CODE | 变更记录（文件清单 + 改动原因 + 影响面；注释语言可配置） |
+| REVIEW | 审查报告（七维度扫描 + 反合理化防御 + 供应链检查） |
 | EXAMINE | 质量报告（测试命令 + 结果 + 新增测试） |
-| GIT | 拆分方案（按维度拆为多提交单元） |
+| GIT | 拆分方案（按维度拆为多提交单元 + Conventional Commits） |
 | GRAPH | Mermaid 图表 + 节点对照表 |
 | SUM | 六要素总结（背景→发现→问题→解决→效果→展望） |
 | TALK | 5-Whys 追溯 + Trade-offs + 工程规范 |
@@ -50,23 +50,30 @@
 - **核心原则**：只加载当前步骤的 SKILL.md，不一次性加载全部
 - **恢复方式**：每步完成自动输出 JSON 快照，清上下文后粘贴即可从中断处继续
 
-## 四条救命规则
+## 五条救命规则
 
 1. **不确定就挂起**：任何技术决策没有 100% 把握 → 停止 → 描述问题 → 给出选项 → 等用户指示
 2. **回退不超 3 次**：CODE↔REVIEW 来回到第 4 轮 → 挂起，可能有更深层问题
 3. **默认输出 HTML**：用户没指定输出格式 → 生成 `.claude/easywork/EasyWork_Report_{时间}.html`
 4. **每步自检必填字段**：每步结束对照 data-contract 检查产出，缺失立即补全
+5. **踩坑必须追加 Gotchas**：耗时 >10min 的 bug / 反直觉陷阱 / 用户指出的边界 → 追加到 gotchas.md
 
-## 🆕 v2.2 新特性
+## 🆕 v2.3 新特性
 
 | 特性 | 怎么用 |
 |------|--------|
-| **干跑预览** | 中高风险任务自动先出预览，你说"执行"才开始 |
-| **步骤自检** | 每步结束自动对照 data-contract 检查必填字段 |
-| **交叉审查** | REVIEW 后自动切换视角做二次安全抽查 |
-| **JSONL 日志** | 每步追加 `.claude/easywork/workflow.log.jsonl` |
-| **模型分层** | 不同步骤推荐不同模型（Haiku/Sonnet/Opus） |
-| **成熟度 L1/L2/L3** | 团队可按阶段选装 4/7/10 个技能 |
+| **Gotchas 知识库** | Agent 踩坑后自动追加；执行前扫描已知陷阱 |
+| **并行审查** | 高风险任务自动启用 3 个子 Agent 审查安全/性能/兼容 |
+| **反合理化防御** | 审查前先过目 9 条 Agent 自我欺骗话术 |
+| **团队策略覆盖** | 编辑 `references/team-policy.md` 声明团队规则 |
+| **自定义步骤** | 在 `.claude/skills/easywork/custom/` 下放置技能 |
+| **逐步骤预览** | 关键步骤执行前先输出微型预览 |
+| **交互式新手引导** | 说"带我入门"开始 5 阶段引导 |
+| **可访问性审查** | 前端代码自动检查 a11y（第 7 维度） |
+| **供应链检查** | 新增依赖自动检查 CVE + 许可证 + 维护状态 |
+| **Conventional Commits** | 提交消息自动生成 feat/fix/refactor 等格式 |
+| **JSONL 日志分析** | `bash .claude/easywork/analyze-logs.sh` 一键分析 |
+| **故障 Runbook** | 常见故障有预置诊断和修复方案 |
 
 ## 项目文件导航
 
@@ -82,6 +89,14 @@
 | 渐进式成熟度 L1/L2/L3 | `skills/fullchain-dev-workflow/references/maturity-levels.md` |
 | 编排引擎机制（DAG/自检/日志） | `skills/fullchain-dev-workflow/references/orchestration-engine.md` |
 | JSONL 日志分析 | `skills/fullchain-dev-workflow/references/log-analysis-guide.md` |
+| 编排引擎（并行审查/自定义步骤） | `skills/fullchain-dev-workflow/references/orchestration-engine.md` |
+| JSONL 日志分析 | `skills/fullchain-dev-workflow/references/log-analysis-guide.md` |
+| Gochas 知识库 | `skills/fullchain-dev-workflow/references/gotchas.md` |
+| 团队策略覆盖 | `skills/fullchain-dev-workflow/references/team-policy.md` |
+| 故障 Runbook | `skills/fullchain-dev-workflow/references/failure-runbooks.md` |
+| Skill 自测提示词 | `skills/fullchain-dev-workflow/references/self-test-prompts.md` |
+| 交互式新手引导 | `skills/fullchain-dev-workflow/assets/onboarding.md` |
+| 日志分析脚本 | `.claude/easywork/analyze-logs.sh` |
 | 安装脚本 | `install.bat` (Win) / `install.sh` (Unix) |
 | 故障排查 | `TROUBLESHOOTING.md` |
 | 版本历史 | `CHANGELOG.md` |

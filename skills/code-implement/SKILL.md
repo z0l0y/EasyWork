@@ -2,11 +2,11 @@
 name: code-implement
 description: >
   克制化代码实现。在 READ 阶段确认需求后执行。四条铁律：
-  注释用中文、复用现有模式不许造新轮子、禁止过度设计、不碰范围外代码。
+  注释语言可配置（默认中文）、复用现有模式不许造新轮子、禁止过度设计、不碰范围外代码。
   改最少的代码，做最精准的事。
 allowed-tools: Read, Write, Edit, Search, Grep, Glob, Bash
 model: sonnet
-version: 2.2
+version: 2.3
 ---
 
 # Code Implement（代码实现）
@@ -17,20 +17,45 @@ version: 2.2
 
 **可以跳过**：纯理解任务、代码已由人类写好只需审查的任务。
 
+## 注释语言配置（🆕 v2.3）
+
+代码注释的默认语言为**中文**。如果项目配置了其他语言，以此处为准：
+
+### 配置方式
+
+编排中枢在 READ 阶段读取 `references/team-policy.md` 中的 `comment_language` 设置：
+
+| 配置值 | 含义 | 行为 |
+|--------|------|------|
+| `chinese`（默认） | 中文注释 | 所有注释使用中文，解释"为什么这么做" |
+| `english` | 英文注释 | 所有注释使用英文，适合国际化团队 |
+| `auto` | 自动检测 | Agent 分析项目现有注释语言，跟随主流 |
+
+### 检测规则（auto 模式）
+
+1. 扫描项目中最近 10 次非 AI 提交的注释语言
+2. 以多数语言为准
+3. 如果中英混用 → 优先中文（因为这是 EasyWork 的发源语言）
+
 ## 四条铁律
 
-### 铁律 1：注释必须用中文
+### 铁律 1：注释说明"为什么"，语言可配置
 
-对每处新增或修改的逻辑，用中文注释说明"为什么这么做"：
+对每处新增或修改的逻辑，用注释说明"为什么这么做"。注释语言遵循上述 `comment_language` 配置。
 
 ```typescript
-// ✅ 好注释
+// ✅ 好注释（中文 — 默认）
 // 此处用 findIndex 而非 find，因为 users 列表可能包含已软删除的记录（status=-1），
 // 需同时匹配 id 和 status 才能准确定位活跃用户
 const idx = users.findIndex(u => u.id === targetId && u.status !== -1);
 
-// ❌ 差注释
-// set user name — 中英混杂，且没说明为什么
+// ✅ 好注释（英文 — comment_language: english）
+// Use findIndex instead of find because users list may contain soft-deleted records
+// (status=-1). Must match both id and status to locate the active user.
+const idx = users.findIndex(u => u.id === targetId && u.status !== -1);
+
+// ❌ 差注释（任何语言）
+// set user name — 没说明为什么，只是翻译了代码
 ```
 
 ### 铁律 2：复用现有模式
@@ -38,7 +63,7 @@ const idx = users.findIndex(u => u.id === targetId && u.status !== -1);
 - 写新函数前，先搜索项目中是否已有类似功能 → 扩展现有函数，不要新建
 - 项目用 `TimeFormatTool.js` 处理日期 → 在里面加方法，别引入 dayjs
 - 项目用 class 组件 → 新代码也用 class 组件，别切函数组件
-- 项目用回调风格 → 继续用回调，别切 async/await
+- 项目用回调风格 → 检查 team-policy 是否有迁移计划。有迁移计划 → 用新模式；无计划 → 继续用回调
 
 ### 铁律 3：禁止过度设计
 
@@ -77,3 +102,4 @@ const idx = users.findIndex(u => u.id === targetId && u.status !== -1);
 - ❌ 用 reduce/map/filter 连环套写一行"精妙"代码——这不是炫技场
 - ❌ 看到旁边代码少分号，顺手补上——收住你的手
 - ❌ 注释写"设置name为John"——这在说废话，要解释为什么设这个名字
+- ❌ 在不支持 async/await 的项目中引入 async/await——除非 team-policy 有明确迁移计划

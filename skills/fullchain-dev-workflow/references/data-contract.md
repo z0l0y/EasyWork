@@ -205,7 +205,7 @@ examine_output 显示 test_results.passed=12，
 
 ## 版本迁移
 
-### 当前版本：2.1
+### 当前版本：2.3
 
 `easywork_version` 字段用于标记状态快照的版本。不同版本间字段变更遵循以下规则。
 
@@ -223,6 +223,13 @@ examine_output 显示 test_results.passed=12，
 | 2.1 → 2.2 | 新增 | `review_output.cross_check`（可选二次独立抽查结果） |
 | 2.1 → 2.2 | 新增 | `step_selfcheck`（每步自检记录，含必填字段完整性） |
 | 2.1 → 2.2 | 无破坏 | 所有字段向后兼容，无删除/重命名 |
+| 2.2 → 2.3 | 新增 | `review_output.dimensions.accessibility`（第 7 审查维度：可访问性） |
+| 2.2 → 2.3 | 新增 | `review_output.supply_chain_check`（可选供应链安全检查结果） |
+| 2.2 → 2.3 | 新增 | `review_output.parallel_reviews`（可选并行审查结果） |
+| 2.2 → 2.3 | 新增 | `git_output.units[].commit_message`（Conventional Commits 格式提交消息） |
+| 2.2 → 2.3 | 新增 | `comment_language`（CODE 步骤注释语言配置：chinese/english/auto） |
+| 2.2 → 2.3 | 新增 | `custom_steps_completed`（自定义步骤完成记录） |
+| 2.2 → 2.3 | 无破坏 | 所有字段向后兼容，仅新增可选/扩展字段 |
 
 ### 快照迁移规则
 
