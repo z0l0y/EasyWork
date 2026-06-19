@@ -6,6 +6,8 @@ description: >
   需求验收、行为变化、数据影响、安全权限、测试覆盖、上线监控。
   用户的每项确认都是对上线风险的知情签字。
 allowed-tools: Read, Search
+model: sonnet
+version: 2.2
 ---
 
 # Ask Change Questions（人工确认）

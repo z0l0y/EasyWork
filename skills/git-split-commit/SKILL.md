@@ -5,6 +5,8 @@ description: >
   拆成可逐个审查的小提交单元。每个单元附带文件清单、改动说明、风险分析、
   验证方式。这是 HITL 的关键环节——让人类能轻松审查，而不是面对 40 个文件的 diff 直接点 Approve。
 allowed-tools: Bash, Read, Grep
+model: haiku
+version: 2.2
 ---
 
 # Git Split Commit（提交拆分）

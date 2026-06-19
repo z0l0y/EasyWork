@@ -3,6 +3,8 @@ name: your-skill-name
 description: >
   简要描述这个技能做什么（一句话）。Agent 会根据这个描述判断何时加载。
 allowed-tools: Read, Write, Bash, Search, Grep, Glob  # 根据实际需要删减
+model: sonnet  # haiku / sonnet / opus — 该技能推荐的模型 tier
+version: 1.0
 ---
 
 # {技能名称（中文）}

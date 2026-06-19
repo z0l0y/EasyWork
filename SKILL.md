@@ -42,7 +42,9 @@ skills/<skill-name>/
 - `assets/html-skeleton.html` — HTML 报告骨架（Agent 直接复制填充，无需从零生成）
 - `references/data-contract.md` — 步骤间数据传递契约（含版本迁移规则）
 - `references/language-matrix.md` — 语言/技术栈适配速查（Node/Python/Go/Java/Rust）
-- `references/maturity-levels.md` — 🆕 渐进式成熟度配置（L1/L2/L3）
+- `references/maturity-levels.md` — 渐进式成熟度配置（L1/L2/L3）
+- `references/orchestration-engine.md` — 编排引擎详细机制（DAG、并行、条件分支、自检、日志）
+- `references/log-analysis-guide.md` — JSONL 日志分析指南
 
 ## 使用入口
 

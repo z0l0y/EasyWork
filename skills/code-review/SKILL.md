@@ -5,6 +5,8 @@ description: >
   正确性、安全性、兼容性、可维护性、性能、可观测性。
   发现阻断性问题回退到 CODE 修复，循环上限 3 次，全部清零才放行。
 allowed-tools: Read, Search, Grep, Glob
+model: opus
+version: 2.2
 ---
 
 # Code Review（六维度自审查）

@@ -4,6 +4,8 @@ description: >
   全链路开发流程编排中枢。根据任务类型智能调整执行步骤（9步→按需裁剪）。
   内置任务分类器、步骤跳过机制、回退循环限制、全局异常SOP和Checklist打卡系统。
 allowed-tools: Read, Write, Bash, Search, Grep, Glob
+model: sonnet
+version: 2.2
 ---
 
 # Fullchain Dev Workflow（核心编排中枢）
@@ -16,7 +18,7 @@ allowed-tools: Read, Write, Bash, Search, Grep, Glob
 本模块的核心智能在于**任务分类前置**：先判断"这到底是个什么类型的任务"，然后裁剪步骤。
 用户始终保有最终决定权——可以接受建议的裁剪方案，也可以手动指定。
 
-> **新手引导**：如果你是第一次使用，先看 `assets/walkthrough-example.md` 中的两个端到端示例。
+> **新手引导**：如果你是第一次使用，先看 `assets/walkthrough-example.md` 中的三个端到端示例。
 
 ## 2. 全局铁律（不随步骤跳过而失效）
 
@@ -29,6 +31,7 @@ allowed-tools: Read, Write, Bash, Search, Grep, Glob
 7. **步骤间数据传递**：每步结束按 `references/data-contract.md` 中定义的字段输出，后续步骤引用前序字段而非靠上下文回忆
 8. **默认输出为 HTML**：当用户未指定输出格式时（没有提供飞书链接、md文档路径、PR模板等），必须将完整工作流结果生成一个自包含的 HTML 文件（格式规范见 `assets/html-output-template.md`）。生成路径：`{项目根目录}/.claude/easywork/EasyWork_Report_{时间戳}.html`
 9. **步骤产出自检（🆕 v2.2）**：每步结束时，Agent 必须对照 `references/data-contract.md` 自检是否产出了所有 `[必填]` 字段。任一必填字段缺失或为空占位符（"无"/"N/A"）→ 补全后再进入下一步。此检查不可跳过
+10. **变更前 checkpoint（🆕 v2.2）**：在执行任何会修改文件的步骤前（CODE、以及 CODE↔REVIEW 回退修复），若项目为 git 仓库，先确保工作区干净或已 stash。如果 REVIEW 回退达 3 轮上限 → 自动 `git stash pop` 恢复修改前的状态，挂起用户确认
 
 ## 3. 上下文管理（防止爆上下文）
 
@@ -232,107 +235,13 @@ Agent 加载本 Skill 后，**不要立刻开始流程**。先收集信息，输
 
 > **模型分层说明**：`快速`=低成本模型即可胜任（分类、格式转换、模板填充）；`标准`=通用模型（代码生成、文档撰写）；`深度`=需最强推理能力（多维度交叉审查、系统性根因追溯）。Agent 在调用时优先使用匹配的模型 tier 以优化成本和质量。平台不支持多模型时全部使用当前模型，此列仅作建议。
 
-**每步执行时**：Agent 加载对应子技能的 SKILL.md，按其 Checklist 和 SOP 执行。
-每步结束按 `references/data-contract.md` 输出结构化数据，供后续步骤引用。
+**每步执行时**：Agent 加载对应子技能的 SKILL.md，按其 Checklist 和 SOP 执行。每步结束按 `references/data-contract.md` 输出结构化数据，供后续步骤引用。
 
-### 步骤间依赖 DAG
+**依赖 DAG 与并行**：步骤间依赖为 `READ→CODE→REVIEW→EXAMINE→GIT→(GRAPH∥SUM)→TALK→ASK`。GRAPH 和 SUM 都可并行（都只依赖 GIT，无相互依赖），其余步骤严格串行。条件分支（如安全审查发现问题 → 自动追加安全测试）和完整 DAG 图见 `references/orchestration-engine.md`。
 
-```
-                        ┌─────────────────────────┐
-                        │       1. READ            │
-                        │    (理解需求，定基线)      │
-                        └───────────┬─────────────┘
-                                    │ scope + constraints
-                                    ▼
-                        ┌─────────────────────────┐
-                        │       2. CODE            │
-                        │    (依赖：READ 范围)      │
-                        └───────────┬─────────────┘
-                                    │ files_changed
-                                    ▼
-                        ┌─────────────────────────┐
-                        │      3. REVIEW           │
-                        │    (依赖：CODE 变更清单)   │
-                        └───────────┬─────────────┘
-                                    │ review_output.verdict
-                                    ▼
-                        ┌─────────────────────────┐
-                        │     4. EXAMINE           │
-                        │    (依赖：REVIEW 审查结论)  │
-                        └───────────┬─────────────┘
-                                    │ examine_output + files_changed
-                                    ▼
-                        ┌─────────────────────────┐
-                        │       5. GIT             │
-                        │    (依赖：CODE 变更清单)   │
-                        └───────────┬─────────────┘
-                                    │ git_output.units
-                    ┌───────────────┼───────────────┐
-                    ▼               ▼               ▼
-    ┌──────────────────┐  ┌──────────────────┐  ┌──────────────────┐
-    │   6. GRAPH       │  │    7. SUM        │  │   8. TALK        │
-    │ (依赖：GIT 清单)  │  │ (依赖：全部前序)   │  │ (依赖：SUM 根因)  │
-    └──────────────────┘  └────────┬─────────┘  └────────┬─────────┘
-                                   │                     │
-                                   └─────────┬───────────┘
-                                             │ sum_output + talk_output
-                                             ▼
-                                   ┌──────────────────┐
-                                   │    9. ASK        │
-                                   │ (依赖：全链产出)   │
-                                   └──────────────────┘
-```
+**每步产出强制自检**：每步结束时，Agent 必须对照 `references/data-contract.md` 检查所有 `[必填]` 字段是否已产出。`null`/`""`/`[]`/`"无"`/`"N/A"` 均视为未产出，必须补全后再进入下一步。跳过步骤也需自检并显式标注 `[skip]`。详细自检清单和必填字段速查表见 `references/orchestration-engine.md`。
 
-**并行规则**：
-- GRAPH ∥ SUM（都只依赖 GIT，无互相依赖）→ 上下文充裕时并发
-- GRAPH ∥ TALK（同上）
-- SUM → TALK（SUM 产出 problem+ solution 是 TALK 的 5-Whys 起点，TALK 必须在 SUM 之后）
-- ASK 永远最后（依赖 SUM 的风险点和 TALK 的根因）
-
-**条件分支**（🆕 v2.2）：
-- REVIEW 发现 `security.status = "issues_found"` → EXAMINE 自动追加安全相关测试用例
-- EXAMINE 发现已有测试失败（非本次改动导致）→ 标注后继续，不阻塞流程
-- TALK 的 5-Whys 触及第三方黑盒 → 自动降级为"标注黑盒边界 + 防御建议"，不强行追问
-
-### 步骤产出强制自检（🆕 v2.2）
-
-**每步结束时（含被跳过的步骤），Agent 必须执行以下自检：**
-
-```
-【步骤自检 — {步骤名}】
-对照 data-contract.md 中 {步骤名}_output 的 [必填] 字段：
-
-- [ ] {field_1} — 值：{实际值} — ✅ 非空 / ⚠️ 需补全
-- [ ] {field_2} — 值：{实际值} — ✅ 非空 / ⚠️ 需补全
-- [ ] ...
-
-自检结论：✅ 全部必填字段已产出 / ⚠️ {N} 个字段需补全
-```
-
-**自检规则**：
-1. **必填字段不可为空**——`null`、`""`、`[]`、`"无"`、`"N/A"` 均视为未产出
-2. **缺失时立即补全**——不得以"后续步骤会补充"为由跳过
-3. **跳过步骤也需自检**——标记为 `[skip]` 且不产出对应字段，但需在自检中显式标注 `[skip]`
-4. **自检不可跳过**——即使是重复执行或低风险任务
-
-### 结构化日志输出（🆕 v2.2）
-
-每步完成后，Agent 向 `.claude/easywork/workflow.log.jsonl` 追加一行 JSON：
-
-```jsonl
-{"session":"{session_id}","step":"READ","status":"pass","skipped":false,"tokens_est":4200,"duration_s":18,"ts":"2026-06-19T15:30:00Z"}
-```
-
-**字段说明**：
-- `session` — 本次工作流会话 ID（时间戳+任务摘要）
-- `step` — 步骤名（READ/CODE/REVIEW/EXAMINE/GIT/GRAPH/SUM/TALK/ASK）
-- `status` — `pass` | `pass_with_fixes` | `skip` | `blocked` | `fail`
-- `skipped` — 是否被跳过
-- `tokens_est` — 本步估算消耗 token 数
-- `duration_s` — 本步耗时（秒）
-- `ts` — ISO 8601 时间戳
-
-日志用于事后分析（哪个步骤最耗时、哪个最常失败），不用于实时决策。
+**结构化日志**：每步完成向 `.claude/easywork/workflow.log.jsonl` 追加一行 JSON（字段：session/step/status/skipped/tokens_est/duration_s/ts）。分析指南见 `references/log-analysis-guide.md`。
 
 ## 7. 进度卡模板
 

@@ -5,6 +5,8 @@ description: >
   三个阶段：5-Whys 根因追溯（连续追问到系统性原因）、Trade-offs 取舍分析
   （诚实记录代价）、工程规范提炼（输出可落地的团队规则）。
 allowed-tools: Read, Search
+model: opus
+version: 2.2
 ---
 
 # Talk Retro（深度复盘）

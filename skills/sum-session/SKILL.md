@@ -6,6 +6,8 @@ description: >
   解决方案（怎么修的+为什么这样修）→ 最终效果（客观验证结果）→
   未来展望（遗留问题和后续建议）。是 PR 描述和团队交接的核心文档。
 allowed-tools: Read, Search, Bash
+model: sonnet
+version: 2.2
 ---
 
 # Sum Session（总结报告）

@@ -5,6 +5,8 @@ description: >
   Mermaid 图表（流程图/时序图/架构图）。图中的每个节点必须在实际代码中有对应实体。
   人脑处理图像比文字快 10 倍——好的图表让审查者瞬间理解你在做什么。
 allowed-tools: Read, Search
+model: haiku
+version: 2.2
 ---
 
 # Graph Fullchain（架构可视化）

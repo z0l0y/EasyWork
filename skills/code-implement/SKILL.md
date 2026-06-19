@@ -5,6 +5,8 @@ description: >
   注释用中文、复用现有模式不许造新轮子、禁止过度设计、不碰范围外代码。
   改最少的代码，做最精准的事。
 allowed-tools: Read, Write, Edit, Search, Grep, Glob, Bash
+model: sonnet
+version: 2.2
 ---
 
 # Code Implement（代码实现）

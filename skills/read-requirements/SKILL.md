@@ -5,6 +5,8 @@ description: >
   文档/截图/报错日志/现有代码/一句话需求，都先完整理解再动手。
   输出五要素：目标、范围、约束、验收标准、不做什么。
 allowed-tools: Read, Search, Grep, Glob
+model: haiku
+version: 2.2
 ---
 
 # Read Requirements（需求理解）

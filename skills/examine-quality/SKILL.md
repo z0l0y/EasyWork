@@ -4,6 +4,8 @@ description: >
   测试执行与质量验证。REVIEW 之后执行。不信"看起来对"，只信跑出来的结果。
   流程：找测试命令 → 运行 → 无测试则补 → 失败则修 → 重跑到全绿。
 allowed-tools: Bash, Read, Write, Search, Grep, Glob
+model: sonnet
+version: 2.2
 ---
 
 # Examine Quality（测试执行）
