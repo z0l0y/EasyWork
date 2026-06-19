@@ -62,6 +62,11 @@
 | 新手入门，端到端示例 | `skills/fullchain-dev-workflow/assets/walkthrough-example.md` |
 | 完整输出模板 | `skills/fullchain-dev-workflow/assets/output-template.md` |
 | HTML 输出格式规范 | `skills/fullchain-dev-workflow/assets/html-output-template.md` |
+| HTML 骨架（可直接复制） | `skills/fullchain-dev-workflow/assets/html-skeleton.html` |
 | 步骤间数据契约 | `skills/fullchain-dev-workflow/references/data-contract.md` |
 | 每步验收标准 | `skills/fullchain-dev-workflow/references/acceptance-gates.md` |
-| 安装到 Claude Code | `README.md` §"安装到 Claude Code" |
+| 语言/框架适配速查 | `skills/fullchain-dev-workflow/references/language-matrix.md` |
+| 安装脚本 | `install.bat` (Win) / `install.sh` (Unix) |
+| 故障排查 | `TROUBLESHOOTING.md` |
+| 版本历史 | `CHANGELOG.md` |
+| 创建自定义技能 | `skill-template/` |

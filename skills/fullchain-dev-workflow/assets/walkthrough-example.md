@@ -239,3 +239,272 @@ sequenceDiagram
 **后续建议**：建议补充支付超时处理（15 分钟未支付的订单自动取消），当前代码中未实现。
 
 ### 步骤 8~9：TALK/ASK — [skip] 纯理解任务
+
+---
+
+## 示例 3：功能开发 — "给商品模块加一个收藏功能"
+
+### 用户输入
+> 用户反馈希望可以收藏商品，方便以后购买。需要在商品详情页加一个收藏按钮，用户可以在"我的收藏"页面看到所有已收藏的商品。收藏不需要登录——未登录用户点收藏时跳转到登录页。
+
+### 阶段 0：任务分类
+
+| 维度 | 判断 |
+|------|------|
+| 改动性质 | 🚀 功能开发 |
+| 影响范围 | 🟡 中风险（涉及新接口+新页面+数据库新表） |
+| 预估文件数 | 8-10 个 |
+
+**裁剪方案**：全部 9 步（功能开发默认走全链路）
+
+### 步骤 1：READ（需求理解）
+
+Agent 搜索现有商品模块结构：
+```
+$ grep -r "product\|商品" --include="*.ts" src/
+找到商品路由(product.ts)、Service、Model，共 6 个核心文件。
+```
+
+Agent 搜索现有收藏/点赞功能的实现模式：
+```
+$ grep -r "favorite\|like\|收藏\|点赞" --include="*.ts" src/
+未找到现有实现 → 这是一个全新的功能。
+```
+
+Agent 输出五要素：
+- **目标**：实现商品收藏功能——用户可收藏/取消收藏商品，在"我的收藏"页面查看已收藏列表
+- **范围**：
+  - 新增：`favorite` 表（migration）、`FavoriteModel`、`FavoriteService`、收藏路由、收藏按钮组件、"我的收藏"页面
+  - 遵循项目现有的 MVC 模式
+- **约束**：
+  - 未登录用户点收藏跳转登录页（不弹窗）
+  - 收藏列表需分页（每页 20 条），按收藏时间倒序
+  - 商品已下架时在收藏列表中标注"已下架"而非直接隐藏
+  - 不要改动商品 Service 和 Model 的现有接口
+- **验收**：
+  - (1) 已登录用户点收藏 → 收藏成功，按钮状态变为"已收藏"
+  - (2) 已登录用户点取消收藏 → 取消成功，按钮状态变为"收藏"
+  - (3) 未登录用户点收藏 → 跳转登录页
+  - (4) "我的收藏"页面——分页、倒序、已下架标注
+  - (5) 同一用户对同一商品不能重复收藏
+  - (6) 所有新增代码有测试覆盖
+- **不做**：不做收藏夹分组、不做收藏商品降价提醒、不做"猜你喜欢"推荐
+
+### 步骤 2：CODE（代码实现）
+
+Agent 按项目现有 MVC 模式实现：
+
+**变更清单**：
+
+| 文件 | 改动类型 | 改动量 | 原因 |
+|------|---------|--------|------|
+| `migrations/20260619_create_favorites.sql` | 新增 | ~15行 | 创建 favorites 表(user_id, product_id, created_at)，联合唯一索引(user_id, product_id) |
+| `src/models/favorite.model.ts` | 新增 | ~30行 | FavoriteModel，参考项目现有 UserModel 风格 |
+| `src/services/favorite.service.ts` | 新增 | ~80行 | FavoriteService：add/remove/list/check 四个方法 |
+| `src/routes/favorite.ts` | 新增 | ~40行 | 收藏路由：POST /add, POST /remove, GET /list, GET /check |
+| `src/middleware/auth.ts` | 修改 | ~5行 | 新增可选鉴权中间件 `optionalAuth`（未登录不报错，用于 check 接口） |
+| `src/components/FavoriteButton.vue` | 新增 | ~60行 | 收藏按钮组件，根据登录状态和收藏状态切换样式和行为 |
+| `src/pages/MyFavorites.vue` | 新增 | ~90行 | "我的收藏"页面：分页列表、已下架标注、取消收藏操作 |
+| `src/app.ts` | 修改 | ~3行 | 注册 favorite 路由 |
+| `tests/favorite.service.test.ts` | 新增 | ~120行 | FavoriteService 单元测试（8个用例） |
+| `tests/favorite.api.test.ts` | 新增 | ~80行 | 收藏 API 集成测试（6个用例） |
+
+**关键实现决策**：
+```typescript
+// FavoriteService.add() — 用 INSERT IGNORE 或 try-catch 防止重复收藏
+// 之所以用数据库唯一索引而非应用层查重：
+// (1) 数据库约束是最后防线，防止并发场景下重复插入
+// (2) 应用层 catch 到唯一约束冲突时返回"已收藏"而非抛异常
+const result = await db.query(
+  'INSERT INTO favorites (user_id, product_id) VALUES (?, ?)',
+  [userId, productId]
+);
+```
+
+**实现原则遵守**：
+- ✓ 中文注释说明"为什么用 INSERT IGNORE 而非 SELECT + INSERT"
+- ✓ 复用项目现有的 `db.query()` 封装（而非引入 ORM）
+- ✓ 收藏按钮组件风格参照项目现有的 `AddToCartButton.vue`
+- ✓ 未碰商品模块的任何现有代码
+
+### 步骤 3：REVIEW（六维度自审查）
+
+| 维度 | 结论 | 发现 |
+|------|------|------|
+| 正确性 | ✅ 通过 | 所有入口做了登录状态判断；favorites 表联合唯一索引防重复；分页参数做了边界校验(page≥1, pageSize≤100) |
+| 安全性 | ⚠️ 有轻微问题 | POST /add 接收 productId 但未校验该商品是否存在——可能收藏已下架或已删除的商品。**建议**：add 时先查 product 表确认商品存在且上架 |
+| 兼容性 | ✅ 通过 | 新表、新路由、新组件，不影响现有功能；auth middleware 新增可选鉴权，不改变现有必选鉴权行为 |
+| 可维护性 | ✅ 通过 | 中文注释充分；FavoriteService 四个方法职责单一；组件命名与项目一致(PascalCase) |
+| 性能 | ✅ 通过 | 收藏列表有分页(20条/页)；联合索引覆盖查询；收藏按钮用防抖(300ms)防止连点 |
+| 可观测性 | ✅ 通过 | 收藏/取消收藏 catch 分支有日志；关键操作(收藏成功/失败)有 info 日志 |
+
+→ **发现 1 个问题**：add 时未校验商品是否存在。回退 CODE 修复。
+
+**修复**：在 `FavoriteService.add()` 开头增加：
+```typescript
+// 先校验商品是否存在且上架——防止收藏已下架商品
+const product = await ProductModel.findById(productId);
+if (!product || product.status !== 'online') {
+  throw new BadRequestError('商品不存在或已下架');
+}
+```
+
+修复后重新审查 → 六维度全部通过 ✅。
+
+### 步骤 4：EXAMINE（测试执行）
+
+```bash
+$ npm test -- --testPathPattern="favorite"
+
+ PASS  tests/favorite.service.test.ts
+  ✓ add() — 正常收藏商品
+  ✓ add() — 重复收藏返回"已收藏"
+  ✓ add() — 收藏不存在的商品返回错误
+  ✓ add() — 收藏已下架商品返回错误（新增——覆盖 REVIEW 发现的问题）
+  ✓ remove() — 正常取消收藏
+  ✓ remove() — 取消不存在的收藏返回"未收藏"
+  ✓ list() — 分页返回收藏列表
+  ✓ list() — 已下架商品标注 status='offline'
+  ✓ check() — 未收藏返回 false
+  ✓ check() — 已收藏返回 true
+
+ PASS  tests/favorite.api.test.ts
+  ✓ POST /api/favorite/add — 200 收藏成功
+  ✓ POST /api/favorite/add — 401 未登录
+  ✓ POST /api/favorite/add — 400 重复收藏
+  ✓ POST /api/favorite/remove — 200 取消成功
+  ✓ GET /api/favorite/list — 200 分页列表
+  ✓ GET /api/favorite/check — 200 收藏状态
+
+Tests: 16 passed, 0 failed
+```
+
+→ 全绿通过 ✅。测试覆盖了 Happy Path + 边界条件 + 安全校验场景。
+
+### 步骤 5：GIT（提交拆分）
+
+共 10 个文件，跨 4 个维度。拆为 4 个提交单元：
+
+| # | 维度 | 文件数 | 风险 | 描述 |
+|---|------|--------|------|------|
+| 1 | 数据层 | 2 | 低 | favorites 表 migration + Model |
+| 2 | 核心逻辑 | 4 | 高 ⚠️ | FavoriteService + 路由 + auth 中间件 + 路由注册 |
+| 3 | UI 层 | 2 | 中 | FavoriteButton 组件 + MyFavorites 页面 |
+| 4 | 测试 | 2 | 低 | Service 测试 + API 测试 |
+
+**提交 2（核心逻辑）标记为高风险**——涉及新增 API 接口和可选鉴权中间件。审查时重点看：
+- `optionalAuth` 中间件是否真的"可选"（不登录不报错）
+- `FavoriteService` 的事务边界是否正确
+- 路由是否正确注册且没有与现有路由冲突
+
+### 步骤 6：GRAPH（架构可视化）
+
+```mermaid
+sequenceDiagram
+    participant 用户 as 用户（前端）
+    participant Btn as FavoriteButton 组件
+    participant API as /api/favorite/*
+    participant Auth as AuthMiddleware
+    participant Svc as FavoriteService
+    participant DB as MySQL
+
+    用户->>Btn: 点击收藏按钮
+    Btn->>Btn: 检查登录状态
+    alt 未登录
+        Btn-->>用户: 跳转登录页
+    else 已登录
+        Btn->>API: POST /api/favorite/add { productId }
+        API->>Auth: 校验 JWT Token
+        Auth-->>API: 用户信息
+        API->>Svc: add(userId, productId)
+        Svc->>DB: 查询商品是否存在且上架
+        alt 商品无效
+            Svc-->>API: 抛出 BadRequestError
+            API-->>Btn: 400 商品不存在或已下架
+        else 商品有效
+            Svc->>DB: INSERT INTO favorites
+            alt 已收藏（唯一索引冲突）
+                Svc-->>API: 返回"已收藏"
+            else 收藏成功
+                Svc-->>API: 返回成功
+            end
+            API-->>Btn: 200 收藏成功
+            Btn->>Btn: 切换为"已收藏"状态
+        end
+    end
+
+    Note over 用户,DB: 收藏列表查询流程
+
+    用户->>API: GET /api/favorite/list?page=1&pageSize=20
+    API->>Auth: 校验 JWT Token
+    API->>Svc: list(userId, page, pageSize)
+    Svc->>DB: SELECT f.*, p.name, p.price, p.status FROM favorites f JOIN products p ON f.product_id = p.id WHERE f.user_id = ? ORDER BY f.created_at DESC LIMIT ?,?
+    DB-->>Svc: 收藏列表 + 商品信息
+    Svc-->>API: { items: [...], total: N, page: 1 }
+    API-->>用户: 渲染收藏列表（已下架标注"已下架"标签）
+```
+
+| 图中节点 | 代码实体 | 文件位置 |
+|---------|---------|---------|
+| FavoriteButton 组件 | `<FavoriteButton>` | `src/components/FavoriteButton.vue` |
+| POST /api/favorite/add | `router.post('/add', ...)` | `src/routes/favorite.ts:8` |
+| AuthMiddleware | `authenticate()` | `src/middleware/auth.ts:15` |
+| FavoriteService | `class FavoriteService` | `src/services/favorite.service.ts` |
+| INSERT INTO favorites | `FavoriteService.add()` | `src/services/favorite.service.ts:22` |
+| GET /api/favorite/list | `router.get('/list', ...)` | `src/routes/favorite.ts:28` |
+
+### 步骤 7：SUM（总结报告）
+
+**背景**：用户反馈希望收藏商品以便后续购买。这是电商基础功能，竞品均有此功能，缺失会影响用户留存和复购率。
+
+**发现过程**：需求描述清晰（收藏→列表→未登录跳转）→ 搜索项目现有模式（MVC + 组件化）→ 按现有模式设计实现方案。
+
+**问题说明**：项目缺少商品收藏功能，用户无法标记感兴趣的商品，无法形成"浏览→收藏→购买"的用户行为闭环。
+
+**解决方案**：按项目 MVC 模式新增完整收藏功能——favorites 表（联合唯一索引防重复）、FavoriteService（CRUD）、RESTful API（add/remove/list/check）、FavoriteButton 组件（防抖+登录检查）和 MyFavorites 收藏列表页（分页+已下架标注）。选择 RESTful API + 服务端渲染列表而非 localStorage 前端方案——因为用户跨设备访问时需要收藏同步。
+
+**最终效果**：16 个测试全绿。REVIEW 发现的商品存在性校验问题已修复。
+
+| 功能点 | 验收标准 | 状态 |
+|--------|---------|------|
+| 收藏商品 | 已登录用户点击→收藏成功，按钮变"已收藏" | ✅ |
+| 取消收藏 | 再次点击→取消成功，按钮变回"收藏" | ✅ |
+| 未登录拦截 | 未登录用户点击→跳转登录页 | ✅ |
+| 收藏列表 | 分页20条、倒序、已下架标注 | ✅ |
+| 防重复收藏 | 同一用户同一商品重复收藏→返回"已收藏"不报错 | ✅ |
+
+**未来展望**：(1) 上线后观察 favorites 表增长速率，如日增 > 1 万条考虑加 Redis 缓存；(2) 下个迭代评估收藏夹分组和批量管理功能；(3) 收藏数据可接入推荐算法作为召回信号。
+
+### 步骤 8：TALK（复盘分析）
+
+**5-Whys 追溯**（功能开发通常没有"出错"的追溯，但从"为什么收藏功能到现在才做"的角度追问设计决策）：
+
+| 层级 | 追问与回答 |
+|------|-----------|
+| Why1 | 为什么收藏功能现在才做？→ 需求优先级排得低，先做了核心交易链路 |
+| Why2 | 为什么收藏对交易链路重要？→ 数据显示加入收藏的商品购买转化率 23%，远高于直接搜索购买的 4% |
+| Why3 | 为什么以前没有这个数据？→ 产品埋点刚覆盖用户行为全链路 |
+| Why4 | 为什么埋点这么晚？→ 团队早期人力紧张，数据基础设施排到第三个季度 |
+| → 启示 | 数据基础设施的滞后导致功能优先级判断依赖主观经验而非客观数据 |
+
+**Trade-offs 分析**：
+
+| 取舍项 | 好处 | 代价 | 主动/被迫 | 后续 |
+|--------|------|------|----------|------|
+| 服务端列表而非客户端 localStorage | 跨设备同步 | 每次加载需 API 请求 | 主动 | P0 正确选择 |
+| 列表 JOIN products 而非缓存商品信息 | 商品信息始终最新（价格/状态） | 列表查询稍慢（约 30ms） | 主动 | 数据量大了加 Redis 缓存 |
+| 不建推荐模型，纯收藏列表 | 实现简单，快速上线 | 无法做个性化推荐 | 主动 | 下季度引入推荐 |
+
+**工程规范提炼**：
+> "所有涉及用户操作的写接口（add/remove/update），必须在 Service 层做输入合法性校验（含业务校验，如'操作的资源是否存在'），不能只依赖数据库约束。数据库唯一索引作为并发场景的最后防线。"
+
+### 步骤 9：ASK（人工确认）
+
+- **需求与验收**：收藏+列表+未登录跳转均实现。收藏夹分组、降价提醒等高级功能未在本次范围 → ✅ 确认
+- **行为变化**：auth 中间件新增 `optionalAuth`（不改变现有行为）。新路由 `/api/favorite/*` 不影响现有路由 → ✅ 确认
+- **数据与回滚**：新增 favorites 表。回滚需 DROP TABLE + 删除路由注册和组件。favorites 数据丢失是否可接受？→ ⏳ 确认中
+- **安全与权限**：add 接口校验了商品存在性。用户只能查看/取消自己的收藏（通过 userId 隔离）。未登录用户拦截在组件层+API层双重保障 → ✅ 确认
+- **测试覆盖**：16 测试全绿。未覆盖场景：大量并发收藏的数据库压力测试 → ⏳ 确认中
+- **上线与监控**：建议灰度 10% 观察 2h（关注 favorites 表写入 QPS 和 API P99 延迟）。回滚：git revert + 删除 favorites 表 → ✅ 确认
+
+→ 全部确认完毕。工作流完结。

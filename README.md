@@ -21,8 +21,31 @@ v1.0 强制所有任务走完 9 步，这很安全但也很烦——改一个文
 
 ## 工作流：9 步 → 按需裁剪
 
-```
-用户输入 → [任务分类器] → 确认裁剪方案 → 执行裁剪后的步骤
+```mermaid
+flowchart TD
+    START[👤 用户输入] --> CLASSIFY{🔍 任务分类器<br/>意图路由 + 7种任务类型}
+    CLASSIFY -->|纯理解| R1[1.READ]
+    CLASSIFY -->|纯审查| R2[1.READ]
+    CLASSIFY -->|微调| R3[1.READ]
+    CLASSIFY -->|Bug修复| R4[1.READ]
+    CLASSIFY -->|重构| R5[1.READ]
+    CLASSIFY -->|功能开发| R6[1.READ]
+    CLASSIFY -->|纯文档| R7[1.READ]
+
+    R7 --> C7[2.CODE] --> RV7[3.REVIEW] --> G7[5.GIT] --> S7[7.SUM] --> A7[9.ASK]
+    R3 --> C3[2.CODE] --> RV3[3.REVIEW] --> G3[5.GIT]
+    R2 --> RV2[3.REVIEW]
+    R1 --> G1[6.GRAPH] --> S1[7.SUM]
+
+    R4 --> C4[2.CODE] --> RV4[3.REVIEW] --> E4[4.EXAMINE] --> G4[5.GIT] --> S4[7.SUM] --> T4[8.TALK] --> A4[9.ASK]
+    R5 --> C5[2.CODE] --> RV5[3.REVIEW] --> E5[4.EXAMINE] --> G5[5.GIT] --> GR5[6.GRAPH] --> S5[7.SUM] --> T5[8.TALK] --> A5[9.ASK]
+    R6 --> C6[2.CODE] --> RV6[3.REVIEW] --> E6[4.EXAMINE] --> G6[5.GIT] --> GR6[6.GRAPH] --> S6[7.SUM] --> T6[8.TALK] --> A6[9.ASK]
+
+    style CLASSIFY fill:#e8f0fe,stroke:#1a73e8
+    style R4 fill:#fef7e0,stroke:#f9ab00
+    style R5 fill:#fef7e0,stroke:#f9ab00
+    style R6 fill:#fef7e0,stroke:#f9ab00
+    style R1 fill:#fce8e6,stroke:#ea4335
 ```
 
 | 步骤 | 技能 | 核心职责 | Bug修复 | 功能开发 | 微调 | 纯理解 |
@@ -60,37 +83,189 @@ v1.0 强制所有任务走完 9 步，这很安全但也很烦——改一个文
 ### 5. 反模式显式化
 每个技能不仅有"应该做什么"，更有"禁止做什么"。研究表明，AI 对"不要做 X"的遵循度高于"要做 Y"。
 
-## 安装到 Claude Code
+## 安装方式
 
-在目标项目的 `CLAUDE.md` 中添加：
+### 方式 A：一键安装脚本（推荐）
+
+**Windows**：
+```cmd
+F:\AIG\EasyWork\install.bat  [目标项目路径]
+:: 不传参数则安装到当前目录
+```
+
+**macOS / Linux**：
+```bash
+chmod +x F:\AIG\EasyWork\install.sh
+./install.sh  [目标项目路径]
+# 不传参数则安装到当前目录
+```
+
+脚本会自动完成：复制技能文件 → 创建 `.claude/skills/easywork/` → 追加配置到 `CLAUDE.md`。
+
+**卸载**：
+```bash
+./install.sh --uninstall /path/to/project   # Unix
+install.bat 然后手动删除                      # Windows
+```
+
+### 方式 B：手动安装
+
+#### 1. 复制技能文件
+
+将 `skills/` 目录复制到目标项目的 `.claude/skills/easywork/` 下：
+
+```
+目标项目/
+├── .claude/
+│   └── skills/
+│       └── easywork/
+│           ├── SKILL.md                           # 索引入口
+│           ├── README.md
+│           ├── QUICKREF.md
+│           ├── fullchain-dev-workflow/   # 编排中枢
+│           ├── read-requirements/        # 步骤1
+│           ├── code-implement/           # 步骤2
+│           ├── code-review/              # 步骤3
+│           ├── examine-quality/          # 步骤4
+│           ├── git-split-commit/         # 步骤5
+│           ├── graph-fullchain/          # 步骤6
+│           ├── sum-session/              # 步骤7
+│           ├── talk-retro/               # 步骤8
+│           └── ask-change-questions/     # 步骤9
+├── CLAUDE.md   ← 下面要编辑这个文件
+└── ...
+```
+
+#### 2. 配置到各平台的入口文件
+
+**平台一：Claude Code（VS Code / JetBrains / CLI）**
+
+编辑目标项目的 `CLAUDE.md`（如不存在则新建），添加：
 
 ```markdown
 # EasyWork 全链路工作流
 当用户需要进行代码开发、Bug 修复、代码审查或需求分析时，
-加载 F:\AIG\EasyWork\skills\fullchain-dev-workflow\SKILL.md
+加载 .claude/skills/easywork/fullchain-dev-workflow/SKILL.md
 并严格遵循其任务分类与流程编排规则。
 
 ## 可单独调用的子技能
-- 需求理解: F:\AIG\EasyWork\skills\read-requirements\SKILL.md
-- 代码实现: F:\AIG\EasyWork\skills\code-implement\SKILL.md
-- 代码审查: F:\AIG\EasyWork\skills\code-review\SKILL.md
-- 质量验证: F:\AIG\EasyWork\skills\examine-quality\SKILL.md
-- 提交拆分: F:\AIG\EasyWork\skills\git-split-commit\SKILL.md
-- 图表绘制: F:\AIG\EasyWork\skills\graph-fullchain\SKILL.md
-- 总结报告: F:\AIG\EasyWork\skills\sum-session\SKILL.md
-- 深度复盘: F:\AIG\EasyWork\skills\talk-retro\SKILL.md
-- 人工确认: F:\AIG\EasyWork\skills\ask-change-questions\SKILL.md
+- 需求理解: .claude/skills/easywork/read-requirements/SKILL.md
+- 代码实现: .claude/skills/easywork/code-implement/SKILL.md
+- 代码审查: .claude/skills/easywork/code-review/SKILL.md
+- 质量验证: .claude/skills/easywork/examine-quality/SKILL.md
+- 提交拆分: .claude/skills/easywork/git-split-commit/SKILL.md
+- 图表绘制: .claude/skills/easywork/graph-fullchain/SKILL.md
+- 总结报告: .claude/skills/easywork/sum-session/SKILL.md
+- 深度复盘: .claude/skills/easywork/talk-retro/SKILL.md
+- 人工确认: .claude/skills/easywork/ask-change-questions/SKILL.md
 ```
 
-也可以将 `skills/` 目录复制到 `.claude/skills/` 下，Claude Code 会自动发现项目级 skills。
+✅ Claude Code 支持所有 EasyWork 特性：子 Agent 隔离、多技能加载、Bash 测试执行。
 
-## 安装到其他平台
+---
 
-### GitHub Copilot
-在 `.github/copilot-instructions.md` 中引用上述子技能路径和关键约束（中文注释、复用模式等）。
+**平台二：GitHub Copilot（VS Code / CLI）**
 
-### Cursor / Windsurf
-在 `.cursorrules` 或 `.windsurfrules` 中定义工作流规则，引用 EasyWork 的 skills 路径。
+在项目根目录新建 `.github/copilot-instructions.md`：
+
+```markdown
+# EasyWork 全链路工作流规则
+
+你需要在每次代码任务中遵守以下 EasyWork 工作流规则：
+
+## 任务分类
+在动手之前先判断任务类型：
+- 纯理解（只看不改）→ 需求分析 + 总结
+- 纯审查 → 需求分析 + 六维度审查
+- 微调 → 需求分析 + 实现 + 审查 + 提交拆分
+- Bug修复 → 需求分析 + 实现 + 审查 + 测试 + 提交拆分 + 总结 + 复盘 + 人工确认
+- 重构 → 全部9步（跳过人工确认）
+- 功能开发 → 全部9步
+
+## 全局铁律
+1. 注释必须用中文
+2. 复用项目现有代码模式，不引入新的设计模式
+3. 不确定时必须询问用户，禁止猜测
+4. 修改必须严格限定在需求范围内，不顺手重构无关代码
+5. CODE→REVIEW 回退循环最多3轮
+
+## 六维度审查
+每次写代码后自审查：正确性、安全性、兼容性、可维护性、性能、可观测性
+
+## 提交拆分
+改动 ≥3 个文件时按维度拆分：配置/核心逻辑/UI/测试，每个单元附风险分析和验证方式
+
+## 异常处理
+遇到不确定的决策 → 停止 → 描述问题 → 提供选项 → 等用户指示
+
+## 默认 HTML 输出
+用户未指定输出格式时，生成 .claude/easywork/EasyWork_Report_{时间}.html
+```
+
+⚠️ Copilot 的功能限制：
+- 不支持子 Agent 隔离（上下文管理策略中的"子Agent隔离"不可用）
+- 不支持文件名 `SKILL.md` 的技能发现机制（需要手动在 `copilot-instructions.md` 中内嵌规则）
+- 建议将 EasyWork 的核心约束（如上）直接嵌入 `.github/copilot-instructions.md`
+
+---
+
+**平台三：Cursor / Windsurf**
+
+在项目根目录的 `.cursorrules` 或 `.windsurfrules` 中添加：
+
+```
+# EasyWork AI 工作流规则
+
+在每次代码任务中遵守以下流程：
+
+1. 先分类任务：纯理解/纯审查/微调/Bug修复/重构/功能开发
+2. 根据任务类型执行对应步骤（见 QUICKREF.md 速查表）
+3. 写代码时：中文注释、复用模式、不过度设计、不碰范围外代码
+4. 写完后：六维度自审查（正确性/安全性/兼容性/可维护性/性能/可观测性）
+5. 不确定时：停止 → 描述问题 → 给选项 → 等用户指示
+6. 改动 ≥3 文件：输出按维度拆分的提交方案
+7. 默认 HTML 输出
+
+完整规则文件位于：.claude/skills/easywork/
+```
+
+⚠️ Cursor 的能力与 Claude Code 接近，支持自定义规则文件。建议将 `SKILL.md` 的核心约束精简后嵌入 `.cursorrules`。
+
+---
+
+#### 3. 验证安装
+
+在项目目录中发起新对话，输入：
+```
+"帮我 review 下这段代码"
+```
+
+如果 Agent 加载了 code-review 技能（输出六维度审查结果），则安装成功。
+
+**自检命令**（在新对话中输入）：
+```
+"你现在加载了哪些 EasyWork 技能？"
+```
+
+Agent 应列出 `fullchain-dev-workflow` 及其子技能。
+
+---
+
+## 各平台功能对比
+
+| 功能 | Claude Code | Copilot | Cursor |
+|------|------------|---------|--------|
+| 全 9 步工作流 | ✅ 完整支持 | ⚠️ 需内嵌规则 | ✅ 部分支持 |
+| 子 Agent 隔离 | ✅ | ❌ 不支持 | ⚠️ 取决于版本 |
+| Bash 测试执行 | ✅ | ✅ | ✅ |
+| Skill 自动发现 | ✅ | ❌ | ❌ |
+| 单步触发 | ✅ | ⚠️ | ⚠️ |
+| HTML 报告生成 | ✅ | ✅ | ✅ |
+| 状态快照恢复 | ✅ | ⚠️ 手动 | ⚠️ 手动 |
+
+**总结建议**：
+- **Claude Code** — 最佳体验，所有特性可用
+- **Copilot / Cursor** — 核心规则可移植，但部分高级特性（子Agent、Skill自动发现）不可用。建议将核心约束内嵌到对应配置文件中
 
 ## 使用方式
 
@@ -104,17 +279,31 @@ v1.0 强制所有任务走完 9 步，这很安全但也很烦——改一个文
 
 ```
 EasyWork/
-├── README.md                          # 本文件
-├── SKILL.md                           # 技能索引入口
+├── README.md                          # 项目说明（你正在读的）
+├── SKILL.md                           # 技能索引入口（Agent 读的）
+├── QUICKREF.md                        # 30秒速查卡片
+├── CHANGELOG.md                       # 版本更新记录
+├── TROUBLESHOOTING.md                 # 故障排查与自救指南
+├── CONTRIBUTING.md                    # 贡献指南
+├── LICENSE                            # MIT
+├── install.bat                        # Windows 一键安装
+├── install.sh                         # Unix 一键安装
+├── skill-template/                    # 🆕 自定义技能模板
+│   ├── SKILL.md                       #   技能骨架
+│   ├── assets/template.md             #   输出模板骨架
+│   └── references/guide.md            #   参考指南骨架
 └── skills/
     ├── fullchain-dev-workflow/        # 🔗 编排中枢（任务分类 + 步骤裁剪 + 流程编排）
     │   ├── SKILL.md                   #   核心行为指令
     │   ├── assets/
     │   │   ├── output-template.md     #   全链路输出模板
-    │   │   └── walkthrough-example.md #   🆕 2个端到端完整示例
+    │   │   ├── html-output-template.md#   HTML 报告规范
+    │   │   ├── html-skeleton.html     #   🆕 HTML 报告骨架（直接复制填充）
+    │   │   └── walkthrough-example.md #   🆕 3个端到端完整示例
     │   └── references/
     │       ├── acceptance-gates.md    #   每步验收关卡
-    │       └── data-contract.md       #   🆕 步骤间数据传递契约
+    │       ├── data-contract.md       #   步骤间数据传递契约（含版本迁移）
+    │       └── language-matrix.md     #   🆕 语言/技术栈适配速查
     ├── read-requirements/             # 📖 步骤1：多态输入 → 结构化需求
     ├── code-implement/                # ⌨️ 步骤2：克制编码（中文注释/复用/反炫技）
     ├── code-review/                   # 🔍 步骤3：六维度自审查

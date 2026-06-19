@@ -38,8 +38,10 @@ skills/<skill-name>/
 ```
 
 编排中枢额外包含：
-- `assets/walkthrough-example.md` — 2 个端到端完整示例（新手入口）
-- `references/data-contract.md` — 步骤间数据传递契约（定义每步最小必填字段）
+- `assets/walkthrough-example.md` — 3 个端到端完整示例（Bug修复 + 纯理解 + 功能开发）
+- `assets/html-skeleton.html` — HTML 报告骨架（Agent 直接复制填充，无需从零生成）
+- `references/data-contract.md` — 步骤间数据传递契约（含版本迁移规则）
+- `references/language-matrix.md` — 语言/技术栈适配速查（Node/Python/Go/Java/Rust）
 
 ## 使用入口
 

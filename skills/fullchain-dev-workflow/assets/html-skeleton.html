@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EasyWork 开发报告 — {{TASK_TITLE}}</title>
+<style>
+  :root {
+    --primary: #1a73e8;
+    --success: #0f9d58;
+    --warning: #f9ab00;
+    --danger: #ea4335;
+    --bg: #f8f9fa;
+    --card-bg: #ffffff;
+    --text: #202124;
+    --text-secondary: #5f6368;
+    --border: #dadce0;
+    --radius: 8px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans SC", sans-serif;
+    background: var(--bg); color: var(--text); line-height: 1.6; padding: 24px;
+  }
+  .container { max-width: 960px; margin: 0 auto; }
+
+  /* Header */
+  .header {
+    background: linear-gradient(135deg, var(--primary), #4285f4);
+    color: white; padding: 32px; border-radius: var(--radius); margin-bottom: 24px;
+  }
+  .header h1 { font-size: 24px; margin-bottom: 8px; }
+  .header .meta { opacity: 0.9; font-size: 14px; }
+  .header .meta span { margin-right: 16px; }
+
+  /* Progress Bar */
+  .progress-bar {
+    display: flex; gap: 4px; margin-bottom: 24px; flex-wrap: wrap;
+  }
+  .progress-step {
+    flex: 1; min-width: 48px; height: 32px; border-radius: 4px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 600; cursor: default;
+    background: var(--border); color: var(--text-secondary);
+  }
+  .progress-step.done { background: var(--success); color: white; }
+  .progress-step.skip { background: #e8eaed; color: var(--text-secondary); text-decoration: line-through; }
+  .progress-step.current { background: var(--primary); color: white; box-shadow: 0 0 0 3px rgba(26,115,232,0.3); }
+
+  /* Cards */
+  .card {
+    background: var(--card-bg); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 24px; margin-bottom: 16px;
+  }
+  .card h2 { font-size: 18px; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 2px solid var(--primary); }
+  .card h3 { font-size: 15px; margin: 16px 0 8px; }
+
+  /* Tags */
+  .tag {
+    display: inline-block; padding: 2px 8px; border-radius: 4px;
+    font-size: 12px; font-weight: 600; margin-right: 4px;
+  }
+  .tag-risk-low { background: #e6f4ea; color: #137333; }
+  .tag-risk-med { background: #fef7e0; color: #b06000; }
+  .tag-risk-high { background: #fce8e6; color: #c5221f; }
+  .tag-pass { background: #e6f4ea; color: #137333; }
+  .tag-fail { background: #fce8e6; color: #c5221f; }
+  .tag-warn { background: #fef7e0; color: #b06000; }
+  .tag-skip { background: #f1f3f4; color: #5f6368; }
+
+  /* Tables */
+  table { width: 100%; border-collapse: collapse; margin: 12px 0; }
+  th, td { padding: 8px 12px; text-align: left; border-bottom: 1px solid var(--border); font-size: 14px; }
+  th { background: #f8f9fa; font-weight: 600; }
+
+  /* Code */
+  pre { background: #1e1e1e; color: #d4d4d4; padding: 16px; border-radius: var(--radius); overflow-x: auto; font-size: 13px; line-height: 1.5; }
+  code { font-family: "Cascadia Code", "Fira Code", "JetBrains Mono", monospace; }
+  :not(pre) > code { background: #f1f3f4; padding: 2px 6px; border-radius: 3px; font-size: 13px; color: var(--danger); }
+
+  /* Checklist */
+  .checklist { list-style: none; padding: 0; }
+  .checklist li { padding: 4px 0; }
+  .checklist li::before { content: "☐ "; color: var(--text-secondary); }
+  .checklist li.done::before { content: "☑ "; color: var(--success); }
+
+  /* 5-Whys */
+  .whys-chain { border-left: 4px solid var(--primary); padding-left: 16px; margin: 16px 0; }
+  .whys-chain .why-level { margin-bottom: 12px; }
+  .whys-chain .why-q { font-weight: 600; color: var(--primary); }
+  .whys-chain .why-a { color: var(--text-secondary); margin-left: 8px; }
+
+  /* Footer */
+  .footer { text-align: center; padding: 24px; color: var(--text-secondary); font-size: 12px; }
+
+  @media print {
+    body { background: white; }
+    .card { break-inside: avoid; border: 1px solid #ddd; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- HEADER -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="header">
+  <h1>EasyWork 开发报告</h1>
+  <div class="meta">
+    <span>📋 任务类型: {{TASK_TYPE}}</span>
+    <span>⚠️ 风险等级: {{RISK_LEVEL}}</span>
+    <span>📅 生成时间: {{TIMESTAMP}}</span>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- PROGRESS BAR -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="progress-bar">
+  {{PROGRESS_BAR}}
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- STEP 0: TASK CLASSIFICATION -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="card">
+  <h2>📋 任务分类</h2>
+  {{TASK_CLASSIFICATION}}
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- STEP 1: READ -->
+<!-- ═══════════════════════════════════════════ -->
+<!-- {{STEP1_SKIP_BLOCK}} -->
+<div class="card">
+  <h2>1️⃣ 需求理解 (READ)</h2>
+  {{READ_CONTENT}}
+</div>
+<!-- {{/STEP1_SKIP_BLOCK}} -->
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- STEP 2: CODE -->
+<!-- ═══════════════════════════════════════════ -->
+<!-- {{STEP2_SKIP_BLOCK}} -->
+<div class="card">
+  <h2>2️⃣ 代码实现 (CODE)</h2>
+  {{CODE_CONTENT}}
+</div>
+<!-- {{/STEP2_SKIP_BLOCK}} -->
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- STEP 3: REVIEW -->
+<!-- ═══════════════════════════════════════════ -->
+<!-- {{STEP3_SKIP_BLOCK}} -->
+<div class="card">
+  <h2>3️⃣ 代码审查 (REVIEW)</h2>
+  {{REVIEW_CONTENT}}
+</div>
+<!-- {{/STEP3_SKIP_BLOCK}} -->
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- STEP 4: EXAMINE -->
+<!-- ═══════════════════════════════════════════ -->
+<!-- {{STEP4_SKIP_BLOCK}} -->
+<div class="card">
+  <h2>4️⃣ 质量验证 (EXAMINE)</h2>
+  {{EXAMINE_CONTENT}}
+</div>
+<!-- {{/STEP4_SKIP_BLOCK}} -->
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- STEP 5: GIT -->
+<!-- ═══════════════════════════════════════════ -->
+<!-- {{STEP5_SKIP_BLOCK}} -->
+<div class="card">
+  <h2>5️⃣ 提交拆分 (GIT)</h2>
+  {{GIT_CONTENT}}
+</div>
+<!-- {{/STEP5_SKIP_BLOCK}} -->
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- STEP 6: GRAPH -->
+<!-- ═══════════════════════════════════════════ -->
+<!-- {{STEP6_SKIP_BLOCK}} -->
+<div class="card">
+  <h2>6️⃣ 架构可视化 (GRAPH)</h2>
+  {{GRAPH_CONTENT}}
+</div>
+<!-- {{/STEP6_SKIP_BLOCK}} -->
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- STEP 7: SUM -->
+<!-- ═══════════════════════════════════════════ -->
+<!-- {{STEP7_SKIP_BLOCK}} -->
+<div class="card">
+  <h2>7️⃣ 总结报告 (SUM)</h2>
+  {{SUM_CONTENT}}
+</div>
+<!-- {{/STEP7_SKIP_BLOCK}} -->
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- STEP 8: TALK -->
+<!-- ═══════════════════════════════════════════ -->
+<!-- {{STEP8_SKIP_BLOCK}} -->
+<div class="card">
+  <h2>8️⃣ 深度复盘 (TALK)</h2>
+  {{TALK_CONTENT}}
+</div>
+<!-- {{/STEP8_SKIP_BLOCK}} -->
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- STEP 9: ASK -->
+<!-- ═══════════════════════════════════════════ -->
+<!-- {{STEP9_SKIP_BLOCK}} -->
+<div class="card">
+  <h2>9️⃣ 人工确认 (ASK)</h2>
+  {{ASK_CONTENT}}
+</div>
+<!-- {{/STEP9_SKIP_BLOCK}} -->
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- SKIPPED STEPS -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="card">
+  <h2>⏭️ 跳过的步骤</h2>
+  {{SKIPPED_STEPS}}
+</div>
+
+<div class="footer">
+  Generated by EasyWork v2.1 · {{TIMESTAMP}}
+</div>
+
+</div><!-- .container -->
+</body>
+</html>
