@@ -4,12 +4,31 @@ description: >
   提交拆分。EXAMINE 之后执行。将大坨改动按维度（配置/核心逻辑/UI/测试）
   拆成可逐个审查的小提交单元。每个单元附带文件清单、改动说明、风险分析、
   验证方式。这是 HITL 的关键环节——让人类能轻松审查，而不是面对 40 个文件的 diff 直接点 Approve。
+  ⚠️ 安全策略：禁止自动执行 git 命令，拆分方案和命令写入文件供用户手动执行。
 allowed-tools: Bash, Read, Grep
 model: haiku
-version: 2.3
+version: 2.4
 ---
 
 # Git Split Commit（提交拆分）
+
+## ⛔ 安全约束（优先于所有其他规则）
+
+**Agent 绝对禁止自动执行以下 git 命令**，必须在用户明确说"可以执行"之后方可操作：
+
+```
+禁止自动执行：git add / git commit / git push / git stash / git stash pop
+              git reset / git rebase / git merge / git tag / git branch -D
+              gh pr create / gh mr create / 任何部署命令
+```
+
+**正确做法**：
+1. 输出拆分方案（文本/表格）供用户审查
+2. 将具体 git 命令写入 `.claude/easywork/git-commands.sh`（Unix）或 `.bat`（Windows）
+3. 告知用户脚本路径，由用户决定是否执行
+4. 仅在用户明确授权后，Agent 才可逐条执行命令
+
+> 详细规则见 `../fullchain-dev-workflow/references/security-policy.md` §1。
 
 ## 前置判断
 
@@ -132,9 +151,14 @@ Closes #234
    提交消息：test(payment): add null response and timeout tests for callback
 
 请确认拆分方案，或告诉我需要调整的部分。
+
+⛔ 确认后，我将把 git 命令写入 .claude/easywork/git-commands.sh，
+   你可以审查后手动执行，或授权我逐条执行。
 ```
 
 > **拆分策略与操作命令**：拆分原则、常见场景拆分示例、实际 git 操作命令、HITL 交互指南，见 `references/split-strategies.md`。
+
+> **安全策略**：禁止 Agent 在用户确认拆分方案后自动执行 git commit/push。详见 `../fullchain-dev-workflow/references/security-policy.md` §1。
 
 ## 反模式
 

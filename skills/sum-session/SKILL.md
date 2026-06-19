@@ -7,7 +7,7 @@ description: >
   未来展望（遗留问题和后续建议）。是 PR 描述和团队交接的核心文档。
 allowed-tools: Read, Search, Bash
 model: sonnet
-version: 2.3
+version: 2.4
 ---
 
 # Sum Session（总结报告）
@@ -82,3 +82,47 @@ version: 2.3
 - ❌ 未来展望写"继续优化"、"持续关注"——空洞无物的套话
 - ❌ 解决方案不解释"为什么选这个方案"——后人不知道为什么代码长这样
 - ❌ 不标遗留问题，假装改得完美——诚实的工程师标注 debt，不诚实的假装不存在
+
+## 🆕 Gotchas 候选检查（v2.4）
+
+在 SUM 阶段，Agent 必须检查本次工作流是否满足 4 种 Gotchas 触发条件：
+
+1. 耗时 >10 分钟定位的 bug
+2. "看起来没问题"的写法导致实际 bug（反直觉陷阱）
+3. 用户指出了 Agent 忽略的边界情况
+4. 同一文件/模式在不同 session 中被反复问及
+
+**如满足任一条件** → 生成 Gotchas 候选条目，展示给用户：
+
+```
+【Gotchas 候选】（待确认后写入 references/gotchas.md）
+
+### {标题}
+- **触发条件**：...
+- **错误表现**：...
+- **根因**：...
+- **正确做法**：...
+- **关联模块**：...
+- **首次发现**：{日期} — {场景}
+
+是否追加？→ 回复"确认"或"修改 {具体调整}"
+```
+
+**用户确认后**才写入 `references/gotchas.md`。未确认的候选记录在 SUM 产出中。
+
+> 详见 `../fullchain-dev-workflow/references/security-policy.md` §6。
+
+## 🆕 HTML 报告脱敏检查（v2.4）
+
+Agent 在生成 HTML 报告后、保存前，**必须执行脱敏自检**。报告不得包含：
+
+- API Key / Token / Secret / 密码（明文）
+- 完整认证日志（>80 字符）
+- 内部 URL / 内网 IP
+- 大段源码（单个代码块 >30 行）
+- 手机号 / 邮箱 / 用户帐号
+- 数据库连接串
+
+发现以上任一内容 → 立即脱敏，再保存文件。
+
+> 详见 `../fullchain-dev-workflow/references/security-policy.md` §2。

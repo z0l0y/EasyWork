@@ -6,7 +6,7 @@ description: >
   发现阻断性问题回退到 CODE 修复，循环上限 3 次，全部清零才放行。
 allowed-tools: Read, Search, Grep, Glob
 model: opus
-version: 2.3
+version: 2.4
 ---
 
 # Code Review（七维度自审查 + 反合理化防御）
@@ -86,17 +86,26 @@ version: 2.3
 
 **注意**：纯后端/CLI/配置变更 → 此维度标注 `not_applicable`。
 
-## 供应链安全检查（🆕 v2.3）
+## 供应链安全检查（🆕 v2.3 / 安全增强 v2.4）
 
-当 CODE 产出 `new_dependencies` 字段非空时（即新增了第三方依赖），必须执行供应链检查：
+当 CODE 产出 `new_dependencies` 字段非空时（即新增了第三方依赖），必须执行供应链检查。
+
+### ⛔ 外部搜索约束（v2.4）
+
+1. **禁止将私有包名或内部 registry URL 发到公网搜索**
+2. 如果包名来自私有 registry（如 `@company/` scope、`nexus.internal.company.com`），标注 `[私有包，无法自动检查]`
+3. 优先使用本地工具：`npm audit`、`pip-audit`、lock 文件中的许可证信息
+4. 只有已在公有 npm/PyPI 等仓库注册的包才能搜索 CVE
 
 ### 检查流程
 
 1. **检查新增依赖的必要性**：是否可以用已有依赖替代？（如项目已有 `lodash`，不应再引入 `underscore`）
 2. **检查版本是否为稳定版**：避免引入 `0.x`、`alpha`、`beta`、`rc` 版本（除非团队明确授权）
-3. **检查是否有已知漏洞**：搜索 `{包名} CVE` 或 `{包名} security vulnerability`
-4. **检查许可证兼容性**：确认新增依赖的许可证（MIT/Apache/GPL/AGPL）与项目许可证兼容
-5. **检查维护状态**：npm 上最后发布时间超过 1 年且 issue 数 > 100 → 标注 `[维护风险]`
+3. **检查是否有已知漏洞**：
+   - 公有包：`npm audit` / `pip-audit` / 本地 CVE 数据库
+   - 私有包：标注 `[私有包，跳过CVE检查]`
+4. **检查许可证兼容性**：从本地 `package.json`/lock 文件中获取许可证信息（非外部搜索）
+5. **检查维护状态**：对于公有 npm 包，检查最后发布时间；私有包标注 `[私有包，维护状态未知]`
 
 ### 输出格式
 
@@ -104,6 +113,7 @@ version: 2.3
 
 ```
 [供应链] {包名}@{版本} — {风险类型} — {具体风险描述}
+[供应链] {私有包名} — 私有包 — CVE检查/维护状态已跳过
 ```
 
 ## 审查流程

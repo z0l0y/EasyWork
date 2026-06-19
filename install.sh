@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # EasyWork 技能包安装脚本 (Unix/Linux/macOS)
-# v2.2 — AI 全链路开发工作流
+# v2.4 — AI 全链路开发工作流
 #
 # 用法:
 #   ./install.sh                                    # 安装到当前目录，L3 完整级别
@@ -35,11 +35,18 @@ if [ "${1:-}" = "--uninstall" ]; then
         exit 0
     fi
 
-    echo -e "${YELLOW}[卸载] 删除: ${EASYWORK_SKILLS}${RESET}"
+    echo -e "${YELLOW}[卸载] 将删除: ${EASYWORK_SKILLS}${RESET}"
+    echo -e "  此操作不可逆。是否继续？[y/N]"
+    read -r CONFIRM
+    if [ "$CONFIRM" != "y" ] && [ "$CONFIRM" != "Y" ]; then
+        echo -e "  卸载已取消。"
+        exit 0
+    fi
     rm -rf "$EASYWORK_SKILLS"
     echo -e "${GREEN}✓ 卸载完成${RESET}"
     echo ""
     echo "如需从 CLAUDE.md 中移除 EasyWork 配置，请手动编辑该文件。"
+    echo "（查找 '# EasyWork 全链路工作流' 段落并删除。）"
     exit 0
 fi
 
@@ -99,7 +106,21 @@ EASYWORK_SKILLS="${SKILLS_DIR}/easywork"
 mkdir -p "$SKILLS_DIR"
 
 if [ -d "$EASYWORK_SKILLS" ]; then
-    echo -e "  ${YELLOW}[警告] easywork 目录已存在，将覆盖更新${RESET}"
+    echo -e "  ${YELLOW}[警告] easywork 目录已存在${RESET}"
+    echo -e "  现有安装包含以下文件："
+    find "$EASYWORK_SKILLS" -type f | head -20 | while read -r f; do
+        echo "    - ${f#$EASYWORK_SKILLS/}"
+    done
+    if [ -d "$EASYWORK_SKILLS/custom" ]; then
+        echo -e "  ${RED}⚠ 检测到自定义步骤目录 (custom/)，覆盖将永久删除自定义步骤！${RESET}"
+    fi
+    echo ""
+    echo -e "  继续安装将${RED}删除${RESET}以上所有文件。是否继续？[y/N]"
+    read -r CONFIRM
+    if [ "$CONFIRM" != "y" ] && [ "$CONFIRM" != "Y" ]; then
+        echo -e "  ${YELLOW}安装已取消。${RESET}"
+        exit 0
+    fi
     rm -rf "$EASYWORK_SKILLS"
 fi
 
@@ -155,9 +176,15 @@ CLAUDE_MD="${TARGET_DIR}/CLAUDE.md"
 if [ -f "$CLAUDE_MD" ] && grep -q "EasyWork" "$CLAUDE_MD" 2>/dev/null; then
     echo -e "  ${YELLOW}[跳过] CLAUDE.md 已包含 EasyWork 配置${RESET}"
 else
+    # 备份 CLAUDE.md
+    if [ -f "$CLAUDE_MD" ]; then
+        cp "$CLAUDE_MD" "${CLAUDE_MD}.bak.$(date +%Y%m%d_%H%M%S)"
+        echo -e "  ${GREEN}✓${RESET} 已备份 CLAUDE.md → CLAUDE.md.bak.{timestamp}"
+    fi
+
     cat >> "$CLAUDE_MD" << EOF
 
-# EasyWork 全链路工作流 (v2.2, ${LEVEL}级)
+# EasyWork 全链路工作流 (v2.4, ${LEVEL}级)
 当用户需要进行代码开发、Bug 修复、代码审查或需求分析时，
 加载 .claude/skills/easywork/fullchain-dev-workflow/SKILL.md
 并严格遵循其任务分类与流程编排规则。

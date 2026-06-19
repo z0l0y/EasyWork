@@ -176,7 +176,7 @@ Mermaid 代码在渲染时显示空白或语法错误。
 最小的可用快照应包含：
 ```json
 {
-  "easywork_version": "2.3",
+  "easywork_version": "2.4",
   "task_type": "...",
   "current_step": 3,
   "completed_steps": ["READ", "CODE"],

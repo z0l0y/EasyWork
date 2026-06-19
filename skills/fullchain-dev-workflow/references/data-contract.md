@@ -230,7 +230,7 @@ examine_output 显示 test_results.passed=12，
 
 ## 版本迁移
 
-### 当前版本：2.3
+### 当前版本：2.4
 
 `easywork_version` 字段用于标记状态快照的版本。不同版本间字段变更遵循以下规则。
 
@@ -255,6 +255,14 @@ examine_output 显示 test_results.passed=12，
 | 2.2 → 2.3 | 新增 | `comment_language`（CODE 步骤注释语言配置：chinese/english/auto） |
 | 2.2 → 2.3 | 新增 | `custom_steps_completed`（自定义步骤完成记录） |
 | 2.2 → 2.3 | 无破坏 | 所有字段向后兼容，仅新增可选/扩展字段 |
+| 2.3 → 2.4 | 新增 | `review_output.supply_chain_check.private_packages`（私有包标注） |
+| 2.3 → 2.4 | 新增 | `git_output.command_script_path`（git 命令脚本路径） |
+| 2.3 → 2.4 | 新增 | `gotchas_candidates`（Gotchas 候选条目，待用户确认） |
+| 2.3 → 2.4 | 新增 | `custom_steps_confirmation`（自定义步骤用户确认记录） |
+| 2.3 → 2.4 | 新增 | `html_report_sanitization_check`（HTML 报告脱敏自检记录） |
+| 2.3 → 2.4 | 变更 | Gotchas 追加流程：自动追加 → 候选-确认制（破坏性变更） |
+| 2.3 → 2.4 | 变更 | GIT 步骤：自动执行 → 写入脚本文件+用户确认后执行（破坏性变更） |
+| 2.3 → 2.4 | 无破坏 | 其余所有字段向后兼容 |
 
 ### 快照迁移规则
 

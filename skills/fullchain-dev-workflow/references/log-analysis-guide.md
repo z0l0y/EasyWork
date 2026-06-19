@@ -1,5 +1,9 @@
 # JSONL 日志分析指南
 
+> **🆕 v2.4 安全约束**：`workflow.log.jsonl` 只允许记录 7 个固定字段（session/step/status/skipped/tokens_est/duration_s/ts），
+> 禁止包含文件名、函数名、改动内容、测试输出、错误日志详情、包名、URL 等任何项目具体信息。
+> 详见 `references/security-policy.md` §2。
+
 本文档帮助团队从 `.claude/easywork/workflow.log.jsonl` 中提取洞察，持续优化 EasyWork 的使用效率。
 
 ---

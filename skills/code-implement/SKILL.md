@@ -3,10 +3,10 @@ name: code-implement
 description: >
   克制化代码实现。在 READ 阶段确认需求后执行。四条铁律：
   注释语言可配置（默认中文）、复用现有模式不许造新轮子、禁止过度设计、不碰范围外代码。
-  改最少的代码，做最精准的事。
+  改最少的代码，做最精准的事。写操作限于当前项目目录内。
 allowed-tools: Read, Write, Edit, Search, Grep, Glob, Bash
 model: sonnet
-version: 2.3
+version: 2.4
 ---
 
 # Code Implement（代码实现）

@@ -4,9 +4,11 @@ description: >
   EasyWork 全链路 AI 辅助开发工作流技能包索引。9 步流程按需裁剪：
   READ → CODE → REVIEW → EXAMINE → GIT → GRAPH → SUM → TALK → ASK。
   入口技能：fullchain-dev-workflow（含任务分类器，自动判断需要哪些步骤）。
+  v2.4: Git安全管控、敏感信息脱敏、自定义步骤预确认、供应链外部搜索防护、
+  Gotchas候选-确认制、文件系统写保护。
   v2.3: 并行审查、反合理化防御、Gotchas知识库、团队策略覆盖、自定义步骤注入、
   可访问性审查、供应链检查、Conventional Commits、交互式入门、故障Runbook。
-version: 2.3
+version: 2.4
 model: sonnet
 ---
 

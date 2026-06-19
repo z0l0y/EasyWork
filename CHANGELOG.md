@@ -7,6 +7,42 @@ EasyWork 的所有重要变更记录。
 
 ---
 
+## [2.4.0] — 2026-06-20
+
+### 新增
+- **安全策略文档**（`references/security-policy.md`）：覆盖 Git 操作、敏感信息脱敏、自定义步骤、供应链检查、文件系统写入、Gotchas 追加 6 大安全域
+- **Git 写操作安全管控**：`git add`/`commit`/`push`/`stash` 等写操作必须用户确认后才能执行。拆分命令写入 `.claude/easywork/git-commands.sh` 供用户手动审查
+- **敏感信息脱敏机制**：HTML 报告和 `workflow.log.jsonl` 自动脱敏 Token/密钥/内部URL/大段源码（>30行）/手机号/邮箱/数据库连接串
+- **自定义步骤预确认**：Agent 发现 custom skill 后列出清单（路径+名称+用途），用户确认后才执行，每次会话重新确认
+- **供应链外部搜索防护**：私有包名/内部 registry URL 禁止发到公网搜索，标注为私有包后跳过公网检查
+- **Gotchas 候选-确认制**：Agent 生成候选条目展示给用户，用户确认后才写入 `references/gotchas.md`（替代自动追加）
+- **文件系统写保护**：所有写操作限定在当前项目根目录内，禁止写入系统目录/上级目录
+
+### 变更
+- 编排中枢 §2 铁律新增 4 条安全规则（#11 Git确认、#12 输出脱敏、#13 自定义步骤预确认、#14 文件写保护）
+- 编排中枢 §4 新增安全策略加载、自定义步骤预确认流程
+- 编排中枢 §6 步骤表更新：GIT 行标注"禁止自动执行"、Gotchas 自检改为候选制
+- 编排中枢 §10 反模式新增 4 条安全相关（未经确认执行 git、报告泄露信息、跳过自定义步骤确认、外部搜私有包）
+- `git-split-commit/SKILL.md` 新增安全约束章节，禁止自动执行 git 命令，拆分后输出脚本文件
+- `code-review/SKILL.md` 供应链检查新增外部搜索约束和私有包处理规则
+- `sum-session/SKILL.md` 新增 Gotchas 候选检查和 HTML 报告脱敏检查
+- `orchestration-engine.md` 自定义步骤注入新增执行前确认机制，日志新增安全约束
+- `log-analysis-guide.md` 新增日志安全约束说明
+- `html-output-template.md` 新增脱敏自检清单和 11 类禁止内容
+- `acceptance-gates.md` 新增 6 条 v2.4 安全关卡
+- `data-contract.md` 版本迁移 2.3→2.4：6 项新增 + 2 项破坏性变更
+- 所有 11 个 Skill 的 YAML frontmatter `version` 更新至 2.4
+
+### 修复
+- Gotchas 追加流程：从 Agent 自动写入改为候选-确认制（防止未经审查的内容进入知识库）
+- GIT 步骤：从自动执行 git 命令改为写入脚本文件 + 用户确认后执行（防止误操作和不可逆推送）
+
+### 破坏性变更
+- Gotchas 不再自动追加到文件——Agent 生成候选，用户确认后写入
+- GIT 步骤不再自动执行 `git add`/`commit`/`push`——命令写入脚本文件，用户手动执行或授权后执行
+
+---
+
 ## [2.3.0] — 2026-06-20
 
 ### 新增

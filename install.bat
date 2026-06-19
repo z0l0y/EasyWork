@@ -5,7 +5,7 @@ setlocal enabledelayedexpansion
 echo.
 echo ╔══════════════════════════════════════════════╗
 echo ║     EasyWork 技能包安装脚本 (Windows)        ║
-echo ║     v2.2 — AI 全链路开发工作流               ║
+echo ║     v2.4 — AI 全链路开发工作流               ║
 echo ╚══════════════════════════════════════════════╝
 echo.
 
@@ -66,7 +66,18 @@ set "EASYWORK_SKILLS=%SKILLS_DIR%\easywork"
 if not exist "%SKILLS_DIR%" mkdir "%SKILLS_DIR%"
 
 if exist "%EASYWORK_SKILLS%" (
-    echo   [警告] easywork 目录已存在，将覆盖更新
+    echo   [警告] easywork 目录已存在
+    if exist "%EASYWORK_SKILLS%\custom" (
+        echo   [警告] ⚠ 检测到自定义步骤目录 ^(custom/^)，覆盖将永久删除自定义步骤！
+    )
+    echo.
+    echo   继续安装将删除以上所有文件。是否继续？[y/N]
+    set /p CONFIRM="  → "
+    if /i not "!CONFIRM!"=="y" (
+        echo   安装已取消。
+        pause
+        exit /b 0
+    )
     rmdir /s /q "%EASYWORK_SKILLS%"
 )
 mkdir "%EASYWORK_SKILLS%"
@@ -125,11 +136,15 @@ if exist "%CLAUDE_MD%" (
         echo   [跳过] CLAUDE.md 已包含 EasyWork 配置
         goto :done
     )
+    :: 备份 CLAUDE.md
+    for /f "tokens=1-4 delims=/.- " %%a in ('date /t') do set "dt=%%a%%b%%c%%d"
+    copy /y "%CLAUDE_MD%" "%CLAUDE_MD%.bak.%dt%" >nul 2>&1
+    echo   ✓ 已备份 CLAUDE.md → CLAUDE.md.bak
 )
 
 (
     echo.
-    echo # EasyWork 全链路工作流 ^(v2.2, %LEVEL%级^)
+    echo # EasyWork 全链路工作流 ^(v2.4, %LEVEL%级^)
     echo 当用户需要进行代码开发、Bug 修复、代码审查或需求分析时，
     echo 加载 .claude/skills/easywork/fullchain-dev-workflow/SKILL.md
     echo 并严格遵循其任务分类与流程编排规则。

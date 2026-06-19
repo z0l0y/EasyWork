@@ -44,6 +44,7 @@
 - [ ] 拆分后的每个单元可以独立编译（不需要跨单元依赖）
 - [ ] 无法拆分的"混合变更文件"已被醒目标记，并附有特别审查提示
 - [ ] 🆕 每个拆分单元附有 Conventional Commits 格式的提交消息建议
+- [ ] 🆕 v2.4：git 命令已写入 `.claude/easywork/git-commands.sh`（或 `.bat`），未自动执行 add/commit/push
 - [ ] 拆分方案已展示给用户并获得确认
 
 ## GRAPH（图表绘制）验收关卡
@@ -85,3 +86,15 @@
 - [ ] 🆕 结构化日志已追加到 `.claude/easywork/workflow.log.jsonl`
 - [ ] 🆕 项目 Gotchas（`references/gotchas.md`）已扫描——如当前任务命中已知陷阱，已预警
 - [ ] 🆕 团队策略覆盖（`references/team-policy.md`）已加载并应用（如存在）
+- [ ] 🆕 v2.4 安全策略（`references/security-policy.md`）已加载并生效
+- [ ] 🆕 v2.4 Git 安全：所有 git 写操作已获用户确认，拆分命令已写入脚本文件
+- [ ] 🆕 v2.4 脱敏自检：HTML 报告和日志不含 Token/密钥/内部URL/大段源码/手机/邮箱
+- [ ] 🆕 v2.4 自定义步骤：已列出清单并获用户确认（或已标注跳过）
+- [ ] 🆕 v2.4 供应链检查：未将私有包名或内部 URL 发到外网搜索
+- [ ] 🆕 v2.4 文件写入范围：所有写操作均在项目根目录内
+- [ ] 🆕 v2.4 Gotchas 候选：如有新陷阱，已展示候选条目并获用户确认后才写入文件
+- [ ] 🆕 v2.4 安全策略自保护：`security-policy.md` 未被任何技能修改
+- [ ] 🆕 v2.4 自定义步骤位置：无 `insert_after: ASK` 的自定义步骤（HITL 后禁止注入）
+- [ ] 🆕 v2.4 JSONL session ID：仅含 `[a-z0-9-]`，≤30 字符，不含功能描述
+- [ ] 🆕 v2.4 HTML 标题：不含具体任务摘要，仅含日期
+- [ ] 🆕 v2.4 测试输出脱敏：`test_output_snippet` ≤80 字符，无绝对路径
