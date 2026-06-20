@@ -9,7 +9,7 @@ capabilities: [create_doc, append_blocks, share_link, full_detail_restore]
 requires_mcp: []
 requires_network: false
 streaming: false
-version: 1.1
+version: 1.2
 ---
 
 # Markdown Backend（Markdown 产物后端）
@@ -71,7 +71,7 @@ markdown 后端**不支持流式追加**（streaming: false）。每步骤产出
 
 **触发时机**：SUM 步骤完成后。
 
-**🆕 v1.1 新增输入**：`report_depth`、`report_type`、`mcr_gate_result`、`streaming_status`
+**🆕 v1.2 新增输入**：`report_depth`、`report_type`、`mcr_gate_result`、`streaming_status`
 
 ### Agent 执行指令
 

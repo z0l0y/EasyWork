@@ -8,9 +8,10 @@ description: >
   AI 不拷打你，同事和领导就要拷打你。
   v2.7: detailed模式要求保留完整CTO问答记录(cto_qa_transcript)、认知缺口必须有补救动作、
   禁止用摘要表替代问答。
+  v2.8: SELFCHECK发现方案层面缺陷时可回退CODE调整设计(铁律#23，最多2轮)。
 allowed-tools: Read, Search
 model: opus
-version: 2.7
+version: 2.8
 ---
 
 # Self Check（CTO 拷打层）

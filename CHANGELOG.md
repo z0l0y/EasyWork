@@ -7,6 +7,36 @@ EasyWork 的所有重要变更记录。
 
 ---
 
+## [2.8.0] — 2026-06-20
+
+### 新增
+- **CODE↔REVIEW 质量门禁循环**：REVIEW 发现阻断问题 → 必须回退 CODE 修复后重新 REVIEW，不可带着已知问题进入 EXAMINE（铁律#23）。循环上限 3 轮，3 轮后挂起用户
+- **多路径回退机制**：CODE↔REVIEW（最多3轮）、EXAMINE→CODE（测试失败根因为代码逻辑，最多3轮）、SELFCHECK→CODE（方案层面缺陷，最多2轮）、ASK→CODE（用户质疑核心实现，最多1轮）
+- **READ 需求理解显式确认**：READ 完成后 Agent 必须用自己的话重述需求理解（含业务目标、技术方案假设、不确定点），在进入 CODE 前获得用户确认（铁律#24）。未指定实现方法时必须列出≥1个澄清问题
+- **文档迭代增量更新**：需求变更时在原有排版下追加"更新记录"子节，标注版本号和日期，过时信息标注 `[已过时 — vX.X 起]` 而非直接删除（铁律#25）
+- **交互式应用 EXAMINE 增强**：CLI/TUI/GUI/Web前端/游戏/交互式IO任务必须在 EXAMINE 额外验证真实使用体验——首屏稳定性、输入反馈、退出路径、stdin边界、ANSI兼容性、渲染频率（铁律#26）。纯后端/库/脚本标注 N/A
+- **七维度交叉分析**：REVIEW 新增 5 组跨维度关联检查（安全性×性能、正确性×兼容性、可维护性×可观测性、安全性×可访问性、性能×兼容性），捕捉单维度审查遗漏的交叉风险
+- **回退历史追踪**：状态快照新增 `rollback_history` 字段，记录每次回退的 from_step/to_step/round/reason/issues_found/fixes_applied
+
+### 变更
+- **编排中枢 SKILL.md**：铁律 #5 扩展为 4 条具体回退路径；新增铁律 #23-#26；§6 MCR 表新增"交互式应用 EXAMINE 补充 MCR"（9 个验证维度）；§6 步骤表 READ/CODE/REVIEW/EXAMINE/SUM 行更新；§7 进度卡新增回退记录行；§8 状态快照新增 rollback_history/read_confirmation/is_interactive_ui_task/doc_iteration 字段；version→2.8
+- **data-contract.md**：新增 read_output.understanding_confirmation（必填）；review_output 新增 rollback_round/rollback_history（detailed必填）；examine_output 新增 interactive_ux_validation（detailed必填，含 10 个字段）；sum_output 新增 doc_iteration（detailed必填）；版本迁移表新增 2.7→2.8 条目
+- **acceptance-gates.md**：READ 新增 3 条理解确认关卡；REVIEW 新增 3 条回退循环关卡；EXAMINE 新增 10 条交互式应用验证关卡；SUM 新增 3 条文档迭代关卡；全局新增 6 条 v2.8 关卡
+- **code-review/SKILL.md**：审查结果改为三档判定表（pass/pass_with_fixes/blocked）；新增回退循环机制图；新增 5 组七维度交叉分析；回退历史记录格式定义
+- **examine-quality/SKILL.md**：新增"交互式应用真实体验验证"专区（触发判断/验证清单 6 项/CLI+TUI额外 4 项/ANSI兼容性说明模板/自动刷新验证模板）
+- **read-requirements/SKILL.md**：新增第 3 步"输出需求理解确认"（确认模板/确认规则/澄清问题质量要求）
+- **sum-session/SKILL.md**：新增"文档迭代增量更新"专区（触发判断/5条增量规则/更新记录格式/过时信息标注格式/禁止事项）
+- **doc-writing-guide.md**：新增 §8"文档迭代与版本管理"（核心原则/更新记录格式/过时信息处理/自检清单 6 项）
+- **orchestration-engine.md**：DAG 新增 4 条回退虚线边；条件分支表新增 4 条回退触发规则
+- **maturity-levels.md**：铁律数更新（22→26）
+- 全部 9 个子技能 SKILL.md version 2.7→2.8；3 个后端适配器 version 1.1→1.2；html-skeleton footer v2.7→v2.8
+
+### 破坏性变更
+- **REVIEW 质量门禁**：v2.7 中 REVIEW 发现问题后行为是"建议回退"，v2.8 升级为"硬门禁"——verdict=blocked 时禁止进入 EXAMINE。已有工作流如习惯带着 warning 前进，需适应新的严格门禁
+- **READ 确认成为必选项**：v2.7 中 READ 完成后直接进入 CODE，v2.8 要求必须获得用户对需求理解的确认。可能增加一轮对话交互，但大幅降低理解偏差风险
+
+---
+
 ## [2.7.0] — 2026-06-20
 
 ### 新增

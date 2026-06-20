@@ -26,6 +26,13 @@ read_output:
   non_goals: string[]       # [必填|standard] 明确排除的内容（brief可为空，standard/detailed≥1条）
   mvp_scope: string[]          # 🆕 v2.7 [必填|detailed] MVP边界（本次做/不做清单）
   clarifications: string[]  # [可选|detailed] 向用户确认的问题
+  understanding_confirmation:  # 🆕 v2.8 [必填] 需求理解确认（铁律#24）
+    summary: string           #   Agent 对需求的自己理解重述（业务目标+技术方案假设+不确定点）
+    user_confirmed: bool      #   用户是否已确认理解
+    clarifications_asked: int #   提出的澄清问题数（未指定实现方法时≥1）
+    clarifications:           #   澄清问题及回答
+      - question: string
+        answer: string
 ```
 
 **消费方**：CODE（用 scope + constraints 限定改动范围）、REVIEW（用 constraints 检查兼容性）、SUM（用 goal + acceptance_criteria 对照验收）、SELFCHECK（用 business_background + user_persona 拷打业务理解）
@@ -101,6 +108,12 @@ review_output:
     - issue: string         #   问题描述（含代码位置：文件+行号）
       fix: string           #   修复记录
   fixes_applied: string[]   # [可选|standard] 回退到 CODE 修复并重新审查后，记录修复内容
+  rollback_round: int        # 🆕 v2.8 [必填|detailed] 当前回退轮次（0=首次审查未回退，1-3=回退轮次）
+  rollback_history:          # 🆕 v2.8 [必填|detailed] 回退历史记录（如发生回退）
+    - round: int             #   轮次
+      issues_found: string[] #   发现的问题（含代码位置）
+      fixes_applied: string[]  # 修复内容
+      re_review_verdict: string  # 重新审查结论
   supply_chain_check:       # 🆕 v2.3 [可选] 供应链检查结果（有新增依赖时）
     checked: bool
     findings: string[]
@@ -146,6 +159,17 @@ examine_output:
     - scenario: string      #   未覆盖的场景
       reason: string        #   为什么未覆盖
       risk: string          #   潜在风险
+  interactive_ux_validation:  # 🆕 v2.8 [必填|detailed] 交互式应用真实体验验证（铁律#26；纯后端/库/脚本标注 N/A）
+    applicable: bool           #   是否适用（任务涉及 CLI/TUI/GUI/Web前端/游戏/交互式IO）
+    first_screen_stability: string  # 首屏稳定性验证结果（≥3次冷启动）
+    idle_behavior: string       #   无输入时行为验证
+    input_feedback: string      #   输入反馈验证（200ms内有可见反馈）
+    exit_paths: string          #   退出路径验证（无死循环、进程残留）
+    render_frequency: string    #   输出/渲染频率验证（≤10Hz，无刷屏）
+    environment_consistency: string  # 环境一致性验证（主要平台行为一致或记录差异）
+    cli_stdin_boundary: string  #   [CLI/TUI] stdin 边界测试（关闭/空输入/非法输入/退出指令）
+    ansi_compatibility: string  #   [CLI/TUI+ANSI] IDE 控制台兼容性说明
+    auto_refresh_verified: string  # [自动刷新] 刷新频率验证（无性能问题）
 ```
 
 **消费方**：SUM（引用 test_results 作为效果证据 + test_coverage_matrix 丰富报告）、ASK（用 uncovered_scenarios 向用户确认测试覆盖度）
@@ -216,6 +240,12 @@ sum_output:
         after: string
   future: string[]          # [必填|standard] 遗留问题 + 后续建议（brief可为空）
   skipped_steps: string[]   # [必填|brief] 被跳过的步骤及原因
+  doc_iteration:             # 🆕 v2.8 [必填|detailed] 文档迭代增量更新（铁律#25；首次创建标注 N/A）
+    is_update: bool          #   是否为对已有文档的更新
+    previous_doc_path: string  # 已有文档路径（首次创建为空）
+    version_increment: string  # 版本增量（如 "v1.0→v1.1"）
+    new_content_section: string  # 在原有哪个标题下追加了内容
+    stale_info_cleaned: string[]  # 标注为过时的信息条目
   mcr_gate_result:          # 🆕 v2.7 [必填|detailed] MCR自检闸门结果
     passed: bool            #   是否通过
     step_results:           #   逐步骤检查结果
@@ -383,7 +413,7 @@ streaming_status:            # [必填] 流式写入状态
 
 ## 版本迁移
 
-### 当前版本：2.7
+### 当前版本：2.8
 
 `easywork_version` 字段用于标记状态快照的版本。不同版本间字段变更遵循以下规则。
 
@@ -440,6 +470,12 @@ streaming_status:            # [必填] 流式写入状态
 | 2.6 → 2.7 | 新增 | `sum_output.mcr_gate_result`（MCR自检闸门结果，detailed必填） |
 | 2.6 → 2.7 | 新增 | 铁律 #19-#22（深度/流式/MCR闸门/类型匹配） |
 | 2.6 → 2.7 | 无破坏 | 所有字段向后兼容。brief 模式等效 v2.6 行为。新增字段仅 v2.7 新增，旧版本快照中缺失字段视为 null/[] |
+| 2.7 → 2.8 | 新增 | `read_output.understanding_confirmation`（需求理解确认，必填） |
+| 2.7 → 2.8 | 新增 | `review_output.rollback_round` / `review_output.rollback_history`（回退追踪） |
+| 2.7 → 2.8 | 新增 | `examine_output.interactive_ux_validation`（交互式应用体验验证，detailed必填） |
+| 2.7 → 2.8 | 新增 | `sum_output.doc_iteration`（文档迭代增量更新，detailed必填） |
+| 2.7 → 2.8 | 新增 | 铁律 #23-#26（质量门禁/需求确认/文档迭代/交互式EXAMINE） |
+| 2.7 → 2.8 | 无破坏 | 所有字段向后兼容。新增字段仅 v2.8 新增，旧版本快照中缺失字段视为 null/[] |
 
 ### 快照迁移规则
 

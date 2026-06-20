@@ -34,9 +34,17 @@ flowchart TD
     style GRAPH fill:#e8f0fe,stroke:#1a73e8
     style SUM fill:#e8f0fe,stroke:#1a73e8
     style SELFCHECK fill:#fce8e6,stroke:#d93025
+
+    %% 🆕 v2.8 回退边（质量门禁循环）
+    REVIEW -.->|阻断问题| CODE
+    EXAMINE -.->|测试失败根因为代码逻辑| CODE
+    SELFCHECK -.->|方案层面缺陷| CODE
+    ASK -.->|用户质疑核心实现| CODE
 ```
 
 > GRAPH 和 SUM 高亮表示它们可以**并行执行**——都只依赖 GIT，互相无依赖。SELFCHECK（红色）是 v2.6 新增的 CTO 拷打层，依赖 SUM 和 TALK（如执行），是 ASK 的前置闸门。其余步骤严格串行。
+> 
+> 🆕 v2.8 虚线回退边：REVIEW/EXAMINE/SELFCHECK/ASK 发现问题时可回退到 CODE 修复。REVIEW→CODE 最多 3 轮（硬门禁），EXAMINE→CODE 最多 3 轮，SELFCHECK→CODE 最多 2 轮（涉及面更广），ASK→CODE 最多 1 轮（仅用户明确要求时触发）。
 
 ### 并行规则
 
@@ -220,7 +228,7 @@ EasyWork 工作流启动 — 任务：重构 — 风险：高
 | 触发条件 | 触发点 | 自动动作 |
 |---------|--------|---------|
 | REVIEW 发现 `security.status = "issues_found"` | 步骤 3→4 | EXAMINE 自动追加安全相关测试用例（注入、越权、敏感数据） |
-| REVIEW 发现 `correctness.status = "blocked"` | 步骤 3 | 不回退 CODE，挂起用户确认 |
+| REVIEW 发现 `correctness.status = "blocked"` | 步骤 3 | 🆕 v2.8 升级为硬门禁——必须回退 CODE 修复后重新 REVIEW（铁律#23）。旧行为(v2.7)：挂起用户确认 |
 | REVIEW 发现 `compatibility.status = "issues_found"` 且涉及 API 签名变更 | 步骤 3 | 追加兼容性测试到 EXAMINE（旧版本 API 调用测试） |
 | REVIEW 发现 `maintainability.status = "issues_found"` 且涉及重复代码 | 步骤 3 | 警告但不阻断——在 SUM 中记录技术债务 |
 | EXAMINE 发现已有测试失败（非本次导致） | 步骤 4 | 标注 `[已有失败]`，不阻塞流程，不修复无关测试 |
@@ -232,6 +240,10 @@ EasyWork 工作流启动 — 任务：重构 — 风险：高
 | TALK 发现根因与上一次同类型任务相同 | 步骤 8 | 标注 `[重复根因]`，建议升级为 team-policy 规则 |
 | CODE↔REVIEW 回退达 3 轮 | 步骤 2↔3 | 挂起用户，输出已发现的所有问题和修复历程 |
 | ASK 用户跳过必问维度 | 步骤 10 | 记录 `user_skip_note`，不等于问题消失 |
+| 🆕 v2.8 REVIEW 发现阻断问题（verdict=blocked） | 步骤 3 | **硬门禁**——不可进入 EXAMINE，必须回退 CODE 修复后重新 REVIEW（最多3轮） |
+| 🆕 v2.8 EXAMINE 测试失败且根因为代码逻辑 | 步骤 4 | 回退 CODE 修复 → 修复后重新 EXAMINE（最多3轮）。非代码问题（测试环境/配置）→ 不触发回退 |
+| 🆕 v2.8 SELFCHECK 发现方案层面缺陷 | 步骤 9 | 回退 CODE 调整设计 → 重新走 REVIEW→EXAMINE→SELFCHECK（最多2轮） |
+| 🆕 v2.8 ASK 用户质疑核心实现 | 步骤 10 | 回退 CODE 调整实现 → 重新走完整验证链（最多1轮，仅用户明确要求时触发） |
 
 ### 上下文自适应分支
 

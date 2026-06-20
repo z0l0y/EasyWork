@@ -5,7 +5,7 @@ setlocal enabledelayedexpansion
 echo.
 echo ╔══════════════════════════════════════════════╗
 echo ║     EasyWork 技能包安装脚本 (Windows)        ║
-echo ║     v2.7 — AI 全链路开发工作流               ║
+echo ║     v2.8 — AI 全链路开发工作流               ║
 echo ╚══════════════════════════════════════════════╝
 echo.
 
@@ -144,7 +144,7 @@ if exist "%CLAUDE_MD%" (
 
 (
     echo.
-    echo # EasyWork 全链路工作流 ^(v2.7, %LEVEL%级^)
+    echo # EasyWork 全链路工作流 ^(v2.8, %LEVEL%级^)
     echo 仅当用户明确说"用 EasyWork"、"走 EasyWork 流程"、"EasyWork 模式"时，
     echo 加载 .claude/skills/easywork/fullchain-dev-workflow/SKILL.md
     echo 并严格遵循其任务分类与流程编排规则。
