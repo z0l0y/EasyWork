@@ -4,6 +4,9 @@ description: >
   EasyWork 全链路 AI 辅助开发工作流技能包索引。10 步流程按需裁剪：
   READ → CODE → REVIEW → EXAMINE → GIT → GRAPH → SUM → TALK → SELFCHECK → ASK。
   入口技能：fullchain-dev-workflow（含任务分类器，自动判断需要哪些步骤）。
+  v2.8: CODE↔REVIEW质量门禁循环(回退不通过不可前进)、READ需求理解显式确认、
+  文档迭代增量更新、交互式应用EXAMINE增强(CLI/TUI/GUI/Web/游戏真实体验验证)、
+  REVIEW七维度交叉分析优化。
   v2.7: 报告深度分层(brief/standard/detailed)、MCR最小内容要求+自检闸门、
   流式增量写入保障、报告类型(executive_summary/engineering_record)、深度自动升级、
   代码摘录位置标注、同行审查就绪标准。
