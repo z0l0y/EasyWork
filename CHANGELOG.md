@@ -12,7 +12,7 @@ EasyWork 的所有重要变更记录。
 ### 新增
 - **可插拔产物后端**（`backends/`）：产物输出从硬编码 HTML 升级为后端适配器模式。内置 local_html / markdown / lark_doc 三个后端，支持未来扩展（Notion、Confluence等）
 - **后端注册表**（`references/output-backends.md`）：定义后端发现机制、选择优先级、通用接口契约、降级策略
-- **飞书文档后端**（`backends/lark-doc/SKILL.md`）：通过 lark-mcp MCP 直接创建飞书文档并流式追加步骤产出。支持飞书画板集成、文档分享链接、自动降级
+- **飞书文档后端**（`backends/lark-doc/SKILL.md`）：通过 lark-cli MCP 直接创建飞书文档并流式追加步骤产出。支持飞书画板集成、文档分享链接、自动降级
 - **飞书 API 速查表**（`references/lark-api-quickref.md`）：认证、文档CRUD、Markdown 转块、Wiki、白板、限流与重试
 - **Git 链路追踪**：任务→提交分组→开发者Check→commit hash→测试结果→飞书记录，完整可追踪链路
 - **Git 链路追踪模板**（`../git-split-commit/assets/git-chain-tracking-template.md`）：飞书文档中的链路追踪结构定义

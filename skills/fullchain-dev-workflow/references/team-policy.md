@@ -156,7 +156,7 @@ output_backend:
 - `lark.folder_token`：飞书文档创建的默认目录。在飞书客户端中打开目标文件夹，URL 中 `folder_token` 参数即为此值
 - `lark.wiki_space_id`：如使用飞书知识库，填写空间 ID
 - `lark.git_tracking_doc_id`：如已创建 Git 链路追踪母文档，填写其 document_id。留空则 Agent 首次运行 lark-doc 后端时自动创建
-- 使用飞书后端前需先配置 `lark-mcp` MCP 服务（`@larksuiteoapi/lark-mcp`）
+- 使用飞书后端前需先配置 `lark-cli` MCP 服务
 
 ---
 

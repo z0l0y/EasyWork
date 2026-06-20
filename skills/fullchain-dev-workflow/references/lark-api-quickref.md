@@ -34,11 +34,11 @@ curl -X POST https://open.feishu.cn/open-apis/auth/v3/tenant_access_token/intern
 **关键点**：
 - Token 有效期 2 小时，需缓存复用
 - 所有后续请求头：`Authorization: Bearer {token}`
-- MCP 工具（`lark-mcp`）自动管理 token，Agent 无需手动获取
+- MCP 工具（`lark-cli`）自动管理 token，Agent 无需手动获取
 
 ### 通过 MCP 调用
 
-如果配置了 `@larksuiteoapi/lark-mcp`，Agent 通过 MCP 工具调用飞书 API，无需手动处理认证。MCP 自动管理 token 刷新。
+如果配置了 `lark-cli`，Agent 通过 MCP 工具调用飞书 API，无需手动处理认证。MCP 自动管理 token 刷新。
 
 ---
 
@@ -257,9 +257,9 @@ POST /open-apis/bitable/v1/apps/{app_token}/tables/{table_id}/records/batch_crea
 
 ---
 
-## 9. MCP 工具速查（lark-mcp）
+## 9. MCP 工具速查（lark-cli）
 
-如果使用 `@larksuiteoapi/lark-mcp`，常用工具：
+如果使用 `lark-cli`，常用工具：
 
 | 工具 | 对应 API | 用途 |
 |------|---------|------|

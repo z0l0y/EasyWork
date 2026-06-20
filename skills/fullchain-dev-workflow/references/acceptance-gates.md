@@ -111,7 +111,7 @@
 - [ ] 🆕 v2.4 目录初始化：`.claude/easywork/` 已确保存在（不存在时 `mkdir -p` 创建）
 - [ ] 🆕 v2.4 日志串行写入：GRAPH∥SUM 并行时日志追加已串行化，防止 JSONL 损坏
 - [ ] 🆕 v2.5 产物后端已选择：output_backend 字段已记录，选择有依据（用户指定/team-policy/默认）
-- [ ] 🆕 v2.5 飞书 MCP 可用性已检查：如选 lark_doc 后端，已确认 lark-mcp 可用或已降级
+- [ ] 🆕 v2.5 飞书 MCP 可用性已检查：如选 lark_doc 后端，已确认 lark-cli 可用或已降级
 - [ ] 🆕 v2.5 Git 链路追踪数据完整：git_tracking 包含 task_description/units/examine_result
 - [ ] 🆕 v2.5 文档写作规范已应用：无模板套话、无正文反引号、标题≤4子标题、表格仅结构化
 - [ ] 🆕 v2.5 后端降级已记录：如发生降级事件，已在 SUM 产出中注明原因
