@@ -8,7 +8,7 @@ description: >
   v2.9: MCR+质量升级——需求来源/用户真实目标/影响量化/可验证验收/不做事项含原因。禁止复述用户原话不结构化。
 allowed-tools: Read, Search, Grep, Glob
 model: haiku
-version: 2.9
+version: 2.10
 ---
 
 # Read Requirements（需求理解）

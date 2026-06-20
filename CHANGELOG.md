@@ -7,6 +7,33 @@ EasyWork 的所有重要变更记录。
 
 ---
 
+## [2.10.0] — 2026-06-21
+
+### 新增
+- **文档拓扑闸门（Document Topology Gate）**：7项拓扑检查（重复顶层流程节点/模式混用/版本索引缺失/本轮内容未入节点/孤儿更新记录块/历史与当前混淆/索引与实际不一致）。detailed→HARD GATE（命中即阻断+自动structured merge repair），standard→SOFT GATE（警告+用户确认），brief→跳过但标注免责声明（铁律#28）
+- **双模文档结构**：Mode A（审计日志模式——`# 标题 ## Run <date> v<N> ### 1. READ ...`，用户显式选择）+ Mode B（持续维护模式——`# 标题 ## 0. 版本索引 ## 1. READ ### v1 ### v2 ...`，**默认**）。Mode B 下每个流程节点只出现一次，节点内按版本分层
+- **结构化合并（Structured Merge）**：6步流程（Fetch→Parse→Pre-check→Distribute→Index→Mark）替代 v2.8 的"文档末尾追加更新记录"。Mode B 下内容分配入对应流程节点而非尾部堆叠
+- **版本索引（Mode B）**：`## 0. 版本索引` 表格——版本号/日期/变更摘要/影响节点。节点内版本小节格式：`### v{N} — {date}（{变更类型}）`
+- **3 种拓扑修复算法**：孤儿更新记录→节点迁移（算法1）/ 重复节点合并（算法2）/ 版本索引重建（算法3）
+- **2 个新参考文件**：`skills/sum-session/references/document-topology-gate.md`（7项检查+解析算法+修复算法）、`document-modes.md`（双模定义+选择决策树+Structured Merge流程+版本号规则）
+
+### 变更
+- **编排中枢 SKILL.md**：铁律新增 #28（文档拓扑闸门）；铁律 #25（文档迭代增量更新）升级实现方式——从文档级追加→节点内版本合并；§6 MCR 表 SUM 行追加 "v2.10拓扑闸门+双模+结构化合并"；§8 状态快照新增 document_mode/topology_gate_result/structured_merge_plan 字段；§10 反模式新增 5 条；version→2.10
+- **sum-session/SKILL.md**：新增 3 个 v2.10 专区（Document Modes/Document Topology Gate/Structured Merge）；§8 v2.8 文档迭代标注为 [已升级至 v2.10]；write_final_report 流程新增步骤 0/0.5/7（模式选择/结构化合并/拓扑闸门）；反模式新增 9 条；version→2.10
+- **doc-writing-guide.md**：§8 "文档迭代与版本管理（v2.8）"全文替换为 "§8 文档拓扑与结构化合并（v2.10）"——废弃尾部追加更新记录，改为节点内版本合并；新增双模选择指南；§6 自检清单新增 5 条 topology check items
+- **data-contract.md**：新增 document_mode/topology_gate_result/structured_merge_plan 顶层字段；版本迁移表新增 2.9→2.10（8行变更）；当前版本标注 2.10
+- **acceptance-gates.md**：SUM 新增 3 个 v2.10 专区（Document Mode Selection/Topology Gate/Structured Merge，共 17 条检查项）；全局新增 8 条 v2.10 关卡
+- **orchestration-engine.md**：新增 4 条 v2.10 条件分支（Topology Gate命中/模式混用/Mode A连续性/修复后仍不合法）
+- **3 个后端适配器**：version 1.3→1.4；新增 document_mode/topology_gate_result/structured_merge_plan 输入参数；lark-doc footer version 2.9→2.10
+- 铁律总数 27→28；maturity-levels.md 铁律数更新
+
+### 破坏性变更
+- **Mode B 下禁止 `## 📝 更新记录` 块**：v2.8 中允许的文档末尾更新记录块，在 Mode B（默认）下被拓扑闸门 Check 5 阻断。已有文档首次写入 Mode B 时自动执行 orphan→node migration 修复
+- **v2.8 §8 文档迭代规则已过时**："原位追加，不重建""更新记录格式"等规则在 Mode B 下不再适用。核心意图（可追溯演进历史）保留，但实现方式完全升级。Mode A 下 v2.8 规则仍可用
+- **铁律 #25 含义已更新**：从"在原有排版下追加更新记录"升级为"在对应流程节点内追加版本小节，保留完整演进历史"
+
+---
+
 ## [2.9.0] — 2026-06-20
 
 ### 新增

@@ -248,6 +248,10 @@ EasyWork 工作流启动 — 任务：重构 — 风险：高
 | 🆕 v2.9 SUM 质量评分 < 阈值（detailed<80, standard<60） | 步骤 7 | **HARD GATE**——拒绝写入 → 标注低分维度 → 回退补充（最多2轮） |
 | 🆕 v2.9 SUM Peer Review 六问任一不通过（detailed 模式） | 步骤 7 | **HARD GATE**——拒绝写入 → 标注不通过的问题编号 → 回退补充 |
 | 🆕 v2.9 SUM Write-then-Fetch 验证失败（截断/格式错误/乱码） | 步骤 7 | 修复问题 → 重新写入 → 重新 fetch（最多3轮）。3轮后→挂起用户 |
+| 🆕 v2.10 SUM Document Topology Gate 命中（detailed 模式） | 步骤 7 | **HARD GATE（铁律 #28）**——拒绝写入 → 自动执行 structured merge repair（算法1-3）→ 重新检测（最多2轮）。standard→SOFT GATE（警告+用户确认）。Mode A 下 Check 1/4/5 不阻断 |
+| 🆕 v2.10 SUM 文档模式混用（同时存在 Run 块和流程节点） | 步骤 7 | **HARD GATE**——阻断写入 → 用户确认目标模式 → 统一为 Mode A 或 Mode B |
+| 🆕 v2.10 SUM 已有 Mode A 文档+本轮默认 Mode B | 步骤 7 | 保持 Mode A（追加新 Run）——模式连续性优先于默认值 |
+| 🆕 v2.10 SUM Structured Merge 后拓扑仍不合法（2轮修复后） | 步骤 7 | 挂起用户 → 列出违规项+已尝试修复 → 建议手动选择文档模式或接受当前结构 |
 
 ### 上下文自适应分支
 

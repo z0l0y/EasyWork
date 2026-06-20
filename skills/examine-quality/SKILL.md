@@ -7,7 +7,7 @@ description: >
   v2.9: MCR+质量升级——测试命令+目的/失败前修复后对比/覆盖矩阵标注新增/关键输出摘录凭据。禁止"go test 通过"式水文。
 allowed-tools: Bash, Read, Write, Search, Grep, Glob
 model: sonnet
-version: 2.9
+version: 2.10
 ---
 
 # Examine Quality（测试执行）

@@ -483,13 +483,50 @@ etr_compliant: bool          # [必填|detailed] 所有关键结论是否满足E
 
 **消费方**：SUM（所有闸门结果汇总到最终报告）、后端适配器（根据质量评分决定是否写入）
 
+## 🆕 v2.10 顶层字段
+
+```
+# 以下字段为 v2.10 新增，存在于顶层 data-contract 中
+
+document_mode: "continuous_maintenance" | "audit_log"
+  # [必填|detailed] 文档模式。默认 "continuous_maintenance"（Mode B），用户显式选择 "audit_log"（Mode A）
+
+topology_gate_result:        # [必填|detailed] 文档拓扑闸门结果
+  mode: string               #   识别的文档模式（"continuous_maintenance" | "audit_log" | "chaotic"）
+  passed: bool               #   7项检查是否全部通过
+  checks:                    #   逐项检查结果
+    - id: int                #     检查编号（1-7）
+      name: string           #     检查项名称
+      passed: bool           #     是否通过
+      violation: string      #     违规描述（如有）
+      fix: string            #     修复操作（如有，自动或需确认）
+  repairs_applied: string[]  #   执行的修复算法列表
+  gate_type: string          #   "HARD_GATE" | "SOFT_GATE" | "SKIPPED"
+
+structured_merge_plan:       # [必填|detailed] Mode B 结构化合并方案
+  existing_doc_fetched: bool #   是否已 fetch 现有文档
+  existing_nodes: string[]   #   已有文档的顶层流程节点列表（如 ["1. READ", "2. CODE"]）
+  version_label: string      #   本轮版本号（如 "v3"）
+  distribution:              #   本轮内容节点分配
+    - step: string           #     步骤名（如 "CODE"）
+      node: string           #     目标节点（如 "2. CODE"）
+      change_type: string    #     变更类型（"初始" | "变更" | "补充" | "修复"）
+      will_add: bool         #     是否将在该节点下新增版本子节
+  stale_markers:             #   需标注过时的旧版本
+    - node: string           #     节点名
+      old_version: string    #     旧版本号
+      reason: string         #     过时原因
+```
+
+**消费方**：SUM（用于 structured merge）、后端适配器（根据 document_mode 选择写入策略）
+
 如果不确定前序某字段是否存在，应该回查而非猜测。
 
 ---
 
 ## 版本迁移
 
-### 当前版本：2.9
+### 当前版本：2.10
 
 `easywork_version` 字段用于标记状态快照的版本。不同版本间字段变更遵循以下规则。
 
@@ -561,6 +598,13 @@ etr_compliant: bool          # [必填|detailed] 所有关键结论是否满足E
 | 2.8 → 2.9 | 新增 | 铁律 #27（反水文闸门 — HARD GATE） |
 | 2.8 → 2.9 | 变更 | 铁律总数 26→27 |
 | 2.8 → 2.9 | 无破坏 | 所有字段向后兼容。MCR+ 是质量标准叠加在已有 MCR 字段上，不改变字段结构。新增字段仅 v2.9 新增 |
+| 2.9 → 2.10 | 新增 | `document_mode` / `topology_gate_result` / `structured_merge_plan`（文档拓扑闸门+双模文档结构） |
+| 2.9 → 2.10 | 新增 | 铁律 #28（文档拓扑闸门 — HARD GATE） |
+| 2.9 → 2.10 | 变更 | 铁律总数 27→28 |
+| 2.9 → 2.10 | 变更 | 铁律 #25（文档迭代增量更新）升级实现方式——从文档级追加→节点内版本合并 |
+| 2.9 → 2.10 | 变更 | `sum_output` 新增 `document_mode` / `topology_gate_result` / `version_index_updated` |
+| 2.9 → 2.10 | 破坏性 | v2.8 的 `## 📝 更新记录` 文档块格式在 Mode B 下不再支持——需迁移为节点内 `### v{N}` 格式 |
+| 2.9 → 2.10 | 无破坏 | Mode A（审计日志）完全向后兼容。Mode B 为新默认，已有文档拓扑在首次写入时自动修复 |
 
 ### 快照迁移规则
 

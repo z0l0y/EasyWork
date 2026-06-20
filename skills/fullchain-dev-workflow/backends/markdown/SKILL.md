@@ -4,12 +4,13 @@ description: >
   Markdown 产物后端。将 10 步工作流产出生成为单个 Markdown 文件。
   适用于需要纯文本记录、导入 Git 仓库文档、或作为其他系统输入源的场景。
   v1.1: 报告深度感知(brief/standard/detailed)、MCR闸门验证、完整步骤详情增量恢复。
+  v1.4: 文档拓扑闸门检查、双模文档结构(Mode A/B)支持、结构化合并写入策略。
 output_format: markdown
 capabilities: [create_doc, append_blocks, share_link, full_detail_restore]
 requires_mcp: []
 requires_network: false
 streaming: false
-version: 1.3
+version: 1.4
 ---
 
 # Markdown Backend（Markdown 产物后端）
@@ -72,6 +73,7 @@ markdown 后端**不支持流式追加**（streaming: false）。每步骤产出
 **触发时机**：SUM 步骤完成后。
 
 **🆕 v1.1 新增输入**：`report_depth`、`report_type`、`mcr_gate_result`、`streaming_status`
+🆕 v1.4 新增输入：`document_mode`（"audit_log" | "continuous_maintenance"）、`topology_gate_result`（7项检查结果）、`structured_merge_plan`（Mode B 合并方案）
 
 ### Agent 执行指令
 

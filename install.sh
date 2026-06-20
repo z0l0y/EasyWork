@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # EasyWork 技能包安装脚本 (Unix/Linux/macOS)
-# v2.9 — AI 全链路开发工作流
+# v2.10 — AI 全链路开发工作流
 #
 # 用法:
 #   ./install.sh                                    # 安装到当前目录，L3 完整级别
@@ -19,7 +19,7 @@ RESET="\033[0m"
 echo ""
 echo -e "${BOLD}╔══════════════════════════════════════════════╗${RESET}"
 echo -e "${BOLD}║     EasyWork 技能包安装脚本 (Unix)           ║${RESET}"
-echo -e "${BOLD}║     v2.9 — AI 全链路开发工作流               ║${RESET}"
+echo -e "${BOLD}║     v2.10 — AI 全链路开发工作流               ║${RESET}"
 echo -e "${BOLD}╚══════════════════════════════════════════════╝${RESET}"
 echo ""
 
@@ -184,7 +184,7 @@ else
 
     cat >> "$CLAUDE_MD" << EOF
 
-# EasyWork 全链路工作流 (v2.9, ${LEVEL}级)
+# EasyWork 全链路工作流 (v2.10, ${LEVEL}级)
 仅当用户明确说"用 EasyWork"、"走 EasyWork 流程"、"EasyWork 模式"时，
 加载 .claude/skills/easywork/fullchain-dev-workflow/SKILL.md
 并严格遵循其任务分类与流程编排规则。
