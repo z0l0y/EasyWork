@@ -127,18 +127,28 @@ git_output:
       dimension: string     #   "config" | "logic" | "ui" | "test_docs"
       files: string[]       #   本单元文件清单
       summary: string       #   改动说明
+      business_context: string  # 🆕 v2.5 [必填] 业务上下文（为什么改、对用户/业务的影响）
       risk_level: string    #   "low" | "medium" | "high"
       risk_detail: string   #   具体风险分析
+      risk_introduced: string   # 🆕 v2.5 [必填] 引入风险详细说明（场景、影响范围、缓解措施）
       verification: string  #   验证方式（引用 review_output 和 examine_output）
+      verification_evidence: string  # 🆕 v2.5 [必填] 验证证据（测试覆盖场景 + 结果）
+      developer_checklist:  # 🆕 v2.5 [必填] 开发者逐项 Check 清单
+        scope_correct: bool     #   改动范围符合需求
+        no_side_effects: bool   #   无意外副作用
+        test_coverage: bool     #   测试覆盖充分
+        style_consistent: bool  #   代码风格一致
+        docs_updated: bool      #   文档/注释已更新
       commit_message:       # 🆕 v2.3 [必填] Conventional Commits 格式
         type: string        #   "feat" | "fix" | "refactor" | "test" | "docs" | "style" | "chore" | "perf" | "ci"
         scope: string       #   模块/服务名（可选但建议填写）
         subject: string     #   提交主题（≤50字符/25汉字）
-        body: string        #   提交正文
+        body: string        #   提交正文（🆕 v2.5 必须包含：改动原因/风险说明/验证方式）
   mixed_files_warning: string[]  # [可选] 无法拆分的混合变更文件及警示
+  command_script_path: string    # 🆕 v2.4 [必填] git 命令脚本路径
 ```
 
-**消费方**：SUM（引用拆分方案）、ASK（引用 risk_level 帮助用户判断审查优先级）
+**消费方**：SUM（引用拆分方案）、ASK（引用 risk_level 帮助用户判断审查优先级）、lark-doc 后端（读取 git_tracking 写入飞书追踪文档）
 
 ## GRAPH 产出契约
 
@@ -224,13 +234,40 @@ examine_output 显示 test_results.passed=12，
 确认 code_output.files_changed 中 auth.service.ts 的修改达成了验收标准。
 ```
 
+## 🆕 v2.5 顶层字段
+
+```
+# 以下字段为 v2.5 新增，存在于顶层 data-contract 中，非某步骤产出
+
+git_tracking:                # [可选，GIT 步骤执行时必填] Git 链路追踪数据
+  task_description: string   #   任务简述（业务语言）
+  task_date: string          #   YYYY-MM-DD
+  task_type: string          #   Bug修复/功能开发/重构/微调/纯文档
+  risk_level: string         #   low/medium/high
+  units: [...]               #   与 git_output.units 结构相同（含 developer_checklist）
+  examine_result:            #   测试结果摘要
+    test_command: string
+    test_total: int
+    test_passed: int
+    test_failed: int
+    test_skipped: int
+    verdict: string          #   pass/conditional_pass/fail
+
+output_backend:              # [必填] 当前产物后端信息
+  format: string             #   "html" | "markdown" | "lark_doc"
+  name: string               #   后端名称（local_html / markdown / lark_doc）
+  share_link: string         #   产物分享链接（飞书文档 URL 或本地文件路径）
+```
+
+**消费方**：lark-doc 后端（读取 git_tracking 写入飞书追踪文档）、SUM（记录 output_backend 用于最终报告）
+
 如果不确定前序某字段是否存在，应该回查而非猜测。
 
 ---
 
 ## 版本迁移
 
-### 当前版本：2.4
+### 当前版本：2.5
 
 `easywork_version` 字段用于标记状态快照的版本。不同版本间字段变更遵循以下规则。
 
@@ -263,6 +300,14 @@ examine_output 显示 test_results.passed=12，
 | 2.3 → 2.4 | 变更 | Gotchas 追加流程：自动追加 → 候选-确认制（破坏性变更） |
 | 2.3 → 2.4 | 变更 | GIT 步骤：自动执行 → 写入脚本文件+用户确认后执行（破坏性变更） |
 | 2.3 → 2.4 | 无破坏 | 其余所有字段向后兼容 |
+| 2.4 → 2.5 | 新增 | `git_output.units[].business_context`（业务上下文） |
+| 2.4 → 2.5 | 新增 | `git_output.units[].risk_introduced`（引入风险详细说明） |
+| 2.4 → 2.5 | 新增 | `git_output.units[].verification_evidence`（验证证据） |
+| 2.4 → 2.5 | 新增 | `git_output.units[].developer_checklist`（开发者逐项 Check 清单） |
+| 2.4 → 2.5 | 新增 | `git_tracking`（Git 链路追踪数据，新顶层字段） |
+| 2.4 → 2.5 | 新增 | `output_backend`（产物后端信息，新顶层字段） |
+| 2.4 → 2.5 | 变更 | `git_output.units[].commit_message.body` 必须包含：改动原因/风险说明/验证方式 |
+| 2.4 → 2.5 | 无破坏 | 其余所有字段向后兼容，新增字段均为 v2.5 新增 |
 
 ### 快照迁移规则
 

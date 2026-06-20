@@ -7,7 +7,7 @@ description: >
   未来展望（遗留问题和后续建议）。是 PR 描述和团队交接的核心文档。
 allowed-tools: Read, Search, Bash
 model: sonnet
-version: 2.4
+version: 2.5
 ---
 
 # Sum Session（总结报告）
@@ -112,9 +112,41 @@ version: 2.4
 
 > 详见 `../fullchain-dev-workflow/references/security-policy.md` §6。
 
-## 🆕 HTML 报告脱敏检查（v2.4）
+## 🆕 产物后端适配（v2.5）
 
-Agent 在生成 HTML 报告后、保存前，**必须执行脱敏自检**。报告不得包含：
+SUM 步骤不再硬编码生成 HTML。Agent 调用当前激活的产物后端适配器完成最终报告写入。
+
+### 执行流程
+
+1. **确定当前后端**：从 data-contract 的 `output_backend` 字段读取（编排中枢在任务分类后确定）
+2. **加载后端 SKILL.md**：读取 `../fullchain-dev-workflow/backends/{output_backend.output_format}/SKILL.md`
+3. **调用 write_final_report**：按后端定义的指令，将全部 9 步产出写入产物容器
+   - 传入：`doc_id`（create_session_doc 返回）、`all_step_outputs`、`sum_output`、`skipped_steps`
+4. **调用 get_share_link**：获取可分享链接（如有），记录到 `output_share_link` 字段
+5. **降级处理**：后端写入失败时，降级到 local_html 并记录错误
+
+### 后端间差异
+
+| 后端 | 写入方式 | 分享链接 |
+|------|---------|---------|
+| local_html | 生成自包含 HTML 文件到 `.claude/easywork/` | 本地文件路径 |
+| markdown | 生成 .md 文件到 `.claude/easywork/` | 本地文件路径 |
+| lark_doc | 通过 MCP 飞书 API 创建/追加文档 | 飞书文档 URL |
+
+### 写作规范
+
+所有后端的最终报告**必须**遵守 `../fullchain-dev-workflow/references/doc-writing-guide.md` 中的写作规范：
+- 中文业务复盘口吻，像人工撰写
+- 不在正文中使用反引号包裹文件名/命令名
+- 段落自然，标题下最多 4 个子标题
+- 表格仅用于结构化数据，不用于布局
+- 命令集中展示，归类加说明
+
+> 详见 `../fullchain-dev-workflow/references/output-backends.md`。
+
+## 🆕 HTML 报告脱敏检查（v2.4，v2.5 扩展至所有后端）
+
+Agent 在生成最终报告后、保存前，**必须执行脱敏自检**。不论使用何种后端，报告/产物不得包含：
 
 - API Key / Token / Secret / 密码（明文）
 - 完整认证日志（>80 字符）

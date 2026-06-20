@@ -7,6 +7,34 @@ EasyWork 的所有重要变更记录。
 
 ---
 
+## [2.5.0] — 2026-06-20
+
+### 新增
+- **可插拔产物后端**（`backends/`）：产物输出从硬编码 HTML 升级为后端适配器模式。内置 local_html / markdown / lark_doc 三个后端，支持未来扩展（Notion、Confluence等）
+- **后端注册表**（`references/output-backends.md`）：定义后端发现机制、选择优先级、通用接口契约、降级策略
+- **飞书文档后端**（`backends/lark-doc/SKILL.md`）：通过 lark-mcp MCP 直接创建飞书文档并流式追加步骤产出。支持飞书画板集成、文档分享链接、自动降级
+- **飞书 API 速查表**（`references/lark-api-quickref.md`）：认证、文档CRUD、Markdown 转块、Wiki、白板、限流与重试
+- **Git 链路追踪**：任务→提交分组→开发者Check→commit hash→测试结果→飞书记录，完整可追踪链路
+- **Git 链路追踪模板**（`../git-split-commit/assets/git-chain-tracking-template.md`）：飞书文档中的链路追踪结构定义
+- **Git 提交粒度增强**：每个 commit unit 新增 business_context（业务上下文）、risk_introduced（引入风险）、verification_evidence（验证证据）、developer_checklist（逐项Check清单）
+- **文档写作规范**（`references/doc-writing-guide.md`）：中文业务复盘口吻、禁止反引号包裹文件名、段落自然、标题≤4子标题、表格仅结构化、命令集中展示
+- **飞书安全策略**（`security-policy.md` §10）：认证信息保护、文档权限控制、MCP可用性检查、API调用审计
+- **team-policy 产物后端配置**：团队可配置默认后端和飞书参数（folder_token / wiki_space_id / git_tracking_doc_id）
+
+### 变更
+- **编排中枢 SKILL.md**：铁律 #8 从"默认 HTML"重写为"产物后端可插拔"；新增铁律 #16（后端不可自行选择）、#17（飞书MCP前置检查）；新增 §4 产物后端选择子节
+- **SUM 步骤**：不再硬编码生成 HTML，改为调用后端适配器 dispatch。新增后端适配、写作规范引用
+- **GIT 步骤**：每个拆分单元从 5 项扩展为 7 项必填。commit message body 必须包含改动原因/风险说明/验证方式三段
+- **GRAPH 步骤**：新增产物后端分流——飞书后端可将图表嵌入文档或建议画板；其他后端保持原有方式
+- **data-contract**：新增 5 个 git_output 字段 + git_tracking 顶层字段 + output_backend 顶层字段。版本迁移 2.4→2.5
+- **acceptance-gates**：GIT 新增 6 项 v2.5 关卡；全局新增 5 项 v2.5 关卡
+- **html-output-template.md**：重定位为 local_html 后端专用模板
+
+### 破坏性变更
+- 无。所有 v2.4 字段向后兼容，新增字段仅 v2.5 新增。v2.4 工作流可正常降级运行
+
+---
+
 ## [2.4.0] — 2026-06-20
 
 ### 新增

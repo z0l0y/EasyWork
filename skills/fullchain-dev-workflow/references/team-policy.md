@@ -140,6 +140,26 @@ custom_steps:
 
 ---
 
+### 产物后端配置（🆕 v2.5）
+
+```yaml
+output_backend:
+  preferred: "local_html"          # 团队默认产物后端：local_html | markdown | lark_doc
+  lark:                            # 飞书配置（preferred: lark_doc 时需要）
+    folder_token: ""               # 飞书文件夹 token（文档创建位置）
+    wiki_space_id: ""              # 飞书知识库空间 ID（可选，使用 Wiki 功能时填写）
+    git_tracking_doc_id: ""        # Git 链路追踪母文档 ID（可选，自动生成如不填）
+```
+
+**说明**：
+- `preferred`：团队默认产物格式。用户可随时显式覆盖（"输出到飞书""生成 markdown"）
+- `lark.folder_token`：飞书文档创建的默认目录。在飞书客户端中打开目标文件夹，URL 中 `folder_token` 参数即为此值
+- `lark.wiki_space_id`：如使用飞书知识库，填写空间 ID
+- `lark.git_tracking_doc_id`：如已创建 Git 链路追踪母文档，填写其 document_id。留空则 Agent 首次运行 lark-doc 后端时自动创建
+- 使用飞书后端前需先配置 `lark-mcp` MCP 服务（`@larksuiteoapi/lark-mcp`）
+
+---
+
 ## 使用方式
 
 1. **团队 fork 此文件**到 `.claude/skills/easywork/team-policy.md`

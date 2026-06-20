@@ -4,11 +4,14 @@ description: >
   EasyWork 全链路 AI 辅助开发工作流技能包索引。9 步流程按需裁剪：
   READ → CODE → REVIEW → EXAMINE → GIT → GRAPH → SUM → TALK → ASK。
   入口技能：fullchain-dev-workflow（含任务分类器，自动判断需要哪些步骤）。
+  v2.5: 可插拔产物后端（local_html/markdown/lark_doc）、飞书原生文档沉淀、
+  Git链路追踪（任务→提交→Check→hash→测试→飞书）、文档写作规范、
+  Git提交粒度增强（业务上下文+开发者Check+风险验证）。
   v2.4: Git安全管控、敏感信息脱敏、自定义步骤预确认、供应链外部搜索防护、
   Gotchas候选-确认制、文件系统写保护。
   v2.3: 并行审查、反合理化防御、Gotchas知识库、团队策略覆盖、自定义步骤注入、
   可访问性审查、供应链检查、Conventional Commits、交互式入门、故障Runbook。
-version: 2.4
+version: 2.5
 model: sonnet
 ---
 
@@ -26,9 +29,9 @@ model: sonnet
 | 2 | CODE | `skills/code-implement/SKILL.md` | 克制编码（注释可配置/复用模式/反炫技） |
 | 3 | REVIEW | `skills/code-review/SKILL.md` | 七维度自审查（含反合理化防御、供应链检查） |
 | 4 | EXAMINE | `skills/examine-quality/SKILL.md` | 找测试→跑→补→修→重跑至全绿 |
-| 5 | GIT | `skills/git-split-commit/SKILL.md` | 按维度拆分提交（Conventional Commits 格式） |
-| 6 | GRAPH | `skills/graph-fullchain/SKILL.md` | Mermaid/飞书 流程图/架构图/时序图 |
-| 7 | SUM | `skills/sum-session/SKILL.md` | 六要素总结（背景→发现→问题→解决→效果→展望） |
+| 5 | GIT | `skills/git-split-commit/SKILL.md` | 按维度拆分提交 + Git链路追踪（Conventional Commits + 业务上下文 + Check清单） |
+| 6 | GRAPH | `skills/graph-fullchain/SKILL.md` | Mermaid/飞书 流程图/架构图/时序图（支持飞书画板） |
+| 7 | SUM | `skills/sum-session/SKILL.md` | 六要素总结 + 调用产物后端写入最终报告（背景→发现→问题→解决→效果→展望） |
 | 8 | TALK | `skills/talk-retro/SKILL.md` | 5-Whys 根因 + Trade-offs + 工程规范 |
 | 9 | ASK | `skills/ask-change-questions/SKILL.md` | 六维度人工确认（HITL 终极闸门） |
 

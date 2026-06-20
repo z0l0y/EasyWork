@@ -1,12 +1,14 @@
 # HTML 输出模板与规范
 
+> **🆕 v2.5**：本模板专用于 **local_html 后端**（`backends/local-html/SKILL.md`）。
+> EasyWork v2.5 使用可插拔产物后端——local_html 是默认后端，其他后端（markdown、lark_doc）见 `backends/` 目录。
+> 后端选择机制见 `references/output-backends.md`。
+
 ## 默认输出规则
 
-**当用户未指定输出格式时**（没有提供飞书文档链接、没有要求 md 文件、没有指定其他输出目标），
-Agent 必须将工作流结果生成为一个**自包含的 HTML 文件**，包含所有执行步骤的完整产出。
+当产物后端为 local_html（默认）时，Agent 将工作流结果生成为一个**自包含的 HTML 文件**，包含所有执行步骤的完整产出。
 
-**指定了输出格式时**：优先使用用户指定的格式（飞书文档、md 文件、PR 描述等），
-但可以附加 HTML 文件作为可视化补充。
+其他后端（markdown、lark_doc）不使用本模板——参见各自后端 SKILL.md 的格式化规范。
 
 ## HTML 文件规范
 

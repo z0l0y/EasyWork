@@ -45,6 +45,12 @@
 - [ ] 无法拆分的"混合变更文件"已被醒目标记，并附有特别审查提示
 - [ ] 🆕 每个拆分单元附有 Conventional Commits 格式的提交消息建议
 - [ ] 🆕 v2.4：git 命令已写入 `.claude/easywork/git-commands.sh`（或 `.bat`），未自动执行 add/commit/push
+- [ ] 🆕 v2.5：每个 commit unit 的 business_context 非空且有实际业务说明（非泛泛的"修复bug"）
+- [ ] 🆕 v2.5：每个 commit unit 的 developer_checklist 完备（5 项 Check 均已列出）
+- [ ] 🆕 v2.5：每个 commit unit 的 risk_introduced 有具体的场景/影响/缓解说明
+- [ ] 🆕 v2.5：每个 commit unit 的 verification_evidence 有测试覆盖场景和结果引用
+- [ ] 🆕 v2.5：git_tracking 数据已产出（task_description/units/examine_result 非空）
+- [ ] 🆕 v2.5：commit_message.body 包含改动原因/风险说明/验证方式三段
 - [ ] 拆分方案已展示给用户并获得确认
 
 ## GRAPH（图表绘制）验收关卡
@@ -104,3 +110,8 @@
 - [ ] 🆕 v2.4 HTML 注入防护：所有占位符替换已做 HTML 实体编码（`<` → `&lt;` 等）
 - [ ] 🆕 v2.4 目录初始化：`.claude/easywork/` 已确保存在（不存在时 `mkdir -p` 创建）
 - [ ] 🆕 v2.4 日志串行写入：GRAPH∥SUM 并行时日志追加已串行化，防止 JSONL 损坏
+- [ ] 🆕 v2.5 产物后端已选择：output_backend 字段已记录，选择有依据（用户指定/team-policy/默认）
+- [ ] 🆕 v2.5 飞书 MCP 可用性已检查：如选 lark_doc 后端，已确认 lark-mcp 可用或已降级
+- [ ] 🆕 v2.5 Git 链路追踪数据完整：git_tracking 包含 task_description/units/examine_result
+- [ ] 🆕 v2.5 文档写作规范已应用：无模板套话、无正文反引号、标题≤4子标题、表格仅结构化
+- [ ] 🆕 v2.5 后端降级已记录：如发生降级事件，已在 SUM 产出中注明原因

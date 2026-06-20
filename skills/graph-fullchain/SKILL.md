@@ -6,7 +6,7 @@ description: >
   人脑处理图像比文字快 10 倍——好的图表让审查者瞬间理解你在做什么。
 allowed-tools: Read, Search
 model: haiku
-version: 2.4
+version: 2.5
 ---
 
 # Graph Fullchain（架构可视化）
@@ -16,6 +16,31 @@ version: 2.4
 **必须执行**：改动涉及多个模块交互、复杂流程判断、新增模块/服务/组件。
 
 **可以跳过**：改动 ≤ 1 个文件且逻辑简单（改常量、修拼写）、纯文档任务。
+
+## 🆕 产物后端分流（v2.5）
+
+GRAPH 步骤根据当前产物后端决定可视化输出方式：
+
+| 后端 | 输出方式 |
+|------|---------|
+| local_html | Mermaid 代码嵌入 HTML（自包含 CDN 渲染） |
+| markdown | Mermaid fenced code block 嵌入 .md 文件 |
+| lark_doc | Mermaid 代码通过 Markdown 转块嵌入飞书文档；复杂架构图可选飞书画板 |
+
+### 飞书后端特殊处理
+
+当产物后端为 lark_doc 时：
+
+1. **节点数 ≤ 15**：Mermaid 代码以 fenced code block 嵌入飞书文档，用户可在文档中查看或用 Mermaid Live Editor 渲染
+2. **节点数 > 15 的复杂架构图**：Agent 建议用户手动将图表渲染后上传到飞书画板（飞书白板 API 的 MCP 支持尚不完善，当前采用建议而非自动创建方案）
+3. **节点对照表**：一律以结构化文本嵌入文档（表格用格式化文本 + 缩进模拟）
+
+Agent 在 GRAPH 步骤结束时提示：
+> 架构图已写入飞书文档。如需在飞书画板中展示，可将 Mermaid 代码复制到 Mermaid Live Editor 渲染后截图上传画板。
+
+### 非飞书后端
+
+按原有方式处理——Mermaid 代码嵌入产物，带节点对照表和文字说明。
 
 ## 图表类型选择
 

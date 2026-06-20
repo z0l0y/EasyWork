@@ -2,12 +2,15 @@
 name: git-split-commit
 description: >
   提交拆分。EXAMINE 之后执行。将大坨改动按维度（配置/核心逻辑/UI/测试）
-  拆成可逐个审查的小提交单元。每个单元附带文件清单、改动说明、风险分析、
-  验证方式。这是 HITL 的关键环节——让人类能轻松审查，而不是面对 40 个文件的 diff 直接点 Approve。
+  拆成可逐个审查的小提交单元。每个单元附带文件清单、改动说明、业务上下文、
+  风险分析、验证证据、开发者Check清单。这是 HITL 的关键环节——让人类能轻松审查，
+  而不是面对 40 个文件的 diff 直接点 Approve。
+  v2.5: 业务上下文说明、逐项开发者Check清单、风险引入与验证证据、
+  Git链路追踪数据输出。
   ⚠️ 安全策略：禁止自动执行 git 命令，拆分方案和命令写入文件供用户手动执行。
 allowed-tools: Bash, Read, Grep
 model: haiku
-version: 2.4
+version: 2.5
 ---
 
 # Git Split Commit（提交拆分）
@@ -79,20 +82,32 @@ version: 2.4
 1. **subject 不超过 50 字符**（英文）/ **25 个汉字**（中文）
 2. **subject 用祈使语气**：`add` 而非 `added`；`fix` 而非 `fixed`
 3. **body 每行不超过 72 字符**
-4. **body 解释做了什么、为什么**（而非怎么做的——代码已经说明怎么做的）
+4. **body 必须包含三段（🆕 v2.5）**：
+   - **改动原因**：业务层面的为什么（不是技术层面的怎么做的）
+   - **风险说明**：引入什么风险、影响范围、缓解措施
+   - **验证方式**：哪些测试覆盖、结果如何
 5. 如果关联 Issue/PR，在 body 末尾引用：`Closes #123` / `Refs #456`
 
-### 提交示例
+### 提交示例（v2.5 增强）
 
 ```
 feat(favorite): add bookmark article API endpoint
 
-Add POST /api/articles/:id/favorite and DELETE /api/articles/:id/favorite
-endpoints. Users can bookmark articles for later reading.
+改动原因（业务）：
+用户反馈在文章列表中看到感兴趣的内容后无法标记，需要复制链接到
+笔记软件保存。新增收藏功能让用户在站内即可保存和回顾感兴趣的文章。
 
-- New table: user_favorites (user_id, article_id, created_at)
-- Auth middleware applied to both endpoints
-- Idempotent: favoriting an already-favorited article returns 200
+风险说明：
+- 新增 user_favorites 表，写入操作在 POST /api/articles/:id/favorite
+  端点——如果并发收藏同一篇文章，唯一索引防止重复插入
+- 删除操作是软删除——不影响已有数据，风险低
+- Auth 中间件已覆盖，未登录用户返回 401
+
+验证方式：
+- favorite.test.ts 覆盖：正常收藏、重复收藏（幂等）、取消收藏、
+  未登录访问、收藏不存在的文章
+- 全部 8 个测试通过
+- REVIEW 安全性维度通过
 
 Closes #234
 ```
@@ -120,11 +135,41 @@ Closes #234
 
 ## 每个拆分单元必须包含
 
+每个拆分单元现在包含 **7 项必填内容**（v2.5 从 5 项扩展）：
+
 1. **文件清单**：列出本单元的所有文件及一句话改动说明
 2. **改动说明**：2-5 句话概括做了什么、为什么
-3. **风险分析**：具体说明最大风险点（不是笼统的"可能有bug"，而是"如果 XX 条件不满足，YY 模块会返回空数组导致前端渲染空白"）
-4. **验证方式**：引述 REVIEW 和 EXAMINE 的结果证明这个单元是可靠的
-5. **提交消息**：按 Conventional Commits 格式给出建议的 commit message
+3. **业务上下文说明（🆕 v2.5）**：结合项目实际业务说明这些改动在业务上达成了什么目的——不是泛泛的"修复了某 bug"，而是"这个改动解决了用户在什么场景下遇到的什么问题，对什么业务流程有什么影响"
+4. **引入风险（🆕 v2.5）**：具体说明最大风险点——什么场景下可能触发问题、影响范围是什么、缓解措施或回滚策略
+5. **验证证据（🆕 v2.5）**：引述 REVIEW 和 EXAMINE 的结果证明这个单元是可靠的——不只是"测试通过了"，而是"哪些测试覆盖了哪些场景，结果如何"
+6. **开发者 Check 清单（🆕 v2.5）**：每项改动附上逐项 Check，用户在 commit 前逐项确认
+7. **提交消息**：按 Conventional Commits 格式给出建议的 commit message，body **必须**包含改动原因（业务）、风险说明、验证方式
+
+### 业务上下文说明规范（🆕 v2.5）
+
+业务上下文不是技术描述。它回答的问题是："一个不了解这段代码的产品经理读完这段话，能理解这次改动对用户/业务产生了什么影响吗？"
+
+❌ 错误（纯技术描述）：
+> 修改了 auth.service.ts 的 login 方法，添加了 token 刷新逻辑。
+
+✅ 正确（业务上下文）：
+> 用户登录后约 15 分钟就会被踢出。原因是 session 刷新使用本地时间判断过期——当用户设备时间比服务器慢几分钟时，session 在服务器已过期但客户端以为还在有效期，下次请求直接被 401。受影响用户：日均约 300 人（设备时间偏差 >2 分钟的用户占比约 10%）。本次改动让 token 刷新基于服务器时间，用户只要在持续操作就不会被意外踢出。
+
+### 开发者 Check 清单（🆕 v2.5）
+
+每个拆分单元附带以下 Check 项：
+
+```
+### 开发者 Check
+
+- [ ] 改动范围符合需求——只改了该改的，没有蔓延到无关模块
+- [ ] 无意外副作用——检查了所有调用方和依赖方，确认行为不变
+- [ ] 测试覆盖充分——正常路径和异常路径都有测试验证
+- [ ] 代码风格一致——与项目现有模式保持一致，没有引入新的设计模式
+- [ ] 文档/注释已更新——如有新增公共 API 或配置项
+```
+
+用户可以逐项勾选，在 commit 前确认。Agent 也可以在后续会话中回填 Check 状态。
 
 ## 混合文件处理
 
@@ -160,6 +205,59 @@ Closes #234
 
 > **安全策略**：禁止 Agent 在用户确认拆分方案后自动执行 git commit/push。详见 `../fullchain-dev-workflow/references/security-policy.md` §1。
 
+## 🆕 Git 链路追踪数据（v2.5）
+
+GIT 步骤除了产出拆分方案（`git_output`），还需输出 `git_tracking` 数据，供 lark-doc 等后端写入 Git 链路追踪文档。
+
+### 数据格式
+
+```
+git_tracking:
+  task_description: "{任务简述（业务语言）}"
+  task_date: "{YYYY-MM-DD}"
+  task_type: "{Bug修复/功能开发/重构/微调/纯文档}"
+  risk_level: "{low/medium/high}"
+  units:
+    - index: 1
+      dimension: "logic"
+      files: ["auth.service.ts", "session.ts"]
+      summary: "修复登录 session 超时问题"
+      business_context: "{业务上下文——为什么改、影响什么用户/场景}"
+      risk_level: "medium"
+      risk_introduced: "{引入风险——什么场景触发、影响范围、缓解措施}"
+      verification_evidence: "{验证证据——测试覆盖场景 + 结果}"
+      commit_message:
+        type: "fix"
+        scope: "auth"
+        subject: "使用服务器时间判断 token 过期"
+        body: "{改动原因}\n{风险说明}\n{验证方式}"
+      developer_checklist:
+        scope_correct: false
+        no_side_effects: false
+        test_coverage: false
+        style_consistent: false
+        docs_updated: false
+      commit_hash: null
+  examine_result:
+    test_command: "{测试命令}"
+    test_total: {N}
+    test_passed: {N}
+    test_failed: 0
+    test_skipped: 0
+    verdict: "pass"
+```
+
+### 输出位置
+
+- git_tracking 数据随 `git_output` 一起产出
+- Agent 在 GIT 步骤结束时将 git_tracking 写入 data-contract 的对应字段
+- lark-doc 后端读取此数据写入飞书 Git 链路追踪文档
+- 其他后端（local_html、markdown）在最终报告中引用此数据
+
+### 模板参考
+
+Git 链路追踪文档的完整结构和格式见 `assets/git-chain-tracking-template.md`。
+
 ## 反模式
 
 - ❌ 所有文件塞一个提交——等于没拆
@@ -168,3 +266,7 @@ Closes #234
 - ❌ 混合文件不标记——审查者以为只是配置改动，结果里面藏着逻辑变更
 - ❌ 风险分析写"应该没问题"——等于没分析
 - ❌ 提交消息写"fix bug"——提供零信息量，无法从 `git log` 理解变更历史
+- ❌ 改动说明只写技术细节不写业务原因——后人不知道为什么要这样改
+- ❌ 风险分析写"应该没问题"——要有具体场景、影响面、缓解措施
+- ❌ 开发者 Check 清单全空——用户在 commit 前应至少检查范围正确性和测试覆盖
+- ❌ Git 链路追踪数据缺失——后端无法写入追踪文档，链路断裂

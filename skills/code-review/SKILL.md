@@ -6,7 +6,7 @@ description: >
   发现阻断性问题回退到 CODE 修复，循环上限 3 次，全部清零才放行。
 allowed-tools: Read, Search, Grep, Glob
 model: opus
-version: 2.4
+version: 2.5
 ---
 
 # Code Review（七维度自审查 + 反合理化防御）
@@ -86,11 +86,11 @@ version: 2.4
 
 **注意**：纯后端/CLI/配置变更 → 此维度标注 `not_applicable`。
 
-## 供应链安全检查（🆕 v2.3 / 安全增强 v2.4）
+## 供应链安全检查（🆕 v2.3 / 安全增强 v2.5）
 
 当 CODE 产出 `new_dependencies` 字段非空时（即新增了第三方依赖），必须执行供应链检查。
 
-### ⛔ 外部搜索约束（v2.4）
+### ⛔ 外部搜索约束（v2.5）
 
 1. **禁止将私有包名或内部 registry URL 发到公网搜索**
 2. 如果包名来自私有 registry（如 `@company/` scope、`nexus.internal.company.com`），标注 `[私有包，无法自动检查]`
