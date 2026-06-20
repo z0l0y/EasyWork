@@ -4,6 +4,9 @@ description: >
   EasyWork 全链路 AI 辅助开发工作流技能包索引。10 步流程按需裁剪：
   READ → CODE → REVIEW → EXAMINE → GIT → GRAPH → SUM → TALK → SELFCHECK → ASK。
   入口技能：fullchain-dev-workflow（含任务分类器，自动判断需要哪些步骤）。
+  v2.7: 报告深度分层(brief/standard/detailed)、MCR最小内容要求+自检闸门、
+  流式增量写入保障、报告类型(executive_summary/engineering_record)、深度自动升级、
+  代码摘录位置标注、同行审查就绪标准。
   v2.6: SelfCheck CTO拷打层（四阶段深度盘问+汇报就绪检查）、10步工作流、
   全任务类型强制自检（完整/标准/快速/轻量四种拷打模式）。
   v2.5: 可插拔产物后端（local_html/markdown/lark_doc）、飞书原生文档沉淀、
@@ -13,7 +16,7 @@ description: >
   Gotchas候选-确认制、文件系统写保护。
   v2.3: 并行审查、反合理化防御、Gotchas知识库、团队策略覆盖、自定义步骤注入、
   可访问性审查、供应链检查、Conventional Commits、交互式入门、故障Runbook。
-version: 2.6
+version: 2.7
 model: sonnet
 ---
 

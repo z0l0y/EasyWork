@@ -36,7 +36,7 @@ flowchart TD
     style SELFCHECK fill:#fce8e6,stroke:#d93025
 ```
 
-> GRAPH 和 SUM 高亮表示它们可以**并行执行**——都只依赖 GIT，互相无依赖。SELFCHECK（红色）是 v2.6 新增的 CTO 拷打层，依赖 SUM 和 TALK（如执行），是 ASK 的前置闸门。其余步骤严格串行。
+> GRAPH 和 SUM 高亮表示它们可以**并行执行**——都只依赖 GIT，互相无依赖。SELFCHECK（红色）是 v2.7 新增的 CTO 拷打层，依赖 SUM 和 TALK（如执行），是 ASK 的前置闸门。其余步骤严格串行。
 
 ### 并行规则
 

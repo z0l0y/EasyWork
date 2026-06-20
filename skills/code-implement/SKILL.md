@@ -6,7 +6,7 @@ description: >
   改最少的代码，做最精准的事。写操作限于当前项目目录内。
 allowed-tools: Read, Write, Edit, Search, Grep, Glob, Bash
 model: sonnet
-version: 2.6
+version: 2.7
 ---
 
 # Code Implement（代码实现）

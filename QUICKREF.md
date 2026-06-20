@@ -60,6 +60,19 @@
 4. **每步自检必填字段**：每步结束对照 data-contract 检查产出，缺失立即补全
 5. **踩坑追加 Gotchas（候选制）**：耗时 >10min 的 bug / 反直觉陷阱 / 用户指出的边界 → 生成候选 → 用户确认后写入
 
+## 🆕 v2.7 新特性（报告深度分层 + MCR 闸门）
+
+| 特性 | 怎么用 |
+|------|--------|
+| **报告深度分层** | brief/standard/detailed 三级——任务类型自动决定默认值。功能开发/重构/Bug修复→detailed，微调→brief |
+| **最小内容要求(MCR)** | detailed 模式每步骤有硬性最低产出（READ 5项/CODE 5项/REVIEW 3项/EXAMINE 4项/GIT 5项/SELFCHECK 3项），不满足则阻断写入 |
+| **内容丰满度自检闸门** | write_final_report 前强制执行 MCR 自检。detailed→HARD GATE(不通过阻断)，standard→SOFT GATE(警告记录) |
+| **报告类型** | executive_summary(领导层摘要,brief) vs engineering_record(工程记录,standard/detailed)。功能开发/重构自动选后者 |
+| **深度自动升级** | 发现安全问题/测试根因复杂/改动超预估2倍/用户补充重要信息 → standard 自动升级为 detailed |
+| **流式增量写入保障** | 每步骤完成后立即追加到文档；非流式后端在最终报告中恢复完整详情。禁止"浓缩版"替代逐步骤产出 |
+| **代码摘录位置标注** | 所有代码引用必须包含文件路径和行号（格式：auth.service.ts:88-95），确保可追溯 |
+| **同行审查就绪** | detailed 报告应满足"另一个工程师不读源码也能理解完整上下文"的标准 |
+
 ## 🆕 v2.6 新特性（CTO 拷打层）
 
 | 特性 | 怎么用 |

@@ -7,6 +7,43 @@ EasyWork 的所有重要变更记录。
 
 ---
 
+## [2.7.0] — 2026-06-20
+
+### 新增
+- **报告深度分层**：brief / standard / detailed 三级深度。任务类型自动决定默认值（功能开发/重构/Bug修复→detailed，纯理解/审查/文档→standard，微调→brief），用户可覆盖，团队可在 team-policy 配置
+- **最小内容要求（MCR）**：detailed 模式下每个步骤定义硬性最低产出要求。READ 5项（需求背景/用户目标/MVP边界/验收标准≥2/不做事项≥1）、CODE 5项（文件变更表/核心设计说明/关键函数职责≥2/边界处理≥1/代码摘录≤30行含路径行号）、REVIEW 3项（每维度≥2条检查点/阻断问题详情/issue含代码位置）、EXAMINE 4项（测试命令/覆盖矩阵/输出凭据/未覆盖风险）、GIT 5项（拆分方案/business_context/risk_introduced/verification_evidence/developer_checklist）、SELFCHECK 3项（完整CTO问答/认知缺口/补救动作）
+- **内容丰满度自检闸门（MCR Gate）**：write_final_report 前强制执行。detailed→HARD GATE（不通过=拒绝写入→回退补充→重新自检，最多2轮），standard→SOFT GATE（警告记录），brief→跳过
+- **报告类型**：executive_summary（领导层摘要，强制 brief）vs engineering_record（工程记录，standard/detailed）。功能开发/重构选前者时 Agent 必须强烈警告
+- **深度自动升级**：4 个触发条件——安全问题/测试失败根因复杂/实际改动超预估2倍/用户补充重要信息 → standard 自动升级为 detailed
+- **流式增量写入保障**：每步骤完成后立即追加到产物文档。非流式后端在最终报告中恢复完整结构化产出。明确禁止"浓缩版"反模式
+- **代码摘录位置标注**：所有代码引用必须包含文件路径和行号（格式：`auth.service.ts:88-95`），确保可追溯到源码
+- **同行审查就绪标准**：detailed 报告应让另一个工程师不读源码也能理解完整上下文
+- **report_type 降级保护**：功能开发/重构选择 executive_summary 时 Agent 必须强烈警告并建议切换
+- **team-policy 扩展**：新增 `report_depth` 和 `report_type` 配置段，支持团队级别默认值、白名单和强制规则
+
+### 变更
+- **编排中枢 SKILL.md**：铁律新增 #19-#22（深度不可降级/流式增量保障/MCR闸门/类型匹配）；§4 裁剪参考表新增 report_depth 和 report_type 两列；新增"报告深度选择逻辑"子节（含深度升级4触发条件+降级保护）；§6 步骤表 SUM 行更新为深度感知；新增 MCR 表（6步骤×3-5项）+ 代码摘录格式要求；§7 进度卡新增深度/类型信息；§8 状态快照新增 5 个字段；§10 反模式新增 7 条
+- **data-contract.md**：新增 report_depth / report_type / streaming_status 顶层字段；所有步骤契约字段增加深度感知标注（`[必填|brief]` / `[必填|standard]` / `[必填|detailed]`）；sum_output 新增 mcr_gate_result；新增 READ/CODE/REVIEW/EXAMINE 契约字段以满足 MCR（business_background/user_persona/mvp_scope/design_rationale/key_functions/edge_case_handling/code_excerpts/dimensions.*.checkpoints/blocking_issues_detail/test_coverage_matrix/cto_qa_transcript）；版本迁移表新增 2.6→2.7 条目
+- **acceptance-gates.md**：每步骤新增 MCR 验收关卡（READ+5条/CODE+5条/REVIEW+3条/EXAMINE+4条/SELFCHECK+3条）；新增"SUM — 内容丰满度自检闸门"专区（6条，区分 HARD/SOFT GATE）；全局新增 v2.7 关卡（8条）
+- **sum-session/SKILL.md**：前置判断改为深度感知（brief/standard/detailed 行为差异）；新增"MCR Gate"专区（执行流程+判定逻辑+输出格式）；新增"流式增量写入保障"专区（按后端 streaming 能力分策略）；产物后端适配流程更新（新增 MCR 前置+4个新传入参数）；反模式新增 4 条
+- **doc-writing-guide.md**：新增 §7"报告深度与类型指南"（深度层级表/报告类型说明/同行审查就绪标准）；§6 自检清单新增 4 条 v2.7 项
+- **team-policy.md**：新增 `report_depth`（default/allow_brief_for/force_detailed_for）和 `report_type`（default/block_executive_summary_for）配置 YAML 段
+- **output-backends.md**：write_final_report 接口新增 4 个参数（report_depth/report_type/mcr_gate_result/streaming_status）；write_step_output 新增流式保障说明；后端能力表新增 full_detail_restore
+- **lark-doc 后端（v1.0→v1.1）**：write_step_output 新增流式增量保障；write_final_report 新增 MCR 闸门验证 + 深度感知逻辑 + 文档尾注含深度/类型信息；反模式新增 3 条
+- **local-html 后端（v1.0→v1.1）**：write_step_output 重写为完整暂存模式（禁止精简）；write_final_report 新增深度感知+MCR验证+增量恢复+报告类型提示条；capabilities 新增 full_detail_restore；反模式新增 3 条
+- **markdown 后端（v1.0→v1.1）**：同 local-html 模式变更；文档头新增深度/类型/流式状态元数据
+- **self-check/SKILL.md**：§11 产出格式新增 detailed 模式要求（完整CTO问答记录/认知缺口含补救动作/severity标注）；反模式新增 3 条
+- 所有技能文件 YAML frontmatter version 更新至 2.7
+- 后端适配器 version 更新至 1.1
+- install.sh / install.bat 版本号 2.6→2.7
+- 其余参考文档版本号同步更新（TROUBLESHOOTING/onboarding/security-policy/orchestration-engine/html-skeleton）
+
+### 破坏性变更
+- 无。所有 v2.6 字段向后兼容。brief 模式等效 v2.6 行为，standard/detailed 为增强模式。新增字段仅 v2.7 新增
+- **行为变更**：detailed 模式下 SUM 不可写入未通过 MCR 的报告（v2.6 无此闸门）。此为增强约束，不影响现有 standard/brief 流程
+
+---
+
 ## [2.6.0] — 2026-06-20
 
 ### 新增

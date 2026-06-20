@@ -32,6 +32,7 @@ version: 1.0
 | `create_whiteboard` | 创建画板（用于 GRAPH 步骤） | 可选 |
 | `update_blocks` | 更新已有内容块 | 可选 |
 | `batch_write` | 批量写入（一次性写入全部 10 步产出） | 可选 |
+| `full_detail_restore` | 🆕 v2.7 — 在最终报告中恢复完整步骤详情（非流式后端必须实现） | 非流式后端必须 |
 
 **后端必须声明的约束**：
 
@@ -92,6 +93,11 @@ version: 1.0
 - `success`：是否写入成功
 - `error`：失败原因（如有）
 
+**🆕 v2.7 流式增量保障**：
+- 后端支持流式追加（streaming: true）→ 此接口**必须**被调用，每步骤完成后立即追加
+- 后端不支持流式追加（streaming: false）→ 此接口仅做内存暂存，**禁止精简/截断**步骤产出。write_final_report 时恢复完整产出
+- **禁止**以"上下文不足"为由在 write_step_output 中精简步骤产出
+
 **Agent 指令格式**：后端 SKILL.md 中以 `### write_step_output` 为标题的子节。
 
 ### 3.3 write_final_report
@@ -103,10 +109,16 @@ version: 1.0
 - `all_step_outputs`：全部步骤的结构化产出（含已跳过的步骤）
 - `sum_output`：SUM 步骤的六要素总结
 - `skipped_steps`：被跳过的步骤列表及原因
+- `report_depth`：🆕 v2.7 — "brief" | "standard" | "detailed"
+- `report_type`：🆕 v2.7 — "executive_summary" | "engineering_record"
+- `mcr_gate_result`：🆕 v2.7 — MCR 自检闸门结果（detailed 模式必传，必须已通过）
+- `streaming_status`：🆕 v2.7 — 流式写入状态（哪些步骤已流式追加到文档）
 
 **输出**：
 - `success`：是否写入成功
 - `doc_url`：最终文档链接（如与 create 时返回的不同）
+
+**🆕 v2.7 MCR 前置验证**：如果 report_depth=detailed 且 mcr_gate_result.passed=false → 后端必须拒绝写入，返回错误及缺失清单。
 
 **Agent 指令格式**：后端 SKILL.md 中以 `### write_final_report` 为标题的子节。
 

@@ -6,7 +6,7 @@ description: >
   发现阻断性问题回退到 CODE 修复，循环上限 3 次，全部清零才放行。
 allowed-tools: Read, Search, Grep, Glob
 model: opus
-version: 2.6
+version: 2.7
 ---
 
 # Code Review（七维度自审查 + 反合理化防御）

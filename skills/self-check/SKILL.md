@@ -6,9 +6,11 @@ description: >
   业务背景拷打（为什么做）→ 问题发现拷打（怎么发现的）→ 解决方案拷打（为什么这样修）→
   实现过程拷打（怎么做到的）。让开发者在向领导汇报之前把该清楚的都搞明白。
   AI 不拷打你，同事和领导就要拷打你。
+  v2.7: detailed模式要求保留完整CTO问答记录(cto_qa_transcript)、认知缺口必须有补救动作、
+  禁止用摘要表替代问答。
 allowed-tools: Read, Search
 model: opus
-version: 2.6
+version: 2.7
 ---
 
 # Self Check（CTO 拷打层）
@@ -343,6 +345,12 @@ version: 2.6
 
 拷打结束后，将各阶段回答整理为 `selfcheck_output`，按 `../fullchain-dev-workflow/references/data-contract.md` 中 selfcheck_output 契约输出。结构化数据供 SUM 和 ASK 引用。
 
+**🆕 v2.7 detailed 模式要求**：
+- 产出必须包含 **cto_qa_transcript**（完整 CTO 问答记录）—— 每阶段每个问题的具体问答、追问及回答都必须记录。**不可用摘要表替代**（"Q1: 业务问题 → A: 修复了XX" 这种一行式摘要视为不合格）
+- **gaps_identified** 必须列出认知缺口。如果确实没有认知缺口 → 显式说明"本任务无认知缺口——原因：{具体解释}"，不可留空或写"无"
+- 每个认知缺口必须有 **remediation**（后续补救动作）：谁来做、什么时候完成、具体怎么做
+- 认知缺口需标注 **severity**（critical / major / minor）
+
 ### 产出模板
 
 ```
@@ -398,6 +406,9 @@ version: 2.6
 - ❌ 接受"业界最佳实践"作为方案理由——追问：哪个业界？什么实践？为什么适合我们的场景？
 - ❌ 轻量任务走完整模式——纯理解不需要问"实现过程中遇到什么问题"，人家没写代码
 - ❌ 跳过 SelfCheck——CTO 质检是底线，任何任务类型都必须执行。跳过了就是你（Agent）的失职
+- ❌ v2.7：detailed 模式下用摘要表替代完整 CTO 问答——"Q1: 业务问题 → A: 修复了XX" 这种格式视为不合格。必须记录完整问答对话(cto_qa_transcript)
+- ❌ v2.7：gaps_identified 为空但不说明原因——必须显式说明"为什么没有认知缺口"，不可留空或写"无"占位
+- ❌ v2.7：认知缺口没有后续补救动作——每个 gap 必须有 remediation（谁/什么时候/怎么做）
 
 ## 13. 拷打示例
 

@@ -160,6 +160,31 @@ output_backend:
 
 ---
 
+### 报告深度与类型配置（🆕 v2.7）
+
+```yaml
+report_depth:
+  default: ""                        # 团队默认报告深度：brief | standard | detailed
+                                     # 留空=使用任务类型默认值（功能开发→detailed，微调→brief）
+  allow_brief_for: ["微调"]          # 允许使用 brief 深度的任务类型（默认仅微调）
+  force_detailed_for: []             # 强制使用 detailed 的任务类型（如团队要求所有Bug修复必有详细记录）
+                                     # 示例：["Bug修复", "功能开发"]
+
+report_type:
+  default: ""                        # 团队默认报告类型：executive_summary | engineering_record
+                                     # 留空=使用任务类型默认值（微调→executive_summary，其余→engineering_record）
+  block_executive_summary_for: []    # 禁止 executive_summary 的任务类型
+                                     # 示例：["功能开发", "重构"]（强制要求工程记录）
+```
+
+**说明**：
+- `report_depth.default`：留空时使用任务类型默认值。建议保持留空，让系统自动决定
+- `report_depth.force_detailed_for`：适用于合规要求高的团队——所有功能开发/Bug修复必须有完整工程记录
+- `report_type.block_executive_summary_for`：防止开发者以"领导层摘要"之名规避详细记录
+- 用户仍可在单次任务中覆盖这些默认值（除非被 block 规则阻止）
+
+---
+
 ## 使用方式
 
 1. **团队 fork 此文件**到 `.claude/skills/easywork/team-policy.md`

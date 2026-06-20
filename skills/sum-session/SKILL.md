@@ -5,18 +5,25 @@ description: >
   背景（为什么做）→ 发现过程（怎么定位的）→ 问题说明（本质是什么）→
   解决方案（怎么修的+为什么这样修）→ 最终效果（客观验证结果）→
   未来展望（遗留问题和后续建议）。是 PR 描述和团队交接的核心文档。
+  v2.7: 报告深度感知(brief/standard/detailed)、MCR自检闸门(HARD/SOFT GATE)、
+  流式增量写入保障。
 allowed-tools: Read, Search, Bash
 model: sonnet
-version: 2.6
+version: 2.7
 ---
 
 # Sum Session（总结报告）
 
 ## 前置判断
 
+**report_depth 感知（🆕 v2.7）**：
+- **brief**：仅产出六要素概要（每要素1-2句），跳过详细发现过程和量化对比。最终报告约 1-2 页
+- **standard**：产出完整六要素（=当前 v2.6 行为），含排查路径、量化对比。最终报告约 3-5 页
+- **detailed**：完整六要素 + 逐步骤MCR自检 + 流式增量保障 + 代码摘录含路径行号。最终报告约 6-10 页
+
 **必须执行**：任何产生了代码改动或分析结论的任务。
 
-**可以跳过**：极微改动（改一个常量/文案）且用户不需要记录。
+**可以跳过**：brief 模式 + 极微改动 + 用户明确说"不需要记录"。其他情况：SUM 不可跳过。
 
 ## 六要素
 
@@ -82,6 +89,10 @@ version: 2.6
 - ❌ 未来展望写"继续优化"、"持续关注"——空洞无物的套话
 - ❌ 解决方案不解释"为什么选这个方案"——后人不知道为什么代码长这样
 - ❌ 不标遗留问题，假装改得完美——诚实的工程师标注 debt，不诚实的假装不存在
+- ❌ v2.7：detailed 模式下产出 brief 级别的内容——深度不可自动降级
+- ❌ v2.7：跳过 MCR 自检闸门直接写入——detailed 模式此为 HARD GATE，不通过不可写入
+- ❌ v2.7：代码摘录不标文件路径和行号——"某处代码"不可追溯
+- ❌ v2.7：用摘要表替代完整问答——SELFCHECK 产出必须保留完整 CTO 问答记录(cto_qa_transcript)
 
 ## 🆕 Gotchas 候选检查（v2.4）
 
@@ -112,18 +123,84 @@ version: 2.6
 
 > 详见 `../fullchain-dev-workflow/references/security-policy.md` §6。
 
+## 🆕 内容丰满度自检闸门 — MCR Gate（v2.7）
+
+在调用 write_final_report 之前，SUM 必须执行 MCR 自检。
+
+### 执行流程
+
+1. 读取 report_depth（从 data-contract 顶层字段 `report_depth.level`）
+2. 如果 report_depth = brief → 跳过此闸门
+3. 逐步骤对照 MCR 表（见编排中枢 §6 "最小内容要求(MCR)表"）检查：
+   - READ: 5项 → 检查 read_output 是否含 business_background / user_persona / mvp_scope / acceptance_criteria（≥2-3条）/ non_goals（≥1条）
+   - CODE: 5项 → 检查 code_output 是否含 files_changed 表 / design_rationale / key_functions（≥2）/ edge_case_handling（≥1）/ code_excerpts（≥1段，含路径+行号）
+   - REVIEW: 3项 → 检查 review_output.dimensions 每维度是否有 checkpoints（≥2条）/ blocking_issues_detail（有详情或说明为什么没有）/ issues 含代码位置
+   - EXAMINE: 4项 → 检查 examine_output 是否含 test_command / test_coverage_matrix / test_output_snippet（非"全部通过"）/ uncovered_scenarios（≥1个含原因）
+   - GIT: 5项 → 检查 git_output.units 每单元是否含 business_context / risk_introduced / verification_evidence / developer_checklist（5项齐全）
+   - SELFCHECK: 3项 → 检查 selfcheck_output 是否含 cto_qa_transcript / gaps_identified（≥1或说明为什么没有）/ 每个gap有remediation
+4. 记录检查结果到 sum_output.mcr_gate_result
+
+### 判定
+
+| 深度 | 闸门类型 | 不通过处理 |
+|------|---------|-----------|
+| detailed | **HARD GATE** | 拒绝写入 → 输出缺失清单 → 回退到标记步骤补充 → 重新自检。最多回退 2 轮。2 轮后仍不通过 → 挂起报告用户，列出已满足项和仍缺失项 |
+| standard | **SOFT GATE** | 缺失项记录警告 → 在 SUM 产出中标注"以下 MCR 项未满足" → 允许写入但注明不完整 |
+| brief | 跳过 | — |
+
+### MCR 自检输出格式
+
+```
+【MCR 自检闸门】— report_depth={detailed/standard}
+
+| 步骤 | 状态 | 缺失项 | 处理 |
+|------|------|--------|------|
+| READ | ✅ | — | — |
+| CODE | ❌ | design_rationale, code_excerpts | 回退补充 |
+| REVIEW | ✅ | — | — |
+| EXAMINE | ⏭️ | 步骤已跳过 | — |
+| GIT | ✅ | — | — |
+| SELFCHECK | ❌ | cto_qa_transcript | 回退补充 |
+
+总体判定：fail → 回退到 CODE、SELFCHECK 补充缺失内容
+```
+
+## 🆕 流式增量写入保障（v2.7）
+
+### 策略
+
+**后端支持流式追加（streaming: true，如 lark-doc）**：
+- 每步骤完成后立即调用 write_step_output 追加到文档
+- write_final_report 追加 SUM 六要素总结 + TALK + SELFCHECK + ASK + 文档尾注
+- **不替换**已追加的步骤详情——文档可从前到后完整阅读
+
+**后端不支持流式追加（streaming: false，如 local-html/markdown）**：
+- 每步骤完成后在内存中保留**完整结构化产出**（不可精简为摘要）
+- write_final_report 时将所有步骤的完整产出一次性写入
+- **禁止**在最终报告中用"详见上文"或浓缩摘要替代步骤详情
+- 确保最终报告可独立阅读——另一个工程师无需追问即理解完整上下文
+
+### 禁止的反模式
+
+- ❌ 流式后端：write_final_report 时替换/覆盖已追加的步骤详情
+- ❌ 非流式后端：write_final_report 时只写 SUM 六要素，省略 READ/CODE/REVIEW 等步骤产出
+- ❌ 任何后端：以"上下文不足"为由产出"浓缩版"替代完整步骤产出
+- ❌ detailed 模式下产出 brief 级别的内容——深度不可自动降级
+
 ## 🆕 产物后端适配（v2.5）
 
 SUM 步骤不再硬编码生成 HTML。Agent 调用当前激活的产物后端适配器完成最终报告写入。
 
 ### 执行流程
 
-1. **确定当前后端**：从 data-contract 的 `output_backend` 字段读取（编排中枢在任务分类后确定）
-2. **加载后端 SKILL.md**：读取 `../fullchain-dev-workflow/backends/{output_backend.output_format}/SKILL.md`
-3. **调用 write_final_report**：按后端定义的指令，将全部 10 步产出写入产物容器
+1. **执行 MCR 自检闸门（🆕 v2.7）**：调用 MCR Gate（见上节），detailed 模式必须通过才能继续
+2. **确定当前后端**：从 data-contract 的 `output_backend` 字段读取（编排中枢在任务分类后确定）
+3. **加载后端 SKILL.md**：读取 `../fullchain-dev-workflow/backends/{output_backend.output_format}/SKILL.md`
+4. **调用 write_final_report**：按后端定义的指令，将全部 10 步产出写入产物容器
    - 传入：`doc_id`（create_session_doc 返回）、`all_step_outputs`、`sum_output`、`skipped_steps`
-4. **调用 get_share_link**：获取可分享链接（如有），记录到 `output_share_link` 字段
-5. **降级处理**：后端写入失败时，降级到 local_html 并记录错误
+   - 🆕 v2.7 新增传入：`report_depth`、`report_type`、`mcr_gate_result`、`streaming_status`
+5. **调用 get_share_link**：获取可分享链接（如有），记录到 `output_share_link` 字段
+6. **降级处理**：后端写入失败时，降级到 local_html 并记录错误
 
 ### 后端间差异
 
