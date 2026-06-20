@@ -6,7 +6,7 @@ description: >
   v2.8: 交互式应用真实体验验证(铁律#26)——CLI/TUI/GUI/Web前端/游戏额外覆盖首屏/输入反馈/退出路径/stdin边界/ANSI兼容/渲染频率。
 allowed-tools: Bash, Read, Write, Search, Grep, Glob
 model: sonnet
-version: 2.8
+version: 2.9
 ---
 
 # Examine Quality（测试执行）
@@ -162,6 +162,15 @@ version: 2.8
 [交互式应用 EXAMINE 补充: N/A — 本次改动为纯后端/库/脚本，不涉及用户界面]
 ```
 
+## 🆕 v2.9 MCR+ 质量要求
+
+| # | MCR+ 要求 | ❌ 反例（禁止） | ✅ 合格例 |
+|---|----------|--------------|---------|
+| 1 | 测试命令完整可复制 + 说明为什么这个命令能覆盖本次改动 | "go test 通过" | "`go test -v -run 'TestAuth\|TestToken' ./auth/...` — 只跑 auth 包而非全量(全量12min)" |
+| 2 | 失败前/修复后对比（修Bug时）：修复前什么表现→修复后什么表现 | "问题已修复，测试通过" | "修复前：TestScannerEOF→FAIL(panic)。修复后：TestScannerEOF→PASS(退出码0,200ms)" |
+| 3 | 测试覆盖矩阵：标注哪些是本次新增的测试 | 只有通过数无矩阵 | "TestLoginHappy(passed)/TestLoginExpired(passed,🆕新增)/TestLoginWeakNet(passed,🆕新增)" |
+| 4 | 关键输出摘录作为测试凭据（非"全部通过"占位） | "go vet 通过" | "`=== RUN TestLoginExpired --- PASS: TestLoginExpired (0.32s)`" |
+
 ## 反模式
 
 - ❌ 写一个 `expect(true).toBe(true)` 充数——这是自欺欺人
@@ -172,3 +181,4 @@ version: 2.8
 - ❌ v2.8：CLI/TUI 工具不测 stdin 关闭和空输入——用户第一个操作可能就是按 Ctrl+C 或直接回车
 - ❌ v2.8：ANSI 控制字符不说明兼容性风险——IDE 控制台和标准终端行为不同是高频踩坑点
 - ❌ v2.8：交互式应用只跑单元测试不验证真实体验——首屏闪烁、按钮没反馈、退出不了——这些单测覆盖不了
+- ❌ v2.9："go test 通过""go vet 通过"——无命令、无输出、无覆盖矩阵——水文

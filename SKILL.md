@@ -4,6 +4,9 @@ description: >
   EasyWork 全链路 AI 辅助开发工作流技能包索引。10 步流程按需裁剪：
   READ → CODE → REVIEW → EXAMINE → GIT → GRAPH → SUM → TALK → SELFCHECK → ASK。
   入口技能：fullchain-dev-workflow（含任务分类器，自动判断需要哪些步骤）。
+  v2.9: 反水文闸门(6类水文信号→HARD GATE)、MCR→MCR+质量升级(每步增加反例+合格例)、
+  ETR证据链标准(Evidence/Thinking/Risk三元组)、同行审查就绪六问自检、
+  写后Fetch验证、文档质量评分(100分制/<80分阻断)、禁止凭记忆写报告。
   v2.8: CODE↔REVIEW质量门禁循环(回退不通过不可前进)、READ需求理解显式确认、
   文档迭代增量更新、交互式应用EXAMINE增强(CLI/TUI/GUI/Web/游戏真实体验验证)、
   REVIEW七维度交叉分析优化。
@@ -19,7 +22,7 @@ description: >
   Gotchas候选-确认制、文件系统写保护。
   v2.3: 并行审查、反合理化防御、Gotchas知识库、团队策略覆盖、自定义步骤注入、
   可访问性审查、供应链检查、Conventional Commits、交互式入门、故障Runbook。
-version: 2.8
+version: 2.9
 model: sonnet
 ---
 

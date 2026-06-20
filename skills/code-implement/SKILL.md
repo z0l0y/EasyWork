@@ -6,7 +6,7 @@ description: >
   改最少的代码，做最精准的事。写操作限于当前项目目录内。
 allowed-tools: Read, Write, Edit, Search, Grep, Glob, Bash
 model: sonnet
-version: 2.8
+version: 2.9
 ---
 
 # Code Implement（代码实现）
@@ -94,6 +94,18 @@ const idx = users.findIndex(u => u.id === targetId && u.status !== -1);
   C) 先解耦再改（风险：工作量大）
 → 请选择方案。
 ```
+
+## 🆕 v2.9 MCR+ 质量要求
+
+每个代码变更必须满足以下质量维度：
+
+| # | MCR+ 要求 | ❌ 反例（禁止） | ✅ 合格例 |
+|---|----------|--------------|---------|
+| 1 | 变更位置：完整路径+函数名+行号范围 | "修改了 main.go" | "auth/auth.go:192-198 — Login()" |
+| 2 | 变更原因：为什么在这里改不是在别处改 | "按需求修改" | "选 auth 层而非网关层：auth 是 token 验证的 SSOT，网关改需同步3个微服务" |
+| 3 | 关键逻辑：3-6句话解释核心思路（另一个工程师不用读源码就能懂） | "修改了 token 验证逻辑" | "原来 Scanner 读到 EOF 直接 close(ch)→改为发送 io.EOF 到 channel，由 mainLoop 统一关闭" |
+| 4 | 替代方案：≥1个未被采用的方案+不被采用的具体技术理由 | "方案 A 最简单" | "未采用 SHA-256：OWASP 明确推荐 bcrypt/argon2。未采用加缓存层：引入缓存一致性风险" |
+| 5 | 代码摘录：≥1段，≤30行，含路径+行号 | 只贴代码不标位置 | "auth/auth.go:88-95 — token 过期判断 `if time.Now().After(...)`" |
 
 ## 反模式
 

@@ -7,6 +7,34 @@ EasyWork 的所有重要变更记录。
 
 ---
 
+## [2.9.0] — 2026-06-20
+
+### 新增
+- **反水文闸门（Anti-Fluff Gate）**：6类水文信号检测（空泛结论/无证据通过/无位置描述/无取舍/无风险/SelfCheck放水）。detailed→HARD GATE（命中即阻断写入），standard→SOFT GATE（警告+用户确认），brief→跳过但标注免责声明（铁律#27）
+- **MCR→MCR+ 质量升级**：每个步骤的 MCR 从"数量要求"升级为"质量要求"。新增反例表（禁止项）和合格例。READ MCR+（需求来源/用户真实目标/影响量化/可验证验收/不做事项含原因）、CODE MCR+（变更位置+原因/关键逻辑3-6句/替代方案≥1/代码摘录含位置）、REVIEW MCR+（每维度≥2条检查点绑定位置/"通过"必须说明为什么能通过/发现问题写全位置+触发+影响+修复+回归）、EXAMINE MCR+（测试命令+目的/失败前后对比/覆盖矩阵标注新增/输出凭据）、SELFCHECK MCR+（≥8问/≥2反事实/≥2替代方案质询/≥1为什么之前没发现/≥1防复发/≥1认知缺口）
+- **ETR 标准**：每个关键结论必须满足 Evidence / Thinking / Risk 三元组。任何没有证据、没有推理、没有风险边界的结论视为不合格
+- **同行审查就绪六问自检**：最终报告写入前自问——另一个工程师能否复现问题/定位代码/知道为什么/知道测试覆盖/知道未覆盖/判断合并。任一答案为否→报告不允许写入
+- **写后 Fetch 验证**：写入文档后必须 fetch 回读，验证内容未截断/代码块正确/表格完整/字符无乱码/所有步骤可见。详细修复循环最多 3 轮
+- **文档质量评分**：100 分制（需求与背景15/根因方案推理20/代码位置摘录15/测试证据20/风险取舍15/SelfCheck拷打质量15）。<80分→detailed engineering_record 禁止写入。扣分规则明确（空泛结论-5/关键证据缺失-10/无未覆盖风险-15/无替代方案-10/SelfCheck<8问-15）
+- **禁止凭记忆写报告**：SUM 不得凭上下文自由发挥，必须基于 step_output 拼装报告。某步骤不满足 MCR+ → 回退补充
+- **3 个新参考文件**：`skills/sum-session/references/anti-fluff-gate.md`（6类水文信号+检测逻辑+反例）、`peer-review-standard.md`（6问+判定标准）、`quality-scoring.md`（6维度评分+扣分规则+闸门阈值）
+
+### 变更
+- **编排中枢 SKILL.md**：铁律新增 #27（反水文闸门）；§6 MCR 表升级为 MCR+ 表（每行增加反例+合格例）；新增 ETR 标准说明；§6 SUM 行更新（"禁止凭记忆写报告"）；§8 状态快照新增 5 个字段；§10 反模式新增 8 条；version→2.9
+- **data-contract.md**：新增 anti_fluff_gate_result/peer_review_ready/quality_score/fetch_verify_result/etr_compliant 顶层字段；READ 新增 requirement_source/user_real_goal/impact_if_not_done；CODE 新增 alternatives_rejected；SELFCHECK 新增 mcr_plus_checks/counterfactuals/alternative_challenges；版本迁移表新增 2.8→2.9
+- **acceptance-gates.md**：每步骤新增 MCR+ 质量关卡（READ+5/CODE+4/REVIEW+3/EXAMINE+4/SELFCHECK+8）；新增 SUM Anti-Fluff Gate/ETR/Peer Review/Quality Scoring/Write-then-Fetch/Anti-Memory 6 个专区；全局新增 8 条 v2.9 关卡
+- **sum-session/SKILL.md**：新增 6 个 v2.9 专区（ETR标准/Anti-Memory Rule/Anti-Fluff Gate/Peer Review Readiness/Quality Scoring/Write-then-Fetch）；产物后端适配流程从 6 步扩展为 11 步；反模式新增 7 条；version→2.9
+- **5 个步骤技能 MCR+ 升级**：read-requirements（需求来源/用户真实目标/影响量化+反例表）、code-implement（变更位置/原因/关键逻辑/替代方案+反例表）、code-review（检查点绑定位置/"通过"依据/问题全写+反例表）、examine-quality（测试命令+目的/前后对比/覆盖矩阵+反例表）、self-check（≥8问/≥2反事实/≥2替代方案/防复发/反例+硬性指标表）
+- **doc-writing-guide.md**：新增 §9"ETR 标准与反水文写作"（ETR三段式/水文信号自查表/写作范例对比）
+- 铁律总数 26→27；maturity-levels.md 铁律数更新
+
+### 破坏性变更
+- **MCR→MCR+ 升级**：v2.8 中 MCR 仅检查"有没有"，v2.9 中 MCR+ 同时检查"好不好"。已有的 MCR 检查全部保留，额外叠加 MCR+ 质量维度。不能满足 MCR+ 的 detailed 报告将被阻断写入
+- **Anti-Fluff Gate 可能大量阻断**：v2.8 中没有水文检测，Agent 常产出"测试通过""功能正常""后续优化"等空话。v2.9 中 detailed 模式这些将被 HARD GATE 阻断——Agent 需要大幅提高产出质量才能通过
+- **SelfCheck 要求大幅提高**：从"有问答就行"升级为 ≥8问/≥2反事实/≥2替代方案/≥1防复发/≥1认知缺口/零模糊词放水。现有的简短 SelfCheck 将不通过 MCR+
+
+---
+
 ## [2.8.0] — 2026-06-20
 
 ### 新增

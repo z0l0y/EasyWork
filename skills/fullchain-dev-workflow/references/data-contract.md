@@ -25,6 +25,9 @@ read_output:
   acceptance_criteria: string[]  # [必填|brief] 可验证的验收标准（brief≥1条, standard≥2条, detailed≥3条）
   non_goals: string[]       # [必填|standard] 明确排除的内容（brief可为空，standard/detailed≥1条）
   mvp_scope: string[]          # 🆕 v2.7 [必填|detailed] MVP边界（本次做/不做清单）
+  requirement_source: string    # 🆕 v2.9 [必填|detailed] 需求来源（用户反馈/报错/文档/测试失败/线上现象，非"用户希望"）
+  user_real_goal: string        # 🆕 v2.9 [必填|detailed] 用户真实目标（用户想完成什么业务目标，非代码要改什么）
+  impact_if_not_done: string    # 🆕 v2.9 [必填|detailed] 不做的实际后果（量化，非"影响体验"）
   clarifications: string[]  # [可选|detailed] 向用户确认的问题
   understanding_confirmation:  # 🆕 v2.8 [必填] 需求理解确认（铁律#24）
     summary: string           #   Agent 对需求的自己理解重述（业务目标+技术方案假设+不确定点）
@@ -53,6 +56,9 @@ code_output:
   impact_assessment: string # [必填|brief] 影响面评估（直接+间接影响）
   implementation_notes: string  # [必填|standard] 实现方案概述；detailed 模式必须含核心设计说明（为什么这样设计）
   design_rationale: string      # 🆕 v2.7 [必填|detailed] 核心设计说明（架构选择理由、设计权衡）
+  alternatives_rejected:         # 🆕 v2.9 [必填|detailed] 被拒绝的替代方案（≥1个）
+    - alternative: string        #   替代方案描述
+      why_not: string            #   不被采用的具体技术理由（非"更复杂""不简单"）
   key_functions:                # 🆕 v2.7 [必填|detailed] 关键函数/模块职责（≥2个）
     - name: string              #   函数/模块名
       file_path: string         #   文件路径
@@ -327,6 +333,21 @@ selfcheck_output:
           answer: string          #        开发者的回答
           followup: string        #        追问（如有）
           followup_answer: string #        追问回答（如有）
+  mcr_plus_checks:                # 🆕 v2.9 [必填|detailed] MCR+硬性指标检查
+    total_questions: int          #   CTO追问总数（含跟进追问，≥8）
+    counterfactuals: int          #   反事实问题数（≥2）
+    alternative_challenges: int   #   替代方案质询数（≥2）
+    why_not_found_before: bool    #   是否有"为什么之前没发现"的追问（≥1）
+    prevention_asked: bool        #   是否有"如何防止复发"的追问（≥1）
+    gaps_count: int               #   认知缺口数（≥1或说明了为什么没有）
+    has_fluffy_responses: bool    #   是否有模糊回答（含"大概/应该/可能"且未追问）
+  counterfactuals:                # 🆕 v2.9 [必填|detailed] 反事实问题记录
+    - question: string            #   "如果不用这个方案会怎样？""如果问题再次发生怎么发现？"
+      answer: string
+  alternative_challenges:         # 🆕 v2.9 [必填|detailed] 替代方案质询记录
+    - challenge: string           #   "为什么不用 X？""为什么不用 Y？"
+      answer: string
+      technical_reason: string    #   具体技术理由
 ```
 
 **消费方**：ASK（用 gaps_identified + readiness_assessment 判断是否需要追加确认问题）、SUM（引用拷打结果作为质量证明）
@@ -407,13 +428,68 @@ streaming_status:            # [必填] 流式写入状态
 
 **消费方**：SUM（读取 report_depth 决定产出粒度）、SELFCHECK（根据 report_depth 调整拷打深度）、后端适配器（根据 report_depth + report_type 调整写入格式）
 
+## 🆕 v2.9 顶层字段
+
+```
+# 以下字段为 v2.9 新增，存在于顶层 data-contract 中
+
+anti_fluff_gate_result:      # [必填|detailed] 水文检测闸门结果
+  passed: bool               #   是否通过（6类均未命中）
+  categories:                #   逐类检测结果
+    fluffy_conclusions: bool       # 类别1：空泛结论 — 是否通过
+    evidence_free_pass: bool       # 类别2：无证据通过 — 是否通过
+    location_free_claims: bool     # 类别3：无位置描述 — 是否通过
+    no_tradeoff: bool              # 类别4：无取舍 — 是否通过
+    risk_free_claims: bool         # 类别5：无风险 — 是否通过
+    selfcheck_rubber_stamp: bool   # 类别6：SelfCheck放水 — 是否通过
+  hits: string[]             #   命中的具体段落/描述
+  waivers: string[]          #   用户声明的豁免类别（detailed模式为空）
+
+peer_review_ready:           # [必填|detailed] 同行审查就绪自检结果
+  passed: bool               #   6问是否全部通过
+  questions:                 #   逐问结果
+    can_reproduce: bool           # 能否复现问题
+    can_locate_code: bool         # 能否定位到改动代码
+    can_understand_why: bool      # 能否知道为什么这么改
+    can_check_coverage: bool      # 能否知道测试覆盖了什么
+    can_see_uncovered: bool       # 能否知道还有什么没覆盖
+    can_judge_merge: bool         # 能否判断能不能合并
+  failed_questions: int[]    #   未通过的问题编号列表
+
+quality_score:               # [必填|detailed] 文档质量评分
+  total: int                 #   总分（0-100）
+  dimensions:                #   各维度得分
+    requirement_background: int   # 需求与背景（满分15）
+    root_cause_reasoning: int     # 根因与方案推理（满分20）
+    code_location_excerpts: int   # 代码位置与摘录（满分15）
+    test_evidence: int            # 测试证据（满分20）
+    risk_tradeoffs: int           # 风险与取舍（满分15）
+    selfcheck_quality: int        # SelfCheck拷打质量（满分15）
+  deductions: string[]       #   扣分明细
+  passed: bool               #   是否通过（detailed≥80, standard≥60, brief不计）
+  threshold: int             #   闸门阈值
+
+fetch_verify_result:         # [必填|detailed] 写后验证结果
+  fetched: bool              #   是否执行了 fetch 回读
+  content_intact: bool       #   内容是否完整（无截断）
+  code_blocks_ok: bool       #   代码块格式是否正确
+  tables_ok: bool            #   表格是否完整
+  encoding_ok: bool          #   特殊字符是否无乱码
+  all_steps_visible: bool    #   所有步骤产出是否均可见
+  fixes_applied: string[]    #   修复了什么问题（如有）
+
+etr_compliant: bool          # [必填|detailed] 所有关键结论是否满足ETR标准
+```
+
+**消费方**：SUM（所有闸门结果汇总到最终报告）、后端适配器（根据质量评分决定是否写入）
+
 如果不确定前序某字段是否存在，应该回查而非猜测。
 
 ---
 
 ## 版本迁移
 
-### 当前版本：2.8
+### 当前版本：2.9
 
 `easywork_version` 字段用于标记状态快照的版本。不同版本间字段变更遵循以下规则。
 
@@ -476,6 +552,15 @@ streaming_status:            # [必填] 流式写入状态
 | 2.7 → 2.8 | 新增 | `sum_output.doc_iteration`（文档迭代增量更新，detailed必填） |
 | 2.7 → 2.8 | 新增 | 铁律 #23-#26（质量门禁/需求确认/文档迭代/交互式EXAMINE） |
 | 2.7 → 2.8 | 无破坏 | 所有字段向后兼容。新增字段仅 v2.8 新增，旧版本快照中缺失字段视为 null/[] |
+| 2.8 → 2.9 | 新增 | `anti_fluff_gate_result` / `peer_review_ready` / `quality_score` / `fetch_verify_result` / `etr_compliant`（反水文闸门+同行审查+质量评分+写后验证+ETR，新顶层字段） |
+| 2.8 → 2.9 | 新增 | `read_output.requirement_source` / `read_output.user_real_goal` / `read_output.impact_if_not_done`（READ MCR+ 质量字段） |
+| 2.8 → 2.9 | 新增 | `code_output.alternatives_rejected`（CODE MCR+ 替代方案字段） |
+| 2.8 → 2.9 | 新增 | `selfcheck_output.mcr_plus_checks` / `selfcheck_output.counterfactuals` / `selfcheck_output.alternative_challenges`（SELFCHECK MCR+ 质量字段） |
+| 2.8 → 2.9 | 新增 | `sum_output.etr_validation` / `sum_output.anti_fluff_result` / `sum_output.peer_review_result` / `sum_output.quality_score` / `sum_output.fetch_verify_result`（SUM 新增闸门结果字段） |
+| 2.8 → 2.9 | 变更 | MCR→MCR+：所有步骤的 MCR 从数量要求升级为质量要求（增加反例和合格例），但数据契约字段不变（MCR+是质量标准，非新字段） |
+| 2.8 → 2.9 | 新增 | 铁律 #27（反水文闸门 — HARD GATE） |
+| 2.8 → 2.9 | 变更 | 铁律总数 26→27 |
+| 2.8 → 2.9 | 无破坏 | 所有字段向后兼容。MCR+ 是质量标准叠加在已有 MCR 字段上，不改变字段结构。新增字段仅 v2.9 新增 |
 
 ### 快照迁移规则
 
