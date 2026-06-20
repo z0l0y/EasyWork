@@ -602,7 +602,7 @@ structured_merge_plan:       # [必填|detailed] Mode B 结构化合并方案
 | 2.9 → 2.10 | 新增 | 铁律 #28（文档拓扑闸门 — HARD GATE） |
 | 2.9 → 2.10 | 变更 | 铁律总数 27→28 |
 | 2.9 → 2.10 | 变更 | 铁律 #25（文档迭代增量更新）升级实现方式——从文档级追加→节点内版本合并 |
-| 2.9 → 2.10 | 变更 | `sum_output` 新增 `document_mode` / `topology_gate_result` / `version_index_updated` |
+| 2.9 → 2.10 | 变更 | 顶层新增 `document_mode` / `topology_gate_result` / `structured_merge_plan`（文档拓扑闸门+双模文档结构） |
 | 2.9 → 2.10 | 破坏性 | v2.8 的 `## 📝 更新记录` 文档块格式在 Mode B 下不再支持——需迁移为节点内 `### v{N}` 格式 |
 | 2.9 → 2.10 | 无破坏 | Mode A（审计日志）完全向后兼容。Mode B 为新默认，已有文档拓扑在首次写入时自动修复 |
 

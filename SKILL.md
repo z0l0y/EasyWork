@@ -4,6 +4,8 @@ description: >
   EasyWork 全链路 AI 辅助开发工作流技能包索引。10 步流程按需裁剪：
   READ → CODE → REVIEW → EXAMINE → GIT → GRAPH → SUM → TALK → SELFCHECK → ASK。
   入口技能：fullchain-dev-workflow（含任务分类器，自动判断需要哪些步骤）。
+  v2.10: 文档拓扑闸门(7项检查→HARD GATE,铁律#28)、双模文档结构(Mode A审计日志/Mode B持续维护默认)、
+  结构化合并(Fetch→Parse→Pre-check→Distribute→Index→Mark,取代尾部追加更新记录)。
   v2.9: 反水文闸门(6类水文信号→HARD GATE)、MCR→MCR+质量升级(每步增加反例+合格例)、
   ETR证据链标准(Evidence/Thinking/Risk三元组)、同行审查就绪六问自检、
   写后Fetch验证、文档质量评分(100分制/<80分阻断)、禁止凭记忆写报告。
