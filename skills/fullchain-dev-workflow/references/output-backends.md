@@ -31,7 +31,7 @@ version: 1.0
 | `share_link` | 获取可分享的链接 | ✅ 必须 |
 | `create_whiteboard` | 创建画板（用于 GRAPH 步骤） | 可选 |
 | `update_blocks` | 更新已有内容块 | 可选 |
-| `batch_write` | 批量写入（一次性写入全部 9 步产出） | 可选 |
+| `batch_write` | 批量写入（一次性写入全部 10 步产出） | 可选 |
 
 **后端必须声明的约束**：
 

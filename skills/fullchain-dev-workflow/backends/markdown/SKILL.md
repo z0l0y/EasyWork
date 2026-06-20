@@ -1,7 +1,7 @@
 ---
 name: markdown
 description: >
-  Markdown 产物后端。将 9 步工作流产出生成为单个 Markdown 文件。
+  Markdown 产物后端。将 10 步工作流产出生成为单个 Markdown 文件。
   适用于需要纯文本记录、导入 Git 仓库文档、或作为其他系统输入源的场景。
 output_format: markdown
 capabilities: [create_doc, append_blocks, share_link]

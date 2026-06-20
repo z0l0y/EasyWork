@@ -32,7 +32,7 @@ wc -l .claude/easywork/workflow.log.jsonl
 cat workflow.log.jsonl | jq -r '.step' | sort | uniq -c | sort -rn
 ```
 
-预期输出（9 步全执行的情况）：
+预期输出（10 步全执行的情况）：
 ```
 3 READ
 3 CODE
@@ -42,6 +42,7 @@ cat workflow.log.jsonl | jq -r '.step' | sort | uniq -c | sort -rn
 1 GRAPH
 1 SUM
 1 TALK
+1 SELFCHECK
 1 ASK
 ```
 > READ/CODE/REVIEW 次数可能偏高——回退修复导致的重复执行。

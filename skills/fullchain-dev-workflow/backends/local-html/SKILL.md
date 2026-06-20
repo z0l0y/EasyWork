@@ -1,7 +1,7 @@
 ---
 name: local-html
 description: >
-  本地 HTML 产物后端。将 9 步工作流产出生成为自包含 HTML 文件。
+  本地 HTML 产物后端。将 10 步工作流产出生成为自包含 HTML 文件。
   EasyWork 默认后端，所有环境下均可用，无需网络或额外依赖。
 output_format: html
 capabilities: [create_doc, append_blocks, share_link]

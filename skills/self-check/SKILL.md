@@ -341,7 +341,7 @@ version: 2.6
 
 ## 11. 产出格式
 
-拷打结束后，将各阶段回答整理为 `selfcheck_output`，按 `references/data-contract.md` 中 selfcheck_output 契约输出。结构化数据供 SUM 和 ASK 引用。
+拷打结束后，将各阶段回答整理为 `selfcheck_output`，按 `../fullchain-dev-workflow/references/data-contract.md` 中 selfcheck_output 契约输出。结构化数据供 SUM 和 ASK 引用。
 
 ### 产出模板
 
