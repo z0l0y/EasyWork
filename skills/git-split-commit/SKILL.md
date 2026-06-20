@@ -10,7 +10,7 @@ description: >
   ⚠️ 安全策略：禁止自动执行 git 命令，拆分方案和命令写入文件供用户手动执行。
 allowed-tools: Bash, Read, Grep
 model: haiku
-version: 2.5
+version: 2.6
 ---
 
 # Git Split Commit（提交拆分）

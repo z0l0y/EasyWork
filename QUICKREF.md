@@ -17,13 +17,13 @@
 
 | 类型 | 步骤 |
 |------|------|
-| 🔍 纯理解 | READ → GRAPH → SUM |
-| 🔎 纯审查 | READ → REVIEW |
-| 📝 纯文档 | READ → CODE → REVIEW → GIT → SUM → ASK |
-| ⚡ 微调 | READ → CODE → REVIEW → GIT |
-| 🐛 Bug修复 | READ → CODE → REVIEW → EXAMINE → GIT → SUM → TALK → ASK |
-| 🔧 重构 | READ → CODE → REVIEW → EXAMINE → GIT → GRAPH → SUM → TALK → ASK |
-| 🚀 功能开发 | READ → CODE → REVIEW → EXAMINE → GIT → GRAPH → SUM → ASK（8步，跳过TALK） |
+| 🔍 纯理解 | READ → GRAPH → SUM → SELFCHECK(轻量) |
+| 🔎 纯审查 | READ → REVIEW → SELFCHECK(轻量) |
+| 📝 纯文档 | READ → CODE → REVIEW → GIT → SUM → SELFCHECK(标准) → ASK |
+| ⚡ 微调 | READ → CODE → REVIEW → GIT → SELFCHECK(快速) → ASK |
+| 🐛 Bug修复 | READ → CODE → REVIEW → EXAMINE → GIT → SUM → TALK → SELFCHECK(完整) → ASK |
+| 🔧 重构 | READ → CODE → REVIEW → EXAMINE → GIT → GRAPH → SUM → TALK → SELFCHECK(完整) → ASK |
+| 🚀 功能开发 | READ → CODE → REVIEW → EXAMINE → GIT → GRAPH → SUM → SELFCHECK(完整) → ASK（9步，跳过TALK） |
 
 ## 每步产出
 
@@ -37,6 +37,7 @@
 | GRAPH | Mermaid 图表 + 节点对照表 |
 | SUM | 六要素总结（背景→发现→问题→解决→效果→展望） |
 | TALK | 5-Whys 追溯 + Trade-offs + 工程规范 |
+| SELFCHECK | 🆕 CTO拷打记录（四阶段盘问）+ 认知缺口 + 汇报就绪评估 |
 | ASK | 六维度确认清单（需用户逐项确认） |
 
 ## 上下文满了怎么办
@@ -58,6 +59,16 @@
 3. **可插拔产物后端**：用户指定/team-policy 配置/默认 local_html → 生成产物到对应后端（HTML文件/md文件/飞书文档）
 4. **每步自检必填字段**：每步结束对照 data-contract 检查产出，缺失立即补全
 5. **踩坑追加 Gotchas（候选制）**：耗时 >10min 的 bug / 反直觉陷阱 / 用户指出的边界 → 生成候选 → 用户确认后写入
+
+## 🆕 v2.6 新特性（CTO 拷打层）
+
+| 特性 | 怎么用 |
+|------|--------|
+| **SelfCheck CTO 拷打** | 新增第 10 步，Agent 切换 CTO 角色进行四阶段深度盘问（业务背景→问题发现→解决方案→实现过程） |
+| **汇报就绪检查** | 完整模式下强制检查：3句话说清楚、领导5问、同事3质疑、排查思路 |
+| **全任务类型强制自检** | 所有任务类型必须执行 SELFCHECK（模式不同：完整/标准/快速/轻量），CTO 质检是底线 |
+| **拷打语气规范** | 直接、具体、不留情面——AI 不拷打你，同事和领导就要拷打你 |
+| **认知缺口记录** | 开发者答不上来的问题记录到 gaps_identified，有后续跟进计划才放行 |
 
 ## 🆕 v2.5 新特性（飞书原生沉淀 + 可插拔后端）
 

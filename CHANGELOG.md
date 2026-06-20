@@ -7,6 +7,29 @@ EasyWork 的所有重要变更记录。
 
 ---
 
+## [2.6.0] — 2026-06-20
+
+### 新增
+- **SelfCheck CTO 拷打层**（`skills/self-check/SKILL.md`）：EasyWork 的心智模型核心。Agent 切换为 CTO 角色，用拷打语气对开发者进行四个阶段深度盘问——业务背景拷打（为什么做）、问题发现拷打（怎么发现的）、解决方案拷打（为什么这样修）、实现过程拷打（怎么做到的）
+- **汇报就绪检查**：完整模式下强制要求开发者 3句话说清楚、准备领导可能问的 5 个问题、同事可能质疑的 3 个点、上线排查思路
+- **四种拷打模式**：完整（功能开发/重构/Bug修复）、标准（纯文档）、快速（微调）、轻量（纯理解/纯审查），按任务类型自动匹配
+- **认知缺口记录**（`gaps_identified`）：开发者答不上来的问题系统化记录，有后续计划才放行
+- **拷打语气规范**：直接、具体、不留情面——"AI 不拷打你，同事和领导就要拷打你"
+
+### 变更
+- **工作流 9步→10步**：新增 SELFCHECK 为第 9 步（ASK 延至第 10 步），依赖 DAG 更新为 `SUM→TALK→SELFCHECK→ASK`
+- **编排中枢 SKILL.md**：铁律新增 #18（SelfCheck 不可跳过）；§4 裁剪参考表新增 SELFCHECK 列（所有任务类型均执行）；§6 步骤表新增 SELFCHECK 行；§8 状态快照新增 selfcheck_output
+- **data-contract.md**：新增 `selfcheck_output`（5阶段字段）；版本迁移 2.5→2.6；消费者引用链更新（SELFCHECK 消费 SUM/TALK/GIT 产出，ASK 消费 SELFCHECK 产出）
+- **acceptance-gates.md**：新增 SELFCHECK 验收关卡（8条）+ 全局 v2.6 关卡（4条）
+- **sum-session/SKILL.md**：六要素末尾新增 SELFCHECK 拷打预警提示
+- 所有技能文件 YAML frontmatter `version` 更新至 2.6
+- `html-skeleton.html` footer 版本更新至 2.6
+
+### 破坏性变更
+- 无。所有 v2.5 字段向后兼容。工作流从 9 步扩展为 10 步，SELFCHECK 在所有任务类型中强制执行（模式不同但不可跳过）
+
+---
+
 ## [2.5.0] — 2026-06-20
 
 ### 新增

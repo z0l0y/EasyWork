@@ -4,8 +4,15 @@
 
 EasyWork 是一套为 AI 编码助手（Claude Code、Cursor、GitHub Copilot）设计的标准化开发工作流。
 它解决的核心问题是：**AI 写代码太快、太不可控**——它们跳过理解直接改代码、顺手重构无关模块、
-不跑测试直接交付。EasyWork 通过**按需裁剪的 9 步工作流 + 全局异常 SOP + 人工确认闸门**，
+不跑测试直接交付。EasyWork 通过**按需裁剪的 10 步工作流 + 全局异常 SOP + CTO 拷打层 + 人工确认闸门**，
 让 AI 从"散漫的代码生成器"变成"严格按流程走的虚拟结对程序员"。
+
+### v2.6 核心改进：SelfCheck CTO 拷打层
+
+- **CTO 拷打层**：新增第 10 步 SelfCheck，Agent 切换为 CTO 角色对开发者进行四阶段深度盘问——业务背景（为什么做）→ 问题发现（怎么发现的，有证据吗）→ 解决方案（为什么在这里改，考虑过什么替代方案）→ 实现过程（遇到什么困难，之前为什么没这样改）
+- **汇报就绪检查**：让领导放心——在汇报前就把该清楚的都搞明白。3句话说清楚、领导可能问的5个问题、同事可能质疑的3个点、排查思路，缺一不可
+- **四种拷打模式**：完整（功能开发/重构/Bug修复）、标准（纯文档）、快速（微调）、轻量（纯理解/纯审查），按任务类型自动匹配，不可跳过
+- **认知缺口记录**：答不上来的问题系统化记录，有后续计划才放行——AI 不拷打你，同事和领导就要拷打你
 
 ### v2.5 核心改进：飞书原生沉淀 + 可插拔产物后端
 
@@ -49,7 +56,7 @@ v1.0 强制所有任务走完 9 步，这很安全但也很烦——改一个文
 然后自动建议要执行和跳过的步骤。**v2.2 新增干跑预览**：执行前先展示每步会做什么，用户确认后再开始。
 **v2.3 对准业界标准**：补齐并行审查、反合理化防御、Gotchas、供应链检查等生产级能力。修复 17 项真实 Skill 层差距。
 
-## 工作流：9 步 → 按需裁剪
+## 工作流：10 步 → 按需裁剪
 
 ```mermaid
 flowchart TD
@@ -62,14 +69,14 @@ flowchart TD
     CLASSIFY -->|功能开发| R6[1.READ]
     CLASSIFY -->|纯文档| R7[1.READ]
 
-    R7 --> C7[2.CODE] --> RV7[3.REVIEW] --> G7[5.GIT] --> S7[7.SUM] --> A7[9.ASK]
-    R3 --> C3[2.CODE] --> RV3[3.REVIEW] --> G3[5.GIT]
-    R2 --> RV2[3.REVIEW]
-    R1 --> G1[6.GRAPH] --> S1[7.SUM]
+    R7 --> C7[2.CODE] --> RV7[3.REVIEW] --> G7[5.GIT] --> S7[7.SUM] --> SC7[9.SELFCHECK] --> A7[10.ASK]
+    R3 --> C3[2.CODE] --> RV3[3.REVIEW] --> G3[5.GIT] --> SC3[9.SELFCHECK] --> A3[10.ASK]
+    R1 --> G1[6.GRAPH] --> S1[7.SUM] --> SC1[9.SELFCHECK]
+    R2 --> RV2[3.REVIEW] --> SC2[9.SELFCHECK]
 
-    R4 --> C4[2.CODE] --> RV4[3.REVIEW] --> E4[4.EXAMINE] --> G4[5.GIT] --> S4[7.SUM] --> T4[8.TALK] --> A4[9.ASK]
-    R5 --> C5[2.CODE] --> RV5[3.REVIEW] --> E5[4.EXAMINE] --> G5[5.GIT] --> GR5[6.GRAPH] --> S5[7.SUM] --> T5[8.TALK] --> A5[9.ASK]
-    R6 --> C6[2.CODE] --> RV6[3.REVIEW] --> E6[4.EXAMINE] --> G6[5.GIT] --> GR6[6.GRAPH] --> S6[7.SUM] --> A6[9.ASK]
+    R4 --> C4[2.CODE] --> RV4[3.REVIEW] --> E4[4.EXAMINE] --> G4[5.GIT] --> S4[7.SUM] --> T4[8.TALK] --> SC4[9.SELFCHECK] --> A4[10.ASK]
+    R5 --> C5[2.CODE] --> RV5[3.REVIEW] --> E5[4.EXAMINE] --> G5[5.GIT] --> GR5[6.GRAPH] --> S5[7.SUM] --> T5[8.TALK] --> SC5[9.SELFCHECK] --> A5[10.ASK]
+    R6 --> C6[2.CODE] --> RV6[3.REVIEW] --> E6[4.EXAMINE] --> G6[5.GIT] --> GR6[6.GRAPH] --> S6[7.SUM] --> SC6[9.SELFCHECK] --> A6[10.ASK]
 
     style CLASSIFY fill:#e8f0fe,stroke:#1a73e8
     style R4 fill:#fef7e0,stroke:#f9ab00
@@ -88,7 +95,8 @@ flowchart TD
 | 6 | GRAPH | Mermaid 图表 | ⏭️ | ✅ | ✅ | ⏭️ | ⏭️ | ⏭️ | ✅ |
 | 7 | SUM | 六要素总结 | ✅ | ✅ | ✅ | ⏭️ | ⏭️ | ✅ | ✅ |
 | 8 | TALK | 5-Whys 复盘 | ✅ | ⏭️ | ✅ | ⏭️ | ⏭️ | ⏭️ | ⏭️ |
-| 9 | ASK | 人工确认 | ✅ | ✅ | ✅ | ⏭️ | ⏭️ | ✅ | ⏭️ |
+| 9 | SELFCHECK | 🆕 CTO拷打（四阶段盘问） | ✅(完整) | ✅(完整) | ✅(完整) | ✅(快速) | ✅(轻量) | ✅(标准) | ✅(轻量) |
+| 10 | ASK | 人工确认 | ✅ | ✅ | ✅ | ✅ | ⏭️ | ✅ | ⏭️ |
 
 > 上表是**默认建议**。用户可以随时追加或跳过步骤，Agent 不会强制执行不必要的流程。
 
@@ -205,12 +213,12 @@ install.bat 然后手动删除                      # Windows
 
 ## 任务分类
 在动手之前先判断任务类型：
-- 纯理解（只看不改）→ 需求分析 + 总结
-- 纯审查 → 需求分析 + 七维度审查
-- 微调 → 需求分析 + 实现 + 审查 + 提交拆分
-- Bug修复 → 需求分析 + 实现 + 审查 + 测试 + 提交拆分 + 总结 + 复盘 + 人工确认
-- 重构 → READ + CODE + REVIEW + EXAMINE + GIT + GRAPH + SUM + TALK + ASK（9步）
-- 功能开发 → READ + CODE + REVIEW + EXAMINE + GIT + GRAPH + SUM + ASK（8步，跳过TALK）
+- 纯理解（只看不改）→ 需求分析 + 总结 + CTO拷打(轻量)
+- 纯审查 → 需求分析 + 七维度审查 + CTO拷打(轻量)
+- 微调 → 需求分析 + 实现 + 审查 + 提交拆分 + CTO拷打(快速) + 人工确认
+- Bug修复 → 需求分析 + 实现 + 审查 + 测试 + 提交拆分 + 总结 + 复盘 + CTO拷打(完整) + 人工确认
+- 重构 → READ + CODE + REVIEW + EXAMINE + GIT + GRAPH + SUM + TALK + SELFCHECK + ASK（10步）
+- 功能开发 → READ + CODE + REVIEW + EXAMINE + GIT + GRAPH + SUM + SELFCHECK + ASK（9步，跳过TALK）
 
 ## 全局铁律
 1. 注释必须用中文
@@ -285,7 +293,7 @@ Agent 应列出 `fullchain-dev-workflow` 及其子技能。
 
 | 功能 | Claude Code | Copilot | Cursor |
 |------|------------|---------|--------|
-| 全 9 步工作流 | ✅ 完整支持 | ⚠️ 需内嵌规则 | ✅ 部分支持 |
+| 全 10 步工作流 | ✅ 完整支持 | ⚠️ 需内嵌规则 | ✅ 部分支持 |
 | 子 Agent 隔离 | ✅ | ❌ 不支持 | ⚠️ 取决于版本 |
 | Bash 测试执行 | ✅ | ✅ | ✅ |
 | Skill 自动发现 | ✅ | ❌ | ❌ |

@@ -16,7 +16,8 @@ flowchart TD
     GRAPH[6. GRAPH<br/>依赖：GIT 的 units]
     SUM[7. SUM<br/>依赖：全部前序产出]
     TALK[8. TALK<br/>依赖：SUM 的 problem + solution]
-    ASK[9. ASK<br/>依赖：SUM 的 outcome + TALK 的 root_cause]
+    SELFCHECK[9. SELFCHECK<br/>依赖：SUM + TALK 产出]
+    ASK[10. ASK<br/>依赖：SELFCHECK 的 readiness_assessment]
 
     READ --> CODE
     CODE --> REVIEW
@@ -26,14 +27,16 @@ flowchart TD
     GIT --> GRAPH
     GIT --> SUM
     SUM --> TALK
-    TALK --> ASK
-    SUM --> ASK
+    TALK --> SELFCHECK
+    SUM --> SELFCHECK
+    SELFCHECK --> ASK
 
     style GRAPH fill:#e8f0fe,stroke:#1a73e8
     style SUM fill:#e8f0fe,stroke:#1a73e8
+    style SELFCHECK fill:#fce8e6,stroke:#d93025
 ```
 
-> GRAPH 和 SUM 高亮表示它们可以**并行执行**——都只依赖 GIT，互相无依赖。其余步骤严格串行。
+> GRAPH 和 SUM 高亮表示它们可以**并行执行**——都只依赖 GIT，互相无依赖。SELFCHECK（红色）是 v2.6 新增的 CTO 拷打层，依赖 SUM 和 TALK（如执行），是 ASK 的前置闸门。其余步骤严格串行。
 
 ### 并行规则
 
@@ -114,7 +117,7 @@ review_output:
 
 ## 自定义步骤注入（🆕 v2.3）
 
-团队可在内置 9 步之外注入自定义步骤，无需修改编排中枢核心文件。
+团队可在内置 10 步之外注入自定义步骤，无需修改编排中枢核心文件。
 
 ### 发现机制
 
@@ -130,7 +133,7 @@ Agent 在任务分类完成后、执行前，扫描以下目录：
 
 每发现一个自定义技能，读取其 YAML frontmatter 中的 `insert_after` 和 `insert_condition` 字段。
 
-**如果目录不存在或为空**：视为无自定义步骤，静默跳过，继续使用内置 9 步。不报错、不询问用户。
+**如果目录不存在或为空**：视为无自定义步骤，静默跳过，继续使用内置 10 步。不报错、不询问用户。
 
 **双重发现机制的优先级**：自定义步骤可能同时出现在两个地方：
 1. 文件系统扫描（`.claude/skills/easywork/custom/` 目录）
@@ -204,7 +207,7 @@ EasyWork 工作流启动 — 任务：重构 — 风险：高
 ...
 ```
 
-`[+]` 前缀表示自定义步骤，区别于内置的 9 步。
+`[+]` 前缀表示自定义步骤，区别于内置的 10 步。
 
 ---
 
@@ -228,13 +231,13 @@ EasyWork 工作流启动 — 任务：重构 — 风险：高
 | TALK 5-Whys 触及第三方黑盒 | 步骤 8 | 降级为"标注黑盒边界 + 防御建议"，不强行追问 |
 | TALK 发现根因与上一次同类型任务相同 | 步骤 8 | 标注 `[重复根因]`，建议升级为 team-policy 规则 |
 | CODE↔REVIEW 回退达 3 轮 | 步骤 2↔3 | 挂起用户，输出已发现的所有问题和修复历程 |
-| ASK 用户跳过必问维度 | 步骤 9 | 记录 `user_skip_note`，不等于问题消失 |
+| ASK 用户跳过必问维度 | 步骤 10 | 记录 `user_skip_note`，不等于问题消失 |
 
 ### 上下文自适应分支
 
 | 触发条件 | 自动动作 |
 |---------|---------|
-| 上下文 🟠 警戒（80-95%）且还剩 ≥ 4 步 | 跳过 GRAPH（如果执行），跳过 ASK 详细模式 → 快速模式 |
+| 上下文 🟠 警戒（80-95%）且还剩 ≥ 4 步 | 跳过 GRAPH（如果执行），SELFCHECK 降为快速模式，ASK 降为快速模式 |
 | 上下文 🔴 危急（> 95%） | 立即保存状态快照，停止所有操作 |
 | 步骤耗时超过预估 2 倍 | 询问用户：继续等待 / 跳过 / 简化执行 |
 | 单步搜索文件超过 15 个（铁律#6） | 挂起确认，除非用户已预授权 |
@@ -300,6 +303,7 @@ triggers_branch:
 | GRAPH | `diagram_type`, `mermaid_code`, `node_mapping`（非空数组）, `text_explanation` |
 | SUM | `background`, `discovery`, `problem`, `solution`, `outcome`（含 acceptance_check）, `future`（非空数组） |
 | TALK | `five_whys`（非空数组）, `root_cause`, `root_cause_type`, `trade_offs`（非空数组）, `engineering_rules`（非空数组） |
+| SELFCHECK | `mode`, `business_understanding`（real_problem+business_value+user_impact+data_evidence）, `solution_rationale`（chain_position+why_here_not_there+alternatives_considered+risk_before/during/after）, `readiness_assessment`（three_sentence_summary+leader_questions+ready_to_report+gaps_identified） |
 | ASK | `questions`（非空数组，每项含 dimension+question+why_asked+if_no_action）, `confirmed_dimensions` |
 
 ---
@@ -317,7 +321,7 @@ triggers_branch:
 | 字段 | 类型 | 说明 | 可选值 |
 |------|------|------|--------|
 | `session` | string | 工作流会话 ID | `{YYYYMMDD}-{task_summary_slug}` |
-| `step` | string | 步骤名 | READ/CODE/REVIEW/EXAMINE/GIT/GRAPH/SUM/TALK/ASK |
+| `step` | string | 步骤名 | READ/CODE/REVIEW/EXAMINE/GIT/GRAPH/SUM/TALK/SELFCHECK/ASK |
 | `status` | string | 执行结果 | pass / pass_with_fixes / skip / blocked / fail |
 | `skipped` | bool | 是否跳过 | true / false |
 | `tokens_est` | int | 估算消耗 token | — |

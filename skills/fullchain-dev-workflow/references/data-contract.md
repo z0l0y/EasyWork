@@ -148,7 +148,7 @@ git_output:
   command_script_path: string    # 🆕 v2.4 [必填] git 命令脚本路径
 ```
 
-**消费方**：SUM（引用拆分方案）、ASK（引用 risk_level 帮助用户判断审查优先级）、lark-doc 后端（读取 git_tracking 写入飞书追踪文档）
+**消费方**：SUM（引用拆分方案）、SELFCHECK（引用 business_context + risk_introduced + developer_checklist 拷打方案合理性）、ASK（引用 risk_level 帮助用户判断审查优先级）、lark-doc 后端（读取 git_tracking 写入飞书追踪文档）
 
 ## GRAPH 产出契约
 
@@ -184,7 +184,7 @@ sum_output:
   skipped_steps: string[]   # [必填] 被跳过的步骤及原因
 ```
 
-**消费方**：TALK（用 problem + solution 作为 5-Whys 的起点）、ASK（用 future 中的风险点提问）
+**消费方**：TALK（用 problem + solution 作为 5-Whys 的起点）、SELFCHECK（用全部六要素作为拷打的输入材料）、ASK（用 future 中的风险点提问）
 
 ## TALK 产出契约
 
@@ -205,7 +205,49 @@ talk_output:
   engineering_rules: string[]  # [必填] 提炼的工程规范（具体可执行）
 ```
 
-**消费方**：ASK（用 root_cause + trade_offs 生成确认问题中的风险维度）
+**消费方**：SELFCHECK（用 root_cause + trade_offs 拷打实现过程和方案合理性）、ASK（用 root_cause + trade_offs 生成确认问题中的风险维度）
+
+## SELFCHECK 产出契约
+
+```
+selfcheck_output:
+  mode: string                    # [必填] "full" | "standard" | "quick" | "light"
+  business_understanding:         # [必填] 阶段1：业务背景拷打
+    real_problem: string          #   真正要解决的业务问题（业务语言，不讲代码）
+    business_value: string        #   业务价值（可量化则量化）
+    user_impact: string           #   对用户/业务方的影响
+    data_evidence: string         #   数据支撑（有则填具体数字，无则说明为什么没有）
+  problem_discovery:              # [必填] 阶段2：问题发现拷打（轻量模式可为空）
+    discovery_method: string      #   怎么发现的（用户反馈/监控/自查/上级要求）
+    evidence_type: string         #   证据类型
+    evidence_detail: string       #   具体证据
+    impact_scope: string          #   影响面评估
+  solution_rationale:             # [必填] 阶段3：解决方案拷打
+    chain_position: string        #   在整条链路中的位置
+    why_here_not_there: string    #   为什么在这里改不在那里改
+    alternatives_considered: string[]  # 考虑过的其他方案（至少2个）
+    why_not_alternatives: string  #   为什么不用其他方案（具体技术理由）
+    risk_before: string           #   事前风险评估
+    risk_during: string           #   事中监控方案
+    risk_after: string            #   事后验证方案
+    downstream_impact: string     #   下游影响分析
+  implementation_reflection:      # [必填] 阶段4：实现过程拷打（轻量/快速模式可为空）
+    difficulties: string[]        #   遇到的难点
+    how_solved: string            #   怎么解决的
+    unexpected: string            #   一开始没想到的
+    why_not_before: string        #   之前为什么没这样改（历史原因分析）
+    future_optimizations: string[]  # 后续可优化的地方
+    solution_type: string         #   "临时方案" | "长期方案" | "临时→长期有计划"
+  readiness_assessment:           # [必填] 汇报就绪检查（轻量模式可为空）
+    three_sentence_summary: string  # 3句话说清楚（让不懂技术的人能听懂）
+    leader_questions: string[]    #   领导可能会问的问题（至少5个）
+    colleague_concerns: string[]  #   同事review可能质疑的点（至少3个）
+    incident_plan: string         #   上线出问题的排查思路
+    ready_to_report: bool         #   是否准备好向领导汇报
+    gaps_identified: string[]     #   还存在的认知缺口
+```
+
+**消费方**：ASK（用 gaps_identified + readiness_assessment 判断是否需要追加确认问题）、SUM（引用拷打结果作为质量证明）
 
 ## ASK 产出契约
 
@@ -267,7 +309,7 @@ output_backend:              # [必填] 当前产物后端信息
 
 ## 版本迁移
 
-### 当前版本：2.5
+### 当前版本：2.6
 
 `easywork_version` 字段用于标记状态快照的版本。不同版本间字段变更遵循以下规则。
 
@@ -308,6 +350,10 @@ output_backend:              # [必填] 当前产物后端信息
 | 2.4 → 2.5 | 新增 | `output_backend`（产物后端信息，新顶层字段） |
 | 2.4 → 2.5 | 变更 | `git_output.units[].commit_message.body` 必须包含：改动原因/风险说明/验证方式 |
 | 2.4 → 2.5 | 无破坏 | 其余所有字段向后兼容，新增字段均为 v2.5 新增 |
+| 2.5 → 2.6 | 新增 | `selfcheck_output`（SelfCheck CTO拷打产出，含5阶段字段，新顶层字段） |
+| 2.5 → 2.6 | 新增 | 工作流步骤从 9 步扩展为 10 步（新增 SELFCHECK 在 TALK 之后、ASK 之前） |
+| 2.5 → 2.6 | 新增 | 铁律 #18：SelfCheck CTO 拷打不可跳过 |
+| 2.5 → 2.6 | 无破坏 | 所有字段向后兼容，新增字段均为 v2.6 新增 |
 
 ### 快照迁移规则
 
