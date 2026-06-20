@@ -4,6 +4,7 @@ description: >
   测试执行与质量验证。REVIEW 之后执行。不信"看起来对"，只信跑出来的结果。
   流程：找测试命令 → 运行 → 无测试则补 → 失败则修 → 重跑到全绿。
   v2.8: 交互式应用真实体验验证(铁律#26)——CLI/TUI/GUI/Web前端/游戏额外覆盖首屏/输入反馈/退出路径/stdin边界/ANSI兼容/渲染频率。
+  v2.9: MCR+质量升级——测试命令+目的/失败前修复后对比/覆盖矩阵标注新增/关键输出摘录凭据。禁止"go test 通过"式水文。
 allowed-tools: Bash, Read, Write, Search, Grep, Glob
 model: sonnet
 version: 2.9

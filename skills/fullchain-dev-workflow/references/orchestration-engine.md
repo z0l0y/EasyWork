@@ -244,6 +244,10 @@ EasyWork 工作流启动 — 任务：重构 — 风险：高
 | 🆕 v2.8 EXAMINE 测试失败且根因为代码逻辑 | 步骤 4 | 回退 CODE 修复 → 修复后重新 EXAMINE（最多3轮）。非代码问题（测试环境/配置）→ 不触发回退 |
 | 🆕 v2.8 SELFCHECK 发现方案层面缺陷 | 步骤 9 | 回退 CODE 调整设计 → 重新走 REVIEW→EXAMINE→SELFCHECK（最多2轮） |
 | 🆕 v2.8 ASK 用户质疑核心实现 | 步骤 10 | 回退 CODE 调整实现 → 重新走完整验证链（最多1轮，仅用户明确要求时触发） |
+| 🆕 v2.9 SUM Anti-Fluff Gate 命中（detailed 模式） | 步骤 7 | **HARD GATE**——拒绝写入最终报告 → 回退对应步骤补充内容 → 重新检测（最多2轮）。standard→SOFT GATE（警告+用户确认） |
+| 🆕 v2.9 SUM 质量评分 < 阈值（detailed<80, standard<60） | 步骤 7 | **HARD GATE**——拒绝写入 → 标注低分维度 → 回退补充（最多2轮） |
+| 🆕 v2.9 SUM Peer Review 六问任一不通过（detailed 模式） | 步骤 7 | **HARD GATE**——拒绝写入 → 标注不通过的问题编号 → 回退补充 |
+| 🆕 v2.9 SUM Write-then-Fetch 验证失败（截断/格式错误/乱码） | 步骤 7 | 修复问题 → 重新写入 → 重新 fetch（最多3轮）。3轮后→挂起用户 |
 
 ### 上下文自适应分支
 
