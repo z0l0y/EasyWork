@@ -10,7 +10,7 @@ capabilities: [create_doc, append_blocks, share_link, full_detail_restore]
 requires_mcp: []
 requires_network: false
 streaming: false
-version: 1.4
+version: 1.5
 ---
 
 # Markdown Backend（Markdown 产物后端）
@@ -74,6 +74,7 @@ markdown 后端**不支持流式追加**（streaming: false）。每步骤产出
 
 **🆕 v1.1 新增输入**：`report_depth`、`report_type`、`mcr_gate_result`、`streaming_status`
 🆕 v1.4 新增输入：`document_mode`（"audit_log" | "continuous_maintenance"）、`topology_gate_result`（7项检查结果）、`structured_merge_plan`（Mode B 合并方案）
+🆕 v1.5 新增输入：`document_scope`（"round_report" | "engineering_active"）、`write_mode`（"quick_fix" | "normal" | "full_archive"）、`preservation_gate_result`（7项内容保真检查）、`content_fidelity_snapshot`（写入前后内容对比快照）
 
 ### Agent 执行指令
 

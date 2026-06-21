@@ -6,7 +6,7 @@ description: >
   （诚实记录代价）、工程规范提炼（输出可落地的团队规则）。
 allowed-tools: Read, Search
 model: opus
-version: 2.10
+version: 2.11
 ---
 
 # Talk Retro（深度复盘）

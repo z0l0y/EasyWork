@@ -7,6 +7,13 @@ EasyWork 是一套为 AI 编码助手（Claude Code、Cursor、GitHub Copilot）
 不跑测试直接交付。EasyWork 通过**按需裁剪的 10 步工作流 + 全局异常 SOP + CTO 拷打层 + 人工确认闸门**，
 让 AI 从"散漫的代码生成器"变成"严格按流程走的虚拟结对程序员"。
 
+### v2.11 核心改进：文档保真闸门 + 禁止无基准覆写 + 写入模式三级分类
+
+- **文档保真闸门（铁律#29）**：7项内容保真检查——字数退化/证据密度下降/历史版本丢失/流程节点缩减/无基准覆写/round_report冒充engineering_active/写入模式错配。detailed 模式命中→阻断+修复
+- **禁止无基准覆写（6条Anti-Overwrite规则）**：已有文档默认局部更新 / Overwrite必须带Preservation Checklist / Quick Fix禁止覆写 / round_report不得覆盖engineering_active / Overwrite仅三场景 / 覆写后必须fetch-compare
+- **写入模式三级分类**：quick_fix（仅追加，绝不覆写）/ normal（DEFAULT, structured merge）/ full_archive（三合法场景+checklist）
+- **文档作用域物理隔离**：round_report（轮次摘要，可短，聊天用）vs engineering_active（工程档案，保留全部历史）。两种作用域不得互混
+
 ### v2.10 核心改进：文档拓扑闸门 + 双模文档结构 + 结构化合并
 
 - **文档拓扑闸门（铁律#28）**：7项拓扑检查——重复顶层流程节点/模式混用/版本索引缺失/本轮内容未入节点/孤儿更新记录块/历史与当前混淆/索引与实际不一致。detailed 模式命中→阻断写入+自动structured merge repair
@@ -30,7 +37,7 @@ EasyWork 是一套为 AI 编码助手（Claude Code、Cursor、GitHub Copilot）
 - **CODE↔REVIEW 质量门禁**：REVIEW 发现阻断问题→必须回退 CODE 修复→重新 REVIEW 通过后才放行到 EXAMINE。不可带着已知问题前进（铁律#23）。循环上限 3 轮，3 轮后挂起用户
 - **多路径回退机制**：REVIEW→CODE（3轮）/ EXAMINE→CODE（3轮）/ SELFCHECK→CODE（2轮）/ ASK→CODE（1轮），各有独立触发条件和上限
 - **READ 需求理解显式确认**：READ 完成后 Agent 必须用自己的话重述对需求的理解（含业务目标、技术方案假设、不确定点），列出澄清问题，获用户确认后才进入 CODE（铁律#24）。从根源消除理解偏差
-- **文档迭代增量更新**：需求变更时在原有排版下追加"更新记录"子节，标注版本号和日期，过时信息标注 `[已过时 — vX.X 起]` 而非直接删除（铁律#25）。确保文档可追溯完整演进历史
+- **文档迭代增量更新（v2.8→v2.10→v2.11）**：从文档级追加→节点内版本合并+写入模式三级分类。Mode B 默认 structured merge。Quick Fix 仅追加版本记录。过时信息标注 `[已过时 — v{N} 起]` 而非直接删除（铁律#25）。确保文档可追溯完整演进历史
 - **交互式应用 EXAMINE 增强**：CLI/TUI/GUI/Web前端/游戏/交互式IO任务必须在 EXAMINE 额外验证真实使用体验——首屏稳定性、输入反馈、退出路径、stdin边界、ANSI兼容性、渲染频率（铁律#26）。纯后端/库/脚本自动跳过
 - **七维度交叉分析**：REVIEW 新增 5 组跨维度关联检查（安全性×性能、正确性×兼容性、可维护性×可观测性等），捕捉单维度审查遗漏的交叉风险
 - **回退历史追踪**：每次回退记录路径/轮次/原因/修复/重新审查结论，完整可追溯的质量演进历史

@@ -360,6 +360,11 @@ Mode A 下，每次新任务在现有 Run 块**之前**插入新 Run：
 - [ ] 过时内容已标注版本标记（`[已过时 — v{N} 起]`）
 - [ ] 历史内容保留（未删除），与当前内容通过版本小节区分
 - [ ] Mode A：新 Run 块格式正确，在版本索引之后
+- [ ] 🆕 v2.11 write_mode 已确定（quick_fix / normal / full_archive）并记录
+- [ ] 🆕 v2.11 document_scope 已确定（round_report / engineering_active）并记录
+- [ ] 🆕 v2.11 已有文档未使用 overwrite（除非 full_archive 三合法场景）
+- [ ] 🆕 v2.11 Quick Fix 仅追加版本索引行+节点内版本小节，未覆写已有内容
+- [ ] 🆕 v2.11 round_report 未试图 overwrite engineering_active
 
 ---
 
@@ -372,3 +377,92 @@ Mode A 下，每次新任务在现有 Run 块**之前**插入新 Run：
 - ❌ 版本号跳跃或重复（v1, v3, v5 但缺 v2, v4 需说明原因）
 - ❌ Mode B 下所有节点都追加 v{N}（包括无变更的节点）——应只追加有变更的节点
 - ❌ 旧内容直接删除不标注——丢失演进历史
+- ❌ 🆕 v2.11 Quick Fix 时 overwrite 整篇文档——只能追加版本记录
+- ❌ 🆕 v2.11 把 round_report 当 engineering_active 写入——作用域混淆
+- ❌ 🆕 v2.11 已有文档不 fetch 直接 overwrite——无基准覆写
+- ❌ 🆕 v2.11 Normal 模式产出摘要级内容——内容退化
+
+---
+
+## 11. Write Mode Classification（写入模式三级分类）🆕 v2.11
+
+### 模式总览
+
+| 模式 | 名称 | 适用场景 | 写入行为 | 可否 Overwrite |
+|------|------|---------|---------|---------------|
+| **quick_fix** | 快速记录 | 微调（typo/config/样式）、<5 行改动、无新增逻辑 | 仅追加：版本索引 +1 行 + 受影响节点下 `### v{N}` 小节 | **NEVER** |
+| **normal** | 正常更新 | 标准功能开发/Bug 修复/重构（**DEFAULT**） | Full structured merge：Fetch→Parse→Pre-check→Distribute→Index→Mark→Verify | 仅限完整 merge 后 |
+| **full_archive** | 全量重建 | 首次创建 / 用户明确要求重写 / 已有全文完整 merge | 全量写入，附带 preservation checklist + post-write fetch-compare | 仅限三合法场景 |
+
+### 模式选择决策树
+
+```
+新任务 → 是否有已有产物文档？
+  ├── 否 → 新文档 → normal（首次创建，实质等同 full_archive 合法场景①）
+  └── 是 → Fetch 已有文档 → 判断任务规模 →
+        ├── 微调任务（task_type=微调 或 report_depth=brief）→ quick_fix
+        │     └── 仅追加版本记录，不覆写已有内容
+        ├── 标准任务 → normal（DEFAULT）
+        │     └── 执行完整 structured merge
+        └── 用户明确说"重写整篇""全量重建""完整重写" →
+              └── 已 fetch 当前全文 + 完成 merge → full_archive
+              └── 未 fetch → 先执行 fetch + merge，再决定
+```
+
+### Quick Fix 详细行为
+
+**允许**：
+- 版本索引表追加一行新版本记录
+- 受影响节点下新增 `### v{N} — {date}（{变更类型}）` 小节
+- 更新版本索引"当前版本"字段
+- 如涉及修改已有结论，旧版本小节前加 `[已过时 — v{N} 起]` 标记
+
+**禁止**：
+- 删除/修改任何已有版本小节的内容
+- 删除/合并已有流程节点
+- 重建版本索引表（只能追加行）
+- 修改文档标题或元信息
+
+> 完整写入模式定义、决策树、行为矩阵详见 `skills/sum-session/references/document-preservation-gate.md` §4。
+
+---
+
+## 12. Document Scope（文档作用域）🆕 v2.11
+
+### 两种作用域
+
+| 作用域 | 用途 | 可短？ | 可覆写正式文档？ |
+|--------|------|--------|-----------------|
+| **round_report** | 当前轮摘要——聊天回复、快速沟通、敏捷站会 | YES（1-2 页） | **NEVER** |
+| **engineering_active** | 长期工程档案——Code Review/交接/审计 | NO（保留全部历史） | 仅限 full_archive 三合法场景 |
+
+### 混用阻断规则
+
+- round_report 内容（< 500 字 + 无代码摘录 + 无版本小节）→ 不得写入 engineering_active 路径
+- engineering_active 不得因本轮改动小而被缩减（Quick Fix → 追加版本记录，已有内容不变）
+- 用户说"记录一下"→ Agent **必须追问**：记录为 round_report 还是更新 engineering_active
+
+### round_report 格式
+
+简短但必须包含：
+1. 本轮做了什么（1-2 句）
+2. 关键代码位置（至少 1 处含路径+行号）
+3. 结果如何（测试通过/验收确认）
+4. 标注 `⚠️ 本报告为轮次摘要（round_report），非正式工程文档。`
+
+> 完整作用域定义、混用阻断规则详见 `skills/sum-session/references/document-preservation-gate.md` §5。
+
+---
+
+## 13. Anti-Overwrite Rules（禁止无基准覆写）🆕 v2.11
+
+| # | 规则 | 说明 |
+|---|------|------|
+| R1 | **已有文档默认局部更新** | 对已有正式工程文档，默认 Normal（structured merge），禁止把本轮总结当整篇 overwrite |
+| R2 | **Overwrite 必须附带 Preservation Checklist** | 执行 overwrite 前必须完成 7 项 checklist，逐项打勾 |
+| R3 | **Quick Fix 禁止覆写正式文档** | 小修小补只允许追加版本索引行 + 节点内新增版本小节 |
+| R4 | **round_report 不得 overwrite engineering_active** | 当轮摘要只能独立记录或聊天回复 |
+| R5 | **Overwrite 仅限三种场景** | ①首次创建 ②用户明确要求重写整篇 ③已拿当前全文做完整 merge |
+| R6 | **Overwrite 后必须 fetch-compare** | overwrite 后立即 fetch 回读，对比退化→回滚+阻断 |
+
+> 完整规则、检测方法、修复策略详见 `skills/sum-session/references/document-preservation-gate.md`。

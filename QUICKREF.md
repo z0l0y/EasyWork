@@ -60,6 +60,15 @@
 4. **每步自检必填字段**：每步结束对照 data-contract 检查产出，缺失立即补全
 5. **踩坑追加 Gotchas（候选制）**：耗时 >10min 的 bug / 反直觉陷阱 / 用户指出的边界 → 生成候选 → 用户确认后写入
 
+## 🆕 v2.11 新特性（文档保真闸门 + 禁止无基准覆写 + 写入模式三级分类）
+
+| 特性 | 怎么用 |
+|------|--------|
+| **文档保真闸门** | 7项检查（字数退化/证据密度下降/版本丢失/节点缩减/无基准覆写/round_report冒充/full overwrite错配）→detailed命中即阻断+修复（铁律#29） |
+| **禁止无基准覆写** | 6条规则：已有文档默认局部更新/Overwrite必须带checklist/Quick Fix禁止覆写/round_report不得覆盖engineering_active/Overwrite仅三场景/Overwrite后fetch-compare |
+| **写入模式三级分类** | quick_fix（仅追加，绝不覆写）/normal（DEFAULT, structured merge）/full_archive（三合法场景+checklist） |
+| **文档作用域** | round_report（轮次摘要，可短，聊天用）/engineering_active（工程档案，保留全部历史）。两种作用域物理隔离 |
+
 ## 🆕 v2.10 新特性（文档拓扑闸门 + 双模文档结构 + 结构化合并）
 
 | 特性 | 怎么用 |
@@ -88,7 +97,7 @@
 | **CODE↔REVIEW 质量门禁** | REVIEW 发现阻断问题→必须回退 CODE 修复→重新 REVIEW 通过才放行。不可带着问题进 EXAMINE（铁律#23）。最多3轮 |
 | **多路径回退** | REVIEW→CODE(3轮)/EXAMINE→CODE(3轮)/SELFCHECK→CODE(2轮)/ASK→CODE(1轮)，各有独立上限和触发条件 |
 | **READ 需求理解确认** | READ 完成后必须用自己的话重述需求理解+列出澄清问题+获用户确认后才进入 CODE（铁律#24） |
-| **文档迭代增量更新** | 需求变更时在原文档排版下追加"更新记录"子节，标注版本号，过时信息标注 `[已过时]`（铁律#25） |
+| **文档迭代增量更新** | v2.8→v2.10→v2.11：从文档级追加→节点内版本合并+写入模式三级分类。Mode B 默认 structured merge。Quick Fix 仅追加版本记录。（铁律#25） |
 | **交互式应用 EXAMINE 增强** | CLI/TUI/GUI/Web/游戏额外验证首屏稳定性/输入反馈/退出路径/stdin边界/ANSI兼容性/渲染频率（铁律#26） |
 | **七维度交叉分析** | REVIEW 新增 5 组跨维度关联检查（安全×性能、正确性×兼容性、可维护性×可观测性等） |
 | **回退历史追踪** | 状态快照新增 rollback_history 字段，记录每次回退的路径/轮次/原因/修复 |

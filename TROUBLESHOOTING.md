@@ -1,6 +1,6 @@
 # EasyWork 故障排查与自救指南
 
-> **版本**: v2.10 | Agent 不听话了？流程卡住了？上下文爆了？这里有你需要的自救方案。
+> **版本**: v2.11 | Agent 不听话了？流程卡住了？上下文爆了？这里有你需要的自救方案。
 
 ## 目录
 
@@ -176,7 +176,7 @@ Mermaid 代码在渲染时显示空白或语法错误。
 最小的可用快照应包含：
 ```json
 {
-  "easywork_version": "2.4",
+  "easywork_version": "2.11",
   "task_type": "...",
   "current_step": 3,
   "completed_steps": ["READ", "CODE"],

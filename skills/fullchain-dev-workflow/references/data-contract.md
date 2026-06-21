@@ -520,13 +520,68 @@ structured_merge_plan:       # [必填|detailed] Mode B 结构化合并方案
 
 **消费方**：SUM（用于 structured merge）、后端适配器（根据 document_mode 选择写入策略）
 
+## 🆕 v2.11 顶层字段
+
+```
+# 以下字段为 v2.11 新增，存在于顶层 data-contract 中
+
+document_scope: "round_report" | "engineering_active"
+  # [必填|detailed] 文档作用域。默认 "engineering_active"（长期工程档案），
+  # "round_report" 仅用于聊天回复/快速沟通的当前轮摘要
+
+write_mode: "quick_fix" | "normal" | "full_archive"
+  # [必填|detailed] 写入模式。默认 "normal"（structured merge）。
+  # "quick_fix"：仅追加版本记录，禁止覆写。
+  # "full_archive"：全量重建，仅限三合法场景（首次创建/用户要求/已完整merge）
+
+preservation_gate_result:    # [必填|detailed] 文档保真闸门结果
+  passed: bool               #   7项检查是否全部通过
+  existing_fetched: bool     #   是否已 fetch 现有文档
+  content_fidelity:          #   内容保真对比
+    word_count_before: int   #     merge 前字数
+    word_count_after: int    #     merge 后字数
+    word_count_ok: bool      #     未退化（≥80%）
+    evidence_count_before: int
+    evidence_count_after: int
+    evidence_count_ok: bool
+    version_count_before: int
+    version_count_after: int
+    version_count_ok: bool
+    node_count_before: int
+    node_count_after: int
+    node_count_ok: bool
+  checks:                    #   逐项检查结果
+    - id: string             #     检查编号（C1-C7）
+      name: string           #     检查项名称
+      passed: bool           #     是否通过
+      violation: string      #     违规描述（如有）
+      fix: string            #     修复操作（如有）
+  overall_pass: bool         #   总体是否通过
+  gate_type: string          #   "HARD_GATE" | "SOFT_GATE" | "SKIPPED"
+
+content_fidelity_snapshot:   # [必填|detailed] 内容保真快照（write后fetch-compare用）
+  before_write:
+    word_count: int
+    evidence_count: int
+    version_count: int
+    node_count: int
+  after_write:
+    word_count: int
+    evidence_count: int
+    version_count: int
+    node_count: int
+  degraded: bool             #   是否退化
+```
+
+**消费方**：SUM（用于 preservation gate 判定）、后端适配器（根据 write_mode 选择写入策略，根据 document_scope 选择输出路径）
+
 如果不确定前序某字段是否存在，应该回查而非猜测。
 
 ---
 
 ## 版本迁移
 
-### 当前版本：2.10
+### 当前版本：2.11
 
 `easywork_version` 字段用于标记状态快照的版本。不同版本间字段变更遵循以下规则。
 
@@ -605,6 +660,13 @@ structured_merge_plan:       # [必填|detailed] Mode B 结构化合并方案
 | 2.9 → 2.10 | 变更 | 顶层新增 `document_mode` / `topology_gate_result` / `structured_merge_plan`（文档拓扑闸门+双模文档结构） |
 | 2.9 → 2.10 | 破坏性 | v2.8 的 `## 📝 更新记录` 文档块格式在 Mode B 下不再支持——需迁移为节点内 `### v{N}` 格式 |
 | 2.9 → 2.10 | 无破坏 | Mode A（审计日志）完全向后兼容。Mode B 为新默认，已有文档拓扑在首次写入时自动修复 |
+| 2.10 → 2.11 | 新增 | `document_scope` / `write_mode` / `preservation_gate_result` / `content_fidelity_snapshot`（文档保真闸门+覆写安全+写入模式分类） |
+| 2.10 → 2.11 | 新增 | 铁律 #29（文档保真闸门 — HARD GATE） |
+| 2.10 → 2.11 | 变更 | 铁律总数 28→29 |
+| 2.10 → 2.11 | 变更 | 铁律 #25（文档迭代增量更新）补充 v2.11 write_mode 三级分类 |
+| 2.10 → 2.11 | 破坏性 | `write_mode = "full_archive"` 仅在三种合法场景可用——已有文档默认 Normal（局部更新）。Quick Fix 禁止覆写正式文档 |
+| 2.10 → 2.11 | 破坏性 | `round_report` 不得 overwrite `engineering_active`——两种 document_scope 物理隔离 |
+| 2.10 → 2.11 | 无破坏 | Normal 模式完全向后兼容 v2.10 行为。新字段仅 v2.11 新增，旧版本快照中缺失字段视为 null |
 
 ### 快照迁移规则
 

@@ -449,3 +449,61 @@ Mode B 下 structured merge 之后：
 > **[T]** 这 12 个测试覆盖了正常登录、token 过期重试、EOF 退出、弱网降级、非法输入 5 类场景——是本次改动涉及的全部代码路径。新增的 `TestLoginExpired` 专门验证 token 刷新死循环的修复（原来 refresh() 在 token 过期后无限重试，修复后最多 3 次降级为匿名访问）。新增的 `TestScannerEOF` 验证 Scanner 读到 EOF 后不再 panic（原来 `close(ch)` 后 `mainLoop` 往 closed channel 写导致 panic，修复后改为发送 `io.EOF` 信号）。
 >
 > **[R]** 未覆盖：1) 极弱网（<100KB/s）下重试 3 次是否足够——未模拟此环境。缓解：重试失败降级为匿名访问（非 401），用户可手动登录。2) 并发 token 刷新竞态条件——已知理论风险但 QPS<100 时概率极低（<0.001%），监控告警已配置。3) 此修复假定 bcrypt.CompareHashAndPassword 的恒定时间比较在 Go 1.21+ 中始终生效——<1.21 版本需单独验证。
+
+---
+
+## 10. 内容保真与覆写安全（🆕 v2.11）
+
+### 10.1 内容保真原则
+
+文档更新是**追加**（add），不是**替换**（replace）。核心底线：
+
+- **字数不下降**：merge 后总字数不得低于现有文档的 80%
+- **证据不缩水**：代码摘录数/测试输出片段数/数据对比表数不得下降
+- **版本不丢失**：`### v{N}` 版本小节总数不得下降。版本只增不减
+- **节点不缩减**：顶层流程节点数不得下降（Mode B）
+
+### 10.2 覆写安全规则
+
+**Overwrite 仅限三合法场景**：
+1. 首次创建（无已有产物文档）
+2. 用户明确要求重写整篇（"重写整篇""全量重建""完整重写"）
+3. 已拿当前全文做了完整 merge（fetch→merge→verify 内容未退化）
+
+**Quick Fix 绝不覆写**：小修小补只允许追加版本索引行 + 节点内新增版本小节，保留其他内容不变。
+
+**round_report 不得替换 engineering_active**：当轮摘要无论多短都不能覆盖正式工程文档。
+
+**Overwrite 前置清单**（full_archive 必须逐项确认）：
+- [ ] 已 Fetch 当前完整文档
+- [ ] 已完成 Structured Merge
+- [ ] Topology Gate 已通过
+- [ ] Preservation Gate C1-C7 已通过
+- [ ] 待写入字数 ≥ 现有字数 × 80%
+- [ ] 待写入证据数 ≥ 现有证据数
+- [ ] 待写入版本数 ≥ 现有版本数
+
+### 10.3 写入模式与作用域选择指南
+
+**选择 write_mode**：
+- 微调（typo/config/样式、<5 行改动）→ `quick_fix`（仅追加，不覆写）
+- 标准功能开发/Bug 修复/重构 → `normal`（DEFAULT，structured merge）
+- 用户要求重写 + 已有全文 merge → `full_archive`（全量重建+checklist）
+
+**选择 document_scope**：
+- 正式工程文档 → `engineering_active`（DEFAULT，保留全部历史）
+- 聊天回复/快速沟通 → `round_report`（可短，必须标注"轮次摘要"）
+
+### 10.4 round_report vs engineering_active 写作差异
+
+**round_report（轮次摘要）**：
+- 长度：1-2 页，六要素概要
+- 风格：简要但必须有代码位置（≥1 处路径+行号）和结果
+- 标注：必须标注 `⚠️ 轮次摘要（round_report），非正式工程文档`
+- 存储：聊天输出或 `.claude/easywork/round_reports/`
+
+**engineering_active（正式工程档案）**：
+- 长度：无上限，必须保留全部历史版本
+- 风格：完整六要素 + 全部步骤产出 + 版本索引 + 节点内版本小节
+- 禁止：不得因本轮改动小而从文档中删除/缩减已有内容
+- 存储：正式产物后端（local_html/markdown/lark_doc）

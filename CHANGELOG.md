@@ -34,6 +34,36 @@ EasyWork 的所有重要变更记录。
 
 ---
 
+## [2.11.0] — 2026-06-21
+
+### 新增
+- **文档保真闸门（Document Preservation Gate）**：7项内容保真检查（C1 内容长度退化/C2 证据密度下降/C3 历史版本丢失/C4 流程节点缩减/C5 无基准覆写/C6 round_report冒充engineering_active/C7 写入模式错配）。detailed→HARD GATE（命中即阻断+修复），standard→SOFT GATE（警告+用户确认），brief→跳过但标注免责声明（铁律#29）
+- **禁止无基准覆写（Anti-Overwrite Rule）**：6条核心规则（R1 已有文档默认局部更新/R2 Overwrite必须带Preservation Checklist/R3 Quick Fix禁止覆写正式文档/R4 round_report不得overwrite engineering_active/R5 Overwrite仅限三合法场景/R6 Overwrite后必须fetch-compare）
+- **写入模式三级分类（Write Mode Classification）**：quick_fix（快速记录——仅追加，绝不覆写）/normal（正常更新——DEFAULT，structured merge）/full_archive（全量重建——仅限三合法场景+preservation checklist）
+- **文档作用域（Document Scope）**：round_report（当前轮摘要——可短，用于聊天回复，绝不覆写正式文档）+engineering_active（长期工程档案——保留全部历史，不可因本轮简短而缩减）
+- **Preservation Checklist**：7项overwrite前置检查清单
+- **Fetch-Compare Methodology**：字数统计/证据密度统计/版本计数/节点计数规范
+- **1 个新参考文件**：`skills/sum-session/references/document-preservation-gate.md`（7项内容保真检查+6条反覆写规则+写入模式三级分类+文档作用域+preservation checklist+fetch-compare方法）
+
+### 变更
+- **编排中枢 SKILL.md**：铁律新增 #29（文档保真闸门）；铁律 #25 补充 v2.11 write_mode 三级分类；铁律总数 28→29；§6 MCR 表 SUM 行追加 v2.11 features；§8 状态快照新增 document_scope/write_mode/preservation_gate_result/content_fidelity_snapshot；§10 反模式新增 5 条；version→2.11
+- **sum-session/SKILL.md**：新增 3 个 v2.11 专区（Document Preservation Gate/Anti-Overwrite Rule/Write Mode Classification）；write_final_report 流程新增步骤 0.2/0.4/7.5（写入模式选择/作用域确定/保真闸门）；反模式新增 11 条；version→2.11
+- **document-modes.md**：新增 §11-13（Write Mode Classification/Document Scope/Anti-Overwrite Rules）；§9 自检清单新增 5 条 preservation check items；§10 反模式新增 4 条
+- **data-contract.md**：新增 document_scope/write_mode/preservation_gate_result/content_fidelity_snapshot 顶层字段；版本迁移表新增 2.10→2.11（8行变更）；当前版本标注 2.11
+- **acceptance-gates.md**：SUM 新增 4 个 v2.11 专区（Document Preservation Gate/Anti-Overwrite Check/Write Mode Selection/Document Scope Check，共 20 条检查项）；全局新增 10 条 v2.11 关卡
+- **doc-writing-guide.md**：新增 §10 "内容保真与覆写安全"（4 小节：内容保真原则/覆写安全规则/写入模式与作用域选择指南/round_report vs engineering_active 写作差异）
+- **orchestration-engine.md**：新增 5 条 v2.11 条件分支（Preservation Gate命中/无基准覆写/round_report冒充/full overwrite错配/fetch-compare发现退化）
+- **maturity-levels.md**：铁律总数 28→29
+- **3 个后端适配器**：version 1.4→1.5；新增 document_scope/write_mode/preservation_gate_result/content_fidelity_snapshot 输入参数
+
+### 破坏性变更
+- **Quick Fix 禁止覆写正式文档**：write_mode=quick_fix 仅允许追加版本索引行+节点内版本小节，更改已有段落/删除节点/重建索引均被 C7 阻断
+- **round_report 不得 overwrite engineering_active**：两种 document_scope 物理隔离。C6 检测到 round_report 内容（<500字+无代码摘录+无版本小节）试图写入 engineering_active 路径→阻断+重定向
+- **已有文档默认 Normal（局部更新）**：对已有正式工程文档，默认 write_mode=normal（structured merge），非 full_archive。直接 overwrite 被 C5/R1 阻断
+- **Overwrite 仅三合法场景**：①首次创建 ②用户明确要求重写 ③已拿当前全文完整 merge——其余场景 overwrite 被 R5 阻断
+
+---
+
 ## [2.9.0] — 2026-06-20
 
 ### 新增

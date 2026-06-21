@@ -252,6 +252,11 @@ EasyWork 工作流启动 — 任务：重构 — 风险：高
 | 🆕 v2.10 SUM 文档模式混用（同时存在 Run 块和流程节点） | 步骤 7 | **HARD GATE**——阻断写入 → 用户确认目标模式 → 统一为 Mode A 或 Mode B |
 | 🆕 v2.10 SUM 已有 Mode A 文档+本轮默认 Mode B | 步骤 7 | 保持 Mode A（追加新 Run）——模式连续性优先于默认值 |
 | 🆕 v2.10 SUM Structured Merge 后拓扑仍不合法（2轮修复后） | 步骤 7 | 挂起用户 → 列出违规项+已尝试修复 → 建议手动选择文档模式或接受当前结构 |
+| 🆕 v2.11 SUM Document Preservation Gate 命中（detailed 模式） | 步骤 7 | **HARD GATE（铁律 #29）**——拒绝写入 → 执行修复动作（补全内容/恢复版本/切换write_mode）→ 重新检测（最多2轮）。standard→SOFT GATE（警告+用户确认） |
+| 🆕 v2.11 SUM 无基准覆写（C5：未 fetch 现有文档） | 步骤 7 | **HARD GATE**——阻断写入 → 强制 fetch 现有文档 → 重新执行 Topology Gate + Preservation Gate → 重新 merge |
+| 🆕 v2.11 SUM round_report 冒充 engineering_active（C6） | 步骤 7 | **HARD GATE**——阻断写入 → 如只需快速记录→切换为 quick_fix+追加版本记录；如需正式文档→回退补充完整内容 |
+| 🆕 v2.11 SUM write_mode=quick_fix 但执行了 full overwrite（C7） | 步骤 7 | **HARD GATE**——阻断写入 → 强制降级为 quick_fix 行为：仅追加版本索引行+节点内版本小节 |
+| 🆕 v2.11 SUM Overwrite 后 fetch-compare 发现内容退化（R6） | 步骤 7 | 报告用户退化指标 → 回滚到写入前版本 → 分析退化原因 → 重新 merge |
 
 ### 上下文自适应分支
 

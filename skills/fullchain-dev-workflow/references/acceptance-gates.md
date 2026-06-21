@@ -211,6 +211,47 @@
 - [ ] 🆕 v2.10 Step 5（Index）：版本索引已更新（新版本行+影响节点+当前版本字段）
 - [ ] 🆕 v2.10 Step 6（Mark）：过时内容已标注 `[已过时 — v{N} 起]`，旧版本内容保留未删除
 
+### SUM — Document Preservation Gate 文档保真闸门（🆕 v2.11）
+
+> 此闸门在 detailed 模式为 **HARD GATE**（铁律 #29，命中即阻断+修复），standard 模式为 **SOFT GATE**（警告+用户确认），brief 模式跳过。
+> 详见 `skills/sum-session/references/document-preservation-gate.md` §2-§9。
+
+- [ ] 🆕 v2.11 C1（内容长度退化）：merge 后字数 ≥ 现有文档字数 × 80%
+- [ ] 🆕 v2.11 C2（证据密度下降）：代码摘录数/测试输出片段数/数据对比表数未下降
+- [ ] 🆕 v2.11 C3（历史版本丢失）：`### v{N}` 子节总数未下降。版本只增不减
+- [ ] 🆕 v2.11 C4（流程节点缩减）：顶层流程节点数未下降（Mode B）
+- [ ] 🆕 v2.11 C5（无基准覆写）：已 Fetch 现有文档后才执行写入（非凭记忆覆盖）
+- [ ] 🆕 v2.11 C6（round_report 冒充 engineering_active）：待写入内容非纯摘要（≥500 字或含代码摘录或含版本小节）
+- [ ] 🆕 v2.11 C7（写入模式错配）：write_mode 与实际写入行为一致
+
+### SUM — Anti-Overwrite Check 覆写安全检查（🆕 v2.11）
+
+> 详见 `skills/sum-session/references/document-preservation-gate.md` §3。
+
+- [ ] 🆕 v2.11 R1：已有文档使用 Normal（structured merge），非 overwrite
+- [ ] 🆕 v2.11 R2：如 write_mode=full_archive，已附带 preservation checklist（7 项全打勾）
+- [ ] 🆕 v2.11 R3：Quick Fix 仅追加版本索引行+节点内版本小节，未覆写已有内容
+- [ ] 🆕 v2.11 R4：round_report 未 overwrite engineering_active 路径
+- [ ] 🆕 v2.11 R5：Overwrite 仅在三合法场景（首次创建/用户要求重写/已完成完整 merge）
+- [ ] 🆕 v2.11 R6：Overwrite 后已 fetch-compare，未发现内容退化
+
+### SUM — Write Mode Selection 写入模式选择（🆕 v2.11）
+
+> 详见 `skills/sum-session/references/document-preservation-gate.md` §4。
+
+- [ ] 🆕 v2.11 write_mode 已显式确定：quick_fix / normal / full_archive
+- [ ] 🆕 v2.11 write_mode 来源明确：task_type推断 / 用户指定 / 默认normal
+- [ ] 🆕 v2.11 微调任务 → quick_fix；标准任务 → normal；用户要求重写+已merge → full_archive
+- [ ] 🆕 v2.11 write_mode 已记录到 data-contract
+
+### SUM — Document Scope Check 文档作用域检查（🆕 v2.11）
+
+> 详见 `skills/sum-session/references/document-preservation-gate.md` §5。
+
+- [ ] 🆕 v2.11 document_scope 已确定：round_report / engineering_active
+- [ ] 🆕 v2.11 round_report 内容未写入 engineering_active 路径
+- [ ] 🆕 v2.11 用户说"记录一下"时已追问作用域（round_report 还是 engineering_active）
+
 ## TALK（复盘分析）验收关卡
 - [ ] 5-Whys 追问至少到达第 4 层，触及系统/流程/机制层面的根因（而非停在"某人失误"的层面）
 - [ ] 每个 Why 的回答有逻辑链条，不是跳跃式的
@@ -311,3 +352,13 @@
 - [ ] 🆕 v2.10 历史内容保留（未删除），与当前内容通过版本小节明确区分
 - [ ] 🆕 v2.10 铁律 #25（文档迭代）已升级：从文档级追加→节点内版本合并（Mode B）
 - [ ] 🆕 v2.10 无流水账反模式：无尾部堆积的更新记录块，本轮内容已入流程节点
+- [ ] 🆕 v2.11 铁律 #29 已执行：Document Preservation Gate 文档保真闸门已通过（detailed→HARD GATE）
+- [ ] 🆕 v2.11 内容保真已验证：merge 后字数/证据数/版本数/节点数未下降（C1-C4）
+- [ ] 🆕 v2.11 无无基准覆写：已 fetch 现有文档后才写入（C5），非凭记忆覆盖
+- [ ] 🆕 v2.11 write_mode 已确定并记录：quick_fix / normal / full_archive
+- [ ] 🆕 v2.11 document_scope 已确定并记录：round_report / engineering_active
+- [ ] 🆕 v2.11 Quick Fix 未覆写正式文档：仅追加版本索引行+节点内版本小节（R3）
+- [ ] 🆕 v2.11 round_report 未 overwrite engineering_active（R4）
+- [ ] 🆕 v2.11 已有文档使用 Normal（局部更新），非 Full Archive（R1）
+- [ ] 🆕 v2.11 如 write_mode=full_archive：preservation checklist 已完成 + 已 post-write fetch-compare（R2+R6）
+- [ ] 🆕 v2.11 铁律 #25（文档迭代）已补充：write_mode 决定更新粒度（Quick Fix/Normal/Full Archive）
