@@ -7,7 +7,7 @@ description: >
   v2.9: MCR+质量升级——变更位置+原因/关键逻辑3-6句/替代方案≥1个/代码摘录含位置。禁止"修改了 main.go"式水文。
 allowed-tools: Read, Write, Edit, Search, Grep, Glob, Bash
 model: sonnet
-version: 2.11
+version: 2.12
 ---
 
 # Code Implement（代码实现）

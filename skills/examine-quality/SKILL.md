@@ -6,8 +6,9 @@ description: >
   v2.8: 交互式应用真实体验验证(铁律#26)——CLI/TUI/GUI/Web前端/游戏额外覆盖首屏/输入反馈/退出路径/stdin边界/ANSI兼容/渲染频率。
   v2.9: MCR+质量升级——测试命令+目的/失败前修复后对比/覆盖矩阵标注新增/关键输出摘录凭据。禁止"go test 通过"式水文。
 allowed-tools: Bash, Read, Write, Search, Grep, Glob
+tv2.12: 测试充分性闸门(铁律#34)+环境保真闸门(铁律#32)——五维覆盖检查、Bug修复回归测试强制、交互式应用近真实环境冒烟测试。
 model: sonnet
-version: 2.11
+version: 2.12
 ---
 
 # Examine Quality（测试执行）
@@ -163,6 +164,29 @@ version: 2.11
 [交互式应用 EXAMINE 补充: N/A — 本次改动为纯后端/库/脚本，不涉及用户界面]
 ```
 
+## 🆕 v2.12 第 5 步：测试充分性评估（铁律#34）
+
+运行测试后，必须评估测试是否覆盖了风险。详见 `skills/examine-quality/references/test-adequacy-gate.md`。
+
+**五维覆盖检查**：
+- Happy Path：正常输入→预期输出
+- Boundary：空值/极值/越界
+- Error Path：异常/超时/资源不足
+- Concurrency：并发/竞态（如适用）
+- Security：注入/越权/敏感数据泄露（如适用）
+
+**Bug修复回归测试强制**：必须新增≥1个回归测试，在老代码上FAIL、新代码上PASS。无回归测试=不可声称修复完成。
+
+**Gate Check**：detailed→HARD GATE（Bug修复无回归测试→阻断；L2+三维未覆盖→阻断或豁免），standard→SOFT GATE
+
+## 🆕 v2.12 第 6 步：环境保真度检查（铁律#32）
+
+L3+交互式应用必须至少一次近真实环境冒烟测试。详见 `skills/examine-quality/references/environment-fidelity-gate.md`。
+
+**检查内容**：环境分类→环境矩阵→近真实环境冒烟测试（≥1端到端场景）→环境差异记录
+
+**Gate Check**：detailed→HARD GATE（L3+交互式应用未执行冒烟测试→阻断），L0-L2或纯后端→跳过标注N/A
+
 ## 🆕 v2.9 MCR+ 质量要求
 
 | # | MCR+ 要求 | ❌ 反例（禁止） | ✅ 合格例 |
@@ -176,6 +200,11 @@ version: 2.11
 
 - ❌ 写一个 `expect(true).toBe(true)` 充数——这是自欺欺人
 - ❌ 测试只跑 Happy Path，边界完全不测
+- ❌ 🆕 v2.12 Bug修复不添加回归测试就声称"修复完成"——违反铁律#34
+- ❌ 🆕 v2.12 回归测试在老代码和新代码上都是PASS——没有验证"老代码FAIL"
+- ❌ 🆕 v2.12 五维全标"covered"但实际只有Happy Path测试——虚报覆盖率
+- ❌ 🆕 v2.12 L3 Web应用只在localhost Chrome测试→声称"已验证"——缺少真实环境冒烟
+- ❌ 🆕 v2.12 环境矩阵全是"相同"没有差异分析
 - ❌ 看到已有的测试失败（不是本次改动导致的）假装没看到
 - ❌ 觉得"改动太小不用测"——一行代码也能引发线上事故
 - ❌ 不保存测试输出凭据——后面的 SUM 阶段需要引用

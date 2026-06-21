@@ -7,6 +7,50 @@ EasyWork 的所有重要变更记录。
 
 ---
 
+## [2.12.0] — 2026-06-21
+
+### 新增
+- **11 条新铁律（#30-#40）**：完成定义闸门、需求可追溯矩阵、环境保真闸门、参考基线闸门、测试充分性闸门（回归测试强制）、重复失败触发器（2次即BLOCK）、历史版本覆盖矩阵、来源出处闸门、证据账本（最低样本数）、风险分类闸门（L0-L4五级）、上下文丢失防护（状态文件 `.claude/easywork/state-v{N}.json`）
+- **风险分类闸门（Risk Classification Gate）**：L0纯文档→最小流程、L1小修复→单测+简要记录、L2正常功能→单测+review+structured merge、L3交互/并发/外部API→+smoke+环境矩阵+UX确认、L4数据迁移/权限/部署/删除→+dry-run+备份+回滚+用户确认
+- **完成定义闸门（Delivery Definition Gate）**：READ阶段强制输出六维结构化完成定义（任务类型/机器可验证标准/人工验证标准/高风险操作/不可交付条件/证据要求）。SUM阶段交付验证清单自动生成，逐项回溯
+- **需求可追溯矩阵（Requirement Traceability Matrix）**：五列强制生成表（用户需求→验收标准→自动化测试→手动验证→状态），禁止测试不覆盖真实用户痛点
+- **环境保真闸门（Environment Fidelity Gate）**：L3+交互式应用强制近真实环境冒烟测试，产出环境矩阵（OS/浏览器/设备/网络条件）
+- **参考基线闸门（Reference Baseline Gate）**：成熟领域（认证/支付/上传/缓存等）强制搜索GitHub/Web参考实现，产出对比表（≥3种模型、≥6个维度）
+- **测试充分性闸门（Test Adequacy Gate）**：五维覆盖检查（Happy Path/边界/错误路径/并发/安全）。Bug修复强制回归测试（老代码FAIL→新代码PASS，无回归测试=不可声称修复完成）
+- **重复失败触发器（Repeated Failure Trigger）**：同一问题第2次修复失败→BLOCK，强制输出四要素（根因分析/正确模型/新测试覆盖/需用户确认假设），Agent不可自行解除
+- **历史版本覆盖矩阵（Historical Version Coverage）**：版本索引每个版本必须在受影响节点下有独立版本小节，产出覆盖矩阵表（版本/受影响节点/已覆盖节点/缺失节点/恢复状态）
+- **来源出处闸门（Source Provenance Gate）**：每版本标注来源类型（完整记录/摘要恢复/重构推断/外部引用），摘要恢复须声明"该版本为摘要恢复，非逐字原始记录"
+- **证据账本（Evidence Ledger）**：每轮交付生成（结论/证据类型/证据位置/可复现？），证据样本数≥最低门槛（L0:1/L1:2/L2:3/L3:4/L4:5）
+- **上下文丢失防护（Context Loss Protection）**：机器可读状态文件 `.claude/easywork/state-v{N}.json`（7分组字段），每步更新，跨 `/clear` 存活
+- **闸门依赖图（Gate Dependency Graph）**：全部40条铁律的依赖关系和执行顺序DAG
+- **10 个新参考文件**（~3300 行）：risk-classification-gate.md、context-loss-protection.md、delivery-definition-gate.md、traceability-matrix.md、reference-baseline-gate.md、test-adequacy-gate.md、environment-fidelity-gate.md、repeated-failure-trigger.md、historical-version-coverage.md、source-provenance-gate.md、evidence-ledger.md、gate-dependency-graph.md
+
+### 变更
+- **编排中枢 SKILL.md**：铁律新增 #30-#40（11条），总数 29→40。YAML description 新增 v2.12 行。§2铁律区扩展。§3上下文管理🟠级增加状态文件写入。§4任务分类新增 L0-L4 风险等级。§6 MCR 表 SUM 行追加 v2.12 新闸门。§8 状态快照新增 risk_classification/state_file_path/repeated_failure_count/evidence_ledger_summary/delivery_definition_hash 字段。version→2.12
+- **sum-session/SKILL.md**：write_final_report 流程新增 Version Coverage→Source Provenance→Evidence Ledger→Delivery Verification 步骤。新增 4 个 v2.12 专区。version→2.12
+- **read-requirements/SKILL.md**：新增第4/5/6步（完成定义/需求追溯/参考基线）。allowed-tools 新增 WebSearch/WebFetch。version→2.12
+- **examine-quality/SKILL.md**：新增第5/6/7步（测试充分性评估/回归测试检查/环境保真度检查）。version→2.12
+- **code-review/SKILL.md**：新增重复失败检测（检查是否同问题第2+次修复）。version→2.12
+- **data-contract.md**：新增 ~40 个 v2.12 字段（risk_classification/context_state/delivery_definition/traceability_matrix/reference_baseline/environment_matrix/test_adequacy_assessment/repeated_failure_block/version_coverage_matrix/source_provenance/evidence_ledger）。版本迁移表新增 2.11→2.12 行。当前版本→2.12
+- **acceptance-gates.md**：READ 新增 3 个 v2.12 子区（Delivery Definition/Traceability Matrix/Reference Baseline）。EXAMINE 新增 2 个子区（Test Adequacy/Environment Fidelity）。SUM 新增 4 个子区（Historical Version Coverage/Source Provenance/Evidence Ledger/Delivery Verification）。全局新增 ~8 条
+- **orchestration-engine.md**：条件分支表新增 Repeated Failure Trigger + Risk Classification mismatch + 其他 v2.12 分支（共~10条）
+- **document-modes.md**：新增 §14 Historical Version Coverage。§9 自检清单新增 4 条 v2.12 项目
+- **maturity-levels.md**：铁律计数 29→40
+- **3 个后端适配器**：version 1.5→1.6
+- **全部 10 个子技能 SKILL.md**：version 2.11→2.12
+- **root SKILL.md / README.md / QUICKREF.md / TROUBLESHOOTING.md**：version→2.12
+
+### 破坏性变更
+- **L4 操作强制 dry-run+备份+回滚+用户确认**：旧流程中数据迁移/权限变更/删除操作可能只走了 L2 流程→现在最低 L4，额外保护强制执行
+- **Bug 修复强制回归测试**：无在老代码FAIL、新代码PASS的回归测试 = 不可声称修复完成（铁律#34）。旧行为：修复后跑现有测试通过即可
+- **风险等级从旧版 low/medium/high 三级升级为 L0-L4 五级**：旧快照中 risk_level 字段自动映射（low→L1, medium→L2, high→L3），L4 为新增最高级
+- **成熟领域强制外部参考搜索**：L2+ 任务且领域为"成熟"时，必须先搜索外部实现模型才能进入 CODE（铁律#33）
+
+### 安全更新
+- L4 操作（数据迁移/权限/部署/删除）强制 dry-run + 备份 + rollback 方案，用户在逐项确认后方可执行
+
+---
+
 ## [2.10.0] — 2026-06-21
 
 ### 新增

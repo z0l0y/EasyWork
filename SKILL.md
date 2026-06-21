@@ -26,7 +26,7 @@ description: >
   Gotchas候选-确认制、文件系统写保护。
   v2.3: 并行审查、反合理化防御、Gotchas知识库、团队策略覆盖、自定义步骤注入、
   可访问性审查、供应链检查、Conventional Commits、交互式入门、故障Runbook。
-version: 2.11
+version: 2.12
 model: sonnet
 ---
 

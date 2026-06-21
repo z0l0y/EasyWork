@@ -24,6 +24,38 @@
 - [ ] 🆕 v2.9 MCR+：验收标准可验证（≥2条，能用命令/测试/截图/人工步骤验证——非"确保功能正常"）
 - [ ] 🆕 v2.9 MCR+：不做事项含原因（非"不涉及其他模块"占位符）
 
+### READ — Delivery Definition Gate 完成定义闸门（🆕 v2.12 铁律#30）
+
+> 此闸门在 detailed 模式下为 **HARD GATE**：delivery_definition 为空或只有模糊表述 → 拒绝进入 CODE。
+> standard 模式下为 **SOFT GATE**。brief 模式下跳过。
+
+- [ ] 🆕 v2.12 六维完成定义已输出：任务类型/机器可验证标准/人工验证标准/高风险操作/不可交付条件/证据要求
+- [ ] 🆕 v2.12 machine_verifiable 标准 ≥1 条，每条含验证方法+预期结果+具体阈值（非"功能正常"）
+- [ ] 🆕 v2.12 human_only 标准已列出（如涉及 UI/UX/交互），每条含验证对象+判断标准+验证环境
+- [ ] 🆕 v2.12 high_risk_operations 已识别：L3/L4 操作已标注需确认的高风险项（非空但不具体）
+- [ ] 🆕 v2.12 non_deliverable_conditions 已列出：具体可检测的阻断条件（非"有重大问题就阻断"）
+
+### READ — Requirement Traceability Matrix 需求可追溯矩阵（🆕 v2.12 铁律#31）
+
+> 此闸门在 detailed 模式下为 **HARD GATE**：有任何 uncovered 行且风险≥L2 → 拒绝进入 CODE。
+> standard 模式下为 **SOFT GATE**。brief 模式下跳过。
+
+- [ ] 🆕 v2.12 需求可追溯矩阵已生成：五列（用户需求/验收标准/自动化测试/手动验证/状态）
+- [ ] 🆕 v2.12 矩阵 ≥3 行（L2+）或 ≥1 行（L0-L1），每行有明确的需求来源
+- [ ] 🆕 v2.12 无"uncovered"行（L2+）或 uncovered 行有合法豁免说明
+- [ ] 🆕 v2.12 每条需求可追溯到真实用户痛点（非纯技术术语）
+- [ ] 🆕 v2.12 覆盖统计正确：covered/partial/uncovered/n_a 计数与各行状态一致
+
+### READ — Reference Baseline Gate 参考基线闸门（🆕 v2.12 铁律#33）
+
+> 此闸门在 L2+ 成熟领域任务中为 **HARD GATE**：未搜索外部参考 → 拒绝进入 CODE。
+> L0-L1 或非成熟领域跳过（需标注理由）。
+
+- [ ] 🆕 v2.12 领域成熟度已判定：成熟/新兴/全新/公司内部
+- [ ] 🆕 v2.12 成熟领域+L2+：已搜索 GitHub/Web 外部参考实现（≥2 个来源）
+- [ ] 🆕 v2.12 实现模型 ≥3 个，每个有核心设计+代表性项目+适用场景+局限性
+- [ ] 🆕 v2.12 对比表完整：我们的方案 vs 参考模型（≥6 个维度），选择理由含具体技术理由
+
 ## CODE（代码实现）验收关卡
 - [ ] 所有变更文件都有明确的改动原因说明
 - [ ] 新增代码的注释使用中文
@@ -85,6 +117,31 @@
 - [ ] 🆕 v2.9 MCR+：如修Bug→有失败前/修复后对比（修复前什么表现+修复后什么表现）
 - [ ] 🆕 v2.9 MCR+：测试覆盖矩阵标注了哪些是本次新增（非只有通过数）
 - [ ] 🆕 v2.9 MCR+：关键输出摘录作为测试凭据（非"全部通过"占位）
+
+### EXAMINE — Test Adequacy Gate 测试充分性闸门（🆕 v2.12 铁律#34）
+
+> 此闸门在 detailed 模式下为 **HARD GATE**：Bug修复无回归测试→阻断；L2+三维未覆盖→阻断或豁免。
+> standard 模式下为 **SOFT GATE**。brief/L0 跳过。
+
+- [ ] 🆕 v2.12 五维覆盖已评估：Happy Path/Boundary/Error Path/Concurrency/Security（每维有covered/partial/uncovered/n/a判定）
+- [ ] 🆕 v2.12 Bug修复：已添加回归测试（≥1个），老代码FAIL+新代码PASS已记录（铁律#34强制）
+- [ ] 🆕 v2.12 回归测试覆盖的是根因而非表象（如：测"null时返回默认值"而非仅"不崩溃"）
+- [ ] 🆕 v2.12 覆盖盲区已列出：未覆盖场景+原因+风险+缓解措施
+- [ ] 🆕 v2.12 每维"covered"判定有具体测试名称和位置（非虚报）
+- [ ] 🆕 v2.12 "n/a"维度有具体理由（非滥用n/a绕过检查）
+- [ ] 🆕 v2.12 纯文案/配置/注释修正→无需回归测试，已标注理由
+
+### EXAMINE — Environment Fidelity Gate 环境保真闸门（🆕 v2.12 铁律#32）
+
+> 此闸门 L3+ 交互式应用在 detailed 模式下为 **HARD GATE**：未执行近真实环境冒烟测试→阻断。
+> L0-L2 或纯后端跳过（需标注N/A+理由）。
+
+- [ ] 🆕 v2.12 环境分类已判定：交互式（CLI/TUI/GUI/Web/Game）vs 非交互式（纯后端/库/脚本）
+- [ ] 🆕 v2.12 环境矩阵已输出：至少包含开发环境+近真实环境（含OS/浏览器/设备/网络）
+- [ ] 🆕 v2.12 L3+交互式应用：≥1次近真实环境冒烟测试（端到端用户场景+命令+输出凭据）
+- [ ] 🆕 v2.12 环境差异已记录：开发环境vs生产环境差异项+影响评估+缓解措施
+- [ ] 🆕 v2.12 非交互式应用：已标注N/A+具体理由
+- [ ] 🆕 v2.12 冒烟测试非单元测试替代——是完整用户流程在真实环境中的验证
 
 ## GIT（提交拆分）验收关卡
 - [ ] 改动已按维度（配置/逻辑/UI/测试）合理分类
@@ -362,3 +419,11 @@
 - [ ] 🆕 v2.11 已有文档使用 Normal（局部更新），非 Full Archive（R1）
 - [ ] 🆕 v2.11 如 write_mode=full_archive：preservation checklist 已完成 + 已 post-write fetch-compare（R2+R6）
 - [ ] 🆕 v2.11 铁律 #25（文档迭代）已补充：write_mode 决定更新粒度（Quick Fix/Normal/Full Archive）
+- [ ] 🆕 v2.12 铁律 #39 已执行：Risk Classification Gate 风险等级已判定（L0-L4），等级与任务匹配
+- [ ] 🆕 v2.12 风险等级判定来源明确（auto_detected/user_override），升级触发已检查
+- [ ] 🆕 v2.12 适用闸门集已按风险等级裁剪：L0→最小流程，L4→全部闸门+dry-run+备份+回滚
+- [ ] 🆕 v2.12 L4 操作已提供可执行 dry-run 方案、备份方案、回滚方案
+- [ ] 🆕 v2.12 铁律 #40 已执行：Context Loss Protection 状态文件已写入 `.claude/easywork/state-v2.12.json`
+- [ ] 🆕 v2.12 状态文件 7 分组合法：task_identity/version_tracking/artifact_inventory/gate_progress/risk_tracking/evidence_index/execution_state 均已填充
+- [ ] 🆕 v2.12 每步完成后 state file 已更新（非仅初始化时写入一次）
+- [ ] 🆕 v2.12 上下文🟠警戒时已强制写入完整 state file

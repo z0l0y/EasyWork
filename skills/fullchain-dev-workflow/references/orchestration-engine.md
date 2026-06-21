@@ -256,6 +256,8 @@ EasyWork 工作流启动 — 任务：重构 — 风险：高
 | 🆕 v2.11 SUM 无基准覆写（C5：未 fetch 现有文档） | 步骤 7 | **HARD GATE**——阻断写入 → 强制 fetch 现有文档 → 重新执行 Topology Gate + Preservation Gate → 重新 merge |
 | 🆕 v2.11 SUM round_report 冒充 engineering_active（C6） | 步骤 7 | **HARD GATE**——阻断写入 → 如只需快速记录→切换为 quick_fix+追加版本记录；如需正式文档→回退补充完整内容 |
 | 🆕 v2.11 SUM write_mode=quick_fix 但执行了 full overwrite（C7） | 步骤 7 | **HARD GATE**——阻断写入 → 强制降级为 quick_fix 行为：仅追加版本索引行+节点内版本小节 |
+| 🆕 v2.12 风险等级 L4 但任务分类为 L0-L2 | 步骤 0（分类） | **HARD GATE**——识别到数据迁移/权限/部署/删除关键词→自动升级至 L4 → 要求用户确认 |
+| 🆕 v2.12 同一问题第 2 次修复失败（铁律#35） | CODE↔REVIEW↔EXAMINE | **HARD GATE**——触发 Repeated Failure Trigger → BLOCK → 强制输出四要素 → 等待用户确认 |
 | 🆕 v2.11 SUM Overwrite 后 fetch-compare 发现内容退化（R6） | 步骤 7 | 报告用户退化指标 → 回滚到写入前版本 → 分析退化原因 → 重新 merge |
 
 ### 上下文自适应分支

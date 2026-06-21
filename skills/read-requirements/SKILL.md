@@ -6,9 +6,10 @@ description: >
   输出五要素：目标、范围、约束、验收标准、不做什么。
   v2.8: 需求理解显式确认(铁律#24)——必须用自己的话重述理解+列出澄清问题+获用户确认后才进入CODE。
   v2.9: MCR+质量升级——需求来源/用户真实目标/影响量化/可验证验收/不做事项含原因。禁止复述用户原话不结构化。
-allowed-tools: Read, Search, Grep, Glob
+tv2.12: 完成定义闸门(铁律#30)+需求可追溯矩阵(铁律#31)+参考基线闸门(铁律#33)——六维完成定义、五列追溯矩阵、成熟领域搜索外部参考实现。
+allowed-tools: Read, Search, Grep, Glob, WebSearch, WebFetch
 model: haiku
-version: 2.11
+version: 2.12
 ---
 
 # Read Requirements（需求理解）
@@ -97,6 +98,40 @@ version: 2.11
 
 > 此机制是铁律 #24，不可跳过。即使是低风险任务（微调），也至少输出一句话理解确认。
 
+### 🆕 v2.12 第 4 步：输出完成定义（铁律#30）
+
+在需求理解确认后，必须输出结构化的六维完成定义。详见 `skills/read-requirements/references/delivery-definition-gate.md`。
+
+**输出要求**：
+- machine_verifiable ≥ 1 条：每条含验证命令/预期结果/阈值（非"功能正常"）
+- human_only：如有 UI/UX/交互验收，列出具体判断标准
+- high_risk_operations：L3/L4 任务必填
+- non_deliverable_conditions：具体可检测的阻断条件（非"有重大问题就阻断"）
+
+**Gate Check**：detailed→HARD GATE（为空或只有模糊表述→拒绝进入CODE），standard→SOFT GATE，brief→SKIP
+
+### 🆕 v2.12 第 5 步：输出需求可追溯矩阵（铁律#31）
+
+必须生成五列可追溯矩阵。详见 `skills/read-requirements/references/traceability-matrix.md`。
+
+**输出要求**：
+- 五列：用户需求 → 验收标准 → 自动化测试 → 手动验证 → 状态
+- L2+ 任务矩阵 ≥ 3 行。每条需求可追溯到真实用户场景
+- 状态正确标注：covered/partial/uncovered/n/a（uncovered需有豁免说明）
+
+**Gate Check**：detailed→HARD GATE（有任何uncovered行且风险≥L2→拒绝进入CODE），standard→SOFT GATE，brief→SKIP
+
+### 🆕 v2.12 第 6 步：输出参考基线（铁律#33）
+
+对成熟领域+L2+任务，搜索外部参考实现。详见 `skills/fullchain-dev-workflow/references/reference-baseline-gate.md`。
+
+**输出要求**：
+- 判定领域成熟度（mature/emerging/novel/company_internal）
+- 成熟领域+L2+：GitHub/Web搜索→≥3种实现模型→对比表（≥6维度）→选择理由（含具体技术理由）
+- 非成熟领域/L0-L1：标注跳过理由
+
+**Gate Check**：detailed→HARD GATE（成熟领域+L2+但未搜索→拒绝进入CODE），standard→SOFT GATE
+
 ## 🆕 v2.9 MCR+ 质量要求
 
 | # | MCR+ 要求 | ❌ 反例（禁止） | ✅ 合格例 |
@@ -112,6 +147,12 @@ version: 2.11
 - ❌ 材料没读完就开始写需求分析
 - ❌ 看到报错日志就跳过直接去改代码——先理解"这个报错意味着什么"
 - ❌ 把用户的口语描述直接当验收标准——"快一点"不是验收标准，"P99 < 300ms"才是
+- ❌ 🆕 v2.12 "功能正常"作为完成定义标准——不可验证、不可追溯
+- ❌ 🆕 v2.12 完成定义只有机器验证项没有人工验证项（UI改动任务）
+- ❌ 🆕 v2.12 假矩阵——所有行标"covered"但没有任何实际测试
+- ❌ 🆕 v2.12 需求全是技术术语无业务语言——矩阵不可追溯到用户价值
+- ❌ 🆕 v2.12 成熟领域闭门造车——不搜索外部参考就进入CODE
+- ❌ 🆕 v2.12 对比表"我们的方案"全部最优——不客观
 - ❌ 发现矛盾不报告，自己猜一个就往下走
 - ❌ 不列"不做什么"——这是防止后续步骤越界的关键约束
 - ❌ v2.9：只复述用户原话不结构化——READ 不是传声筒，是理解+翻译+确认

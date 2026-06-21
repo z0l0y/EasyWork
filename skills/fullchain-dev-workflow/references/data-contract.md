@@ -40,6 +40,62 @@ read_output:
 
 **消费方**：CODE（用 scope + constraints 限定改动范围）、REVIEW（用 constraints 检查兼容性）、SUM（用 goal + acceptance_criteria 对照验收）、SELFCHECK（用 business_background + user_persona 拷打业务理解）
 
+### 🆕 v2.12 READ 新增字段
+
+```
+delivery_definition:           # 🆕 v2.12 [必填|brief] 完成定义（铁律#30）
+  task_type: string            #   任务类型
+  completion_criteria:         #   完成标准
+    machine_verifiable:        #   机器可验证的标准
+      - id: string             #     编号（M1, M2...）
+        criterion: string      #     标准描述（含验证命令+预期结果+阈值）
+        verified: bool         #     交付验证时填写
+    human_only:                #   仅人工可验证的标准
+      - id: string             #     编号（H1, H2...）
+        criterion: string      #     标准描述（含验证对象+判断标准+验证环境）
+        verified: bool         #     交付验证时填写
+  high_risk_operations:        #   需显式确认的高风险操作
+    - operation: string        #     操作描述
+      risk: string             #     风险说明
+      confirm_by: string       #     确认对象（人/角色）
+      timing: string           #     执行时机
+  non_deliverable_conditions: string[]  # 不可交付条件
+  evidence_requirement:        #   证据要求
+    minimum_count: int         #     最低证据样本数
+    required_types: string[]   #     必须包含的证据类型
+
+traceability_matrix:           # 🆕 v2.12 [必填|brief] 需求可追溯矩阵（铁律#31）
+  - requirement: string        #   用户需求（业务语言）
+    acceptance_criterion: string  # 验收标准（可验证）
+    automated_test: string     #   自动化测试（路径或用例名，无则填"—"）
+    manual_verification: string  # 手动验证步骤（无则填"—"）
+    status: string             #   "covered" | "partial" | "uncovered" | "n/a"
+    status_note: string        #   状态说明（如为何 n/a、partial 缺少什么）
+  coverage_summary:            #   覆盖统计
+    covered: int
+    partial: int
+    uncovered: int
+    n_a: int
+
+reference_baseline:            # 🆕 v2.12 [必填|standard] 参考基线（铁律#33）
+  domain_maturity: string      #   "mature" | "emerging" | "novel" | "company_internal"
+  references_searched: bool    #   是否搜索了外部参考
+  models_identified:           #   识别的实现模型（3-5个）
+    - name: string             #     模型名称
+      core_design: string      #     核心设计（3-5句话）
+      representative_project: string  # 代表性项目（URL + stars/下载量）
+      applicable_scenario: string     # 适用场景
+      limitations: string      #     局限性
+  comparison_table: string     #   对比表（Markdown 表格）
+  selection_rationale:         #   选择理由
+    chosen: string             #     为什么选这个方案
+    rejected:                  #     为什么不选其他方案
+      - model: string          #       被拒绝的模型
+        reason: string         #       具体技术理由
+```
+
+**消费方**：SUM（delivery_definition 用于生成交付验证清单）、EXAMINE（traceability_matrix 用于确定测试范围）、SELFCHECK（delivery_definition 用于拷打完成度）
+
 ## CODE 产出契约
 
 ```
@@ -179,6 +235,55 @@ examine_output:
 ```
 
 **消费方**：SUM（引用 test_results 作为效果证据 + test_coverage_matrix 丰富报告）、ASK（用 uncovered_scenarios 向用户确认测试覆盖度）
+
+### 🆕 v2.12 EXAMINE 新增字段
+
+```
+test_adequacy_assessment:       # 🆕 v2.12 [必填|brief] 测试充分性评估（铁律#34）
+  coverage_dimensions:          #   五维覆盖
+    happy_path: string          #     "covered" | "partial" | "uncovered"
+    boundary: string            #     "covered" | "partial" | "uncovered"
+    error_path: string          #     "covered" | "partial" | "uncovered"
+    concurrency: string         #     "covered" | "uncovered" | "n/a"
+    security: string            #     "covered" | "uncovered" | "n/a"
+  coverage_gaps:                #   覆盖盲区
+    - scenario: string          #     未覆盖场景
+      reason: string            #     原因
+      risk: string              #     风险
+      mitigation: string        #     缓解措施
+  regression_test:              #   Bug修复时的回归测试（铁律#34强制）
+    added: bool                 #     是否添加了回归测试
+    test_name: string           #     测试名称
+    test_location: string       #     测试位置（文件路径+行号）
+    fails_on_old: string        #     老代码上的失败表现
+    passes_on_new: string       #     新代码上的通过表现
+    covers_root_cause: bool     #     是否覆盖根因而非表象
+
+environment_matrix:             # 🆕 v2.12 [必填|standard] 环境矩阵（铁律#32）
+  applicable: bool              #   是否适用（L3+交互式应用=true）
+  skip_reason: string           #   跳过理由（如不适用）
+  environments:                 #   已测试的环境
+    - os: string                #     OS
+      browser: string           #     浏览器
+      device: string            #     设备
+      network: string           #     网络条件
+      test_result: string       #     测试结果
+  near_real_smoke_test:          #   近真实环境冒烟测试
+    executed: bool
+    scenario: string            #     测试场景描述
+    environment: string         #     测试环境
+    command: string             #     测试命令
+    output_snippet: string      #     输出凭据
+    passed: bool
+  environment_gaps:             #   环境差异
+    - item: string              #     差异项
+      dev_env: string           #     开发环境值
+      prod_env: string          #     生产环境值
+      impact: string            #     影响评估
+      mitigation: string        #     缓解措施
+```
+
+**消费方**：SUM（test_adequacy_assessment 用于判断测试覆盖是否充分，environment_matrix 用于记录环境验证情况）、REVIEW（regression_test 用于验证修复有效性）
 
 ## GIT 产出契约
 
@@ -520,6 +625,26 @@ structured_merge_plan:       # [必填|detailed] Mode B 结构化合并方案
 
 **消费方**：SUM（用于 structured merge）、后端适配器（根据 document_mode 选择写入策略）
 
+## 🆕 v2.12 顶层字段
+
+```
+# 以下字段为 v2.12 新增，存在于顶层 data-contract 中
+
+risk_classification:           # [必填|brief] 风险分类（铁律#39）
+  level: string                #   "L0" | "L1" | "L2" | "L3" | "L4"
+  level_name: string           #   "纯文档/查询" | "小修复" | "正常功能" | "交互/并发/外部API" | "数据迁移/权限/部署/删除"
+  source: string               #   "auto_detected" | "user_override"
+  applicable_gates: string[]   #   适用的闸门列表
+  skipped_gates: string[]      #   跳过的闸门列表
+
+context_state:                 # [必填|brief] 上下文状态文件（铁律#40）
+  file_path: string            #   状态文件路径（".claude/easywork/state-v2.12.json"）
+  last_updated: string         #   最后更新时间（ISO 8601）
+  fields_populated: string[]   #   已填充的字段分组名
+```
+
+**消费方**：所有步骤（根据 risk_classification.applicable_gates 决定本次任务执行哪些闸门）、编排引擎（启动时读取 context_state.file_path 恢复上下文）
+
 ## 🆕 v2.11 顶层字段
 
 ```
@@ -581,7 +706,7 @@ content_fidelity_snapshot:   # [必填|detailed] 内容保真快照（write后fe
 
 ## 版本迁移
 
-### 当前版本：2.11
+### 当前版本：2.12
 
 `easywork_version` 字段用于标记状态快照的版本。不同版本间字段变更遵循以下规则。
 
@@ -667,6 +792,17 @@ content_fidelity_snapshot:   # [必填|detailed] 内容保真快照（write后fe
 | 2.10 → 2.11 | 破坏性 | `write_mode = "full_archive"` 仅在三种合法场景可用——已有文档默认 Normal（局部更新）。Quick Fix 禁止覆写正式文档 |
 | 2.10 → 2.11 | 破坏性 | `round_report` 不得 overwrite `engineering_active`——两种 document_scope 物理隔离 |
 | 2.10 → 2.11 | 无破坏 | Normal 模式完全向后兼容 v2.10 行为。新字段仅 v2.11 新增，旧版本快照中缺失字段视为 null |
+| 2.11 → 2.12 | 新增 | `risk_classification` / `context_state`（风险分类闸门+上下文丢失防护，新顶层字段） |
+| 2.11 → 2.12 | 新增 | `read_output.delivery_definition` / `read_output.traceability_matrix` / `read_output.reference_baseline`（READ 三闸门，必填） |
+| 2.11 → 2.12 | 新增 | `examine_output.environment_matrix` / `examine_output.test_adequacy_assessment`（EXAMINE 两闸门） |
+| 2.11 → 2.12 | 新增 | `code_output.repeated_failure_block`（重复失败阻断，可选） |
+| 2.11 → 2.12 | 新增 | `sum_output.version_coverage_matrix` / `sum_output.source_provenance` / `sum_output.evidence_ledger`（SUM 三闸门） |
+| 2.11 → 2.12 | 新增 | 铁律 #30-#40（11条新铁律：完成定义/需求追溯/环境保真/参考基线/测试充分性/重复失败/历史版本覆盖/来源出处/证据账本/风险分类/上下文防护） |
+| 2.11 → 2.12 | 变更 | 铁律总数 29→40 |
+| 2.11 → 2.12 | 变更 | 风险等级从旧版 low/medium/high 三级升级为 L0-L4 五级，旧快照中 risk_level 字段自动映射（low→L1, medium→L2, high→L3） |
+| 2.11 → 2.12 | 破坏性 | L4 操作（数据迁移/权限变更/删除/部署）强制要求 dry-run+备份+回滚+用户显式确认——旧流程中此类操作可能只走了 L2 流程 |
+| 2.11 → 2.12 | 破坏性 | Bug 修复必须添加回归测试（老代码FAIL→新代码PASS）——无回归测试不可声称修复完成（铁律#34） |
+| 2.11 → 2.12 | 无破坏 | 所有新增字段为可选/default。risk_classification 自动判定（用户可覆盖）。context_state 首次运行时自动生成 |
 
 ### 快照迁移规则
 

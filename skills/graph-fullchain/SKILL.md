@@ -6,7 +6,7 @@ description: >
   人脑处理图像比文字快 10 倍——好的图表让审查者瞬间理解你在做什么。
 allowed-tools: Read, Search
 model: haiku
-version: 2.11
+version: 2.12
 ---
 
 # Graph Fullchain（架构可视化）
