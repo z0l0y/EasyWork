@@ -309,6 +309,45 @@
 - [ ] 🆕 v2.11 round_report 内容未写入 engineering_active 路径
 - [ ] 🆕 v2.11 用户说"记录一下"时已追问作用域（round_report 还是 engineering_active）
 
+### SUM — Historical Version Coverage Gate 历史版本覆盖闸门（🆕 v2.12 铁律#36）
+
+> 详见 `skills/sum-session/references/historical-version-coverage.md`。
+
+- [ ] 🆕 v2.12 版本覆盖矩阵已生成：版本/受影响节点/已覆盖节点/缺失节点/恢复状态
+- [ ] 🆕 v2.12 每个版本索引条目在对应影响节点下有独立 `### v{N}` 小节（不可仅一行摘要）
+- [ ] 🆕 v2.12 缺失节点已检测并分类（recoverable/partial/lost）
+- [ ] 🆕 v2.12 有缺失节点→已执行修复流程（摘要恢复/用户补充/标注丢失），不可静默通过
+- [ ] 🆕 v2.12 覆盖矩阵与版本索引一致：索引中的版本数=矩阵行数
+
+### SUM — Source Provenance Gate 来源出处闸门（🆕 v2.12 铁律#37）
+
+> 详见 `skills/sum-session/references/source-provenance-gate.md`。
+
+- [ ] 🆕 v2.12 每个 `### v{N}` 小节开头有来源标注块（来源类型+来源路径）
+- [ ] 🆕 v2.12 来源类型已正确分类：full_record / summary_recovery / reverse_engineered / external_ref
+- [ ] 🆕 v2.12 summary_recovery 版本已声明"该版本为摘要恢复，非逐字原始记录"
+- [ ] 🆕 v2.12 全文顶部有整体来源声明（覆盖所有版本）
+
+### SUM — Evidence Ledger 证据账本（🆕 v2.12 铁律#38）
+
+> 详见 `skills/sum-session/references/evidence-ledger.md`。
+
+- [ ] 🆕 v2.12 证据账本已生成：每行含结论/证据类型/证据位置/可复现性
+- [ ] 🆕 v2.12 证据类型已从六类中正确选择：TEST_OUTPUT/CODE_DIFF/LOG_ENTRY/SCREENSHOT/METRIC/CONFIRMATION
+- [ ] 🆕 v2.12 证据样本数 ≥ 最低门槛（L0:1/L1:2/L2:3/L3:4/L4:5）
+- [ ] 🆕 v2.12 关键结论在证据账本中有对应行（无"无证据的结论"）
+- [ ] 🆕 v2.12 ETR 三元组与证据账本对应：Evidence→证据类型+位置，Thinking→推理链，Risk→风险标注
+
+### SUM — Delivery Verification Checklist 交付验证清单（🆕 v2.12 铁律#30补充）
+
+> 从 delivery_definition 自动生成，SUM 阶段逐项回溯勾选。
+
+- [ ] 🆕 v2.12 交付验证清单已从 delivery_definition.machine_verifiable 自动生成
+- [ ] 🆕 v2.12 machine_verifiable 项逐项验证（命令+输出凭据+判定）
+- [ ] 🆕 v2.12 human_only 项逐项确认（验证人+判断标准+验证环境+结果）
+- [ ] 🆕 v2.12 高风险操作逐项确认（确认人+执行时机+回滚方案）
+- [ ] 🆕 v2.12 non_deliverable_conditions 逐项检查：无触发不可交付条件
+
 ## TALK（复盘分析）验收关卡
 - [ ] 5-Whys 追问至少到达第 4 层，触及系统/流程/机制层面的根因（而非停在"某人失误"的层面）
 - [ ] 每个 Why 的回答有逻辑链条，不是跳跃式的

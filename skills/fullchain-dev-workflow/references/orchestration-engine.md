@@ -258,6 +258,16 @@ EasyWork 工作流启动 — 任务：重构 — 风险：高
 | 🆕 v2.11 SUM write_mode=quick_fix 但执行了 full overwrite（C7） | 步骤 7 | **HARD GATE**——阻断写入 → 强制降级为 quick_fix 行为：仅追加版本索引行+节点内版本小节 |
 | 🆕 v2.12 风险等级 L4 但任务分类为 L0-L2 | 步骤 0（分类） | **HARD GATE**——识别到数据迁移/权限/部署/删除关键词→自动升级至 L4 → 要求用户确认 |
 | 🆕 v2.12 同一问题第 2 次修复失败（铁律#35） | CODE↔REVIEW↔EXAMINE | **HARD GATE**——触发 Repeated Failure Trigger → BLOCK → 强制输出四要素 → 等待用户确认 |
+| 🆕 v2.12 READ 无完成定义或完成定义仅含"功能正常"（铁律#30） | 步骤 1 | **HARD GATE**——拒绝进入 CODE → 回退 READ 补充六维完成定义（machine_verifiable/human_only/high_risk_ops/non_deliverable/evidence）→ 重新确认 |
+| 🆕 v2.12 READ 需求可追溯矩阵 uncovered 行且风险≥L2（铁律#31） | 步骤 1 | **HARD GATE**——阻断 → 要求补充验收标准+自动化测试+手动验证方案 → 重新检测。矩阵<3行→回退补充 |
+| 🆕 v2.12 READ 成熟领域+L2+未搜索外部参考实现（铁律#33） | 步骤 1 | **HARD GATE**——阻断进入 CODE → 强制 GitHub/Web 搜索 → 产出≥3种模型对比表（≥6维度）→ 重新检测。非成熟领域→标注跳过 |
+| 🆕 v2.12 EXAMINE Bug修复无回归测试或回归测试不在老代码FAIL（铁律#34） | 步骤 4 | **HARD GATE**——不可声称修复完成 → 回退 CODE 补充回归测试 → 验证老代码FAIL+新代码PASS → 重新 EXAMINE |
+| 🆕 v2.12 EXAMINE L2+三维未覆盖（Happy Path/边界/错误）无豁免声明（铁律#34） | 步骤 4 | **HARD GATE**——阻断 → 补充覆盖或声明豁免（含原因+风险+缓解）→ 重新检测 |
+| 🆕 v2.12 EXAMINE L3+交互式应用无近真实环境冒烟测试（铁律#32） | 步骤 4 | **HARD GATE**——阻断 → 补充环境矩阵+冒烟测试（OS/浏览器/设备/网络）→ 重新检测。纯后端/库/脚本→标注N/A |
+| 🆕 v2.12 SUM 版本覆盖矩阵有缺失节点未修复（铁律#36） | 步骤 7 | **HARD GATE**——阻断写入 → 执行修复（摘要恢复/用户补充/标注丢失）→ 重新检测覆盖矩阵 |
+| 🆕 v2.12 SUM 版本小节无来源标注或摘要恢复未声明（铁律#37） | 步骤 7 | **HARD GATE**——阻断写入 → 补充来源标注（full_record/summary_recovery/reverse_engineered/external_ref）→ 摘要恢复追加声明"非逐字原始记录" |
+| 🆕 v2.12 SUM 证据账本证据数<最低门槛（铁律#38） | 步骤 7 | **HARD GATE**——阻断写入 → 回退补充证据 → 重新生成证据账本 → 重新检测（L0:1/L1:2/L2:3/L3:4/L4:5） |
+| 🆕 v2.12 状态文件缺失或未更新（铁律#40） | 全部 | **HARD GATE**——启动时先读取 state file → 无状态文件→标注"新任务"继续执行但每步强制写入。🟠警戒阈值→必须写入 state file。`/clear`后→必须先读state file |
 | 🆕 v2.11 SUM Overwrite 后 fetch-compare 发现内容退化（R6） | 步骤 7 | 报告用户退化指标 → 回滚到写入前版本 → 分析退化原因 → 重新 merge |
 
 ### 上下文自适应分支

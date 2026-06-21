@@ -116,3 +116,7 @@ const idx = users.findIndex(u => u.id === targetId && u.status !== -1);
 - ❌ 看到旁边代码少分号，顺手补上——收住你的手
 - ❌ 注释写"设置name为John"——这在说废话，要解释为什么设这个名字
 - ❌ 在不支持 async/await 的项目中引入 async/await——除非 team-policy 有明确迁移计划
+- ❌ 🆕 v2.12 无完成定义就开始编码——READ 未输出 delivery_definition 就进入 CODE，不知道"做到什么程度算完成"（铁律#30）
+- ❌ 🆕 v2.12 同问题多次修复仍用相似方案——第 2 次修复失败必须触发 Repeated Failure Trigger，分析根因而非继续打补丁（铁律#35）
+- ❌ 🆕 v2.12 修复 Bug 后不添加回归测试——不可声称修复完成。必须新增老代码 FAIL→新代码 PASS 的测试（铁律#34）
+- ❌ 🆕 v2.12 成熟领域闭门造车——如涉及认证/支付/上传/缓存等成熟领域，未先搜索外部参考实现就自己设计（铁律#33）
