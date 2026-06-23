@@ -12,6 +12,13 @@
 | "用 EasyWork 帮我看下这段代码" | → 纯理解（只走 READ+GRAPH+SUM） |
 | "用 EasyWork review 这段代码" | → 纯审查（只走 READ+REVIEW） |
 | "帮我修一下 XX bug" / "实现 XX 功能"（没说"用 EasyWork"） | → **普通模式**，不套用 EasyWork 流程 |
+| **🆕 v2.12+ 单步调用**（零散需求，只需一个节点） | |
+| "CTO 拷打 / 拷打我自己" | → 🥊 仅 SELFCHECK（其余全跳，跳过全部闸门） |
+| "帮我复盘 / 5-whys / 根因分析" | → 🧠 仅 TALK（其余全跳，跳过全部闸门） |
+| "画架构图 / 可视化 / mermaid" | → 📊 仅 GRAPH（其余全跳，跳过全部闸门） |
+| "只理解需求 / 只读代码" | → 👁️ 仅 READ（其余全跳，跳过全部闸门） |
+| "只审查 / 纯 review 一下" | → 🔍 仅 REVIEW（其余全跳，跳过全部闸门） |
+| "只写总结 / 帮我总结 / 汇总一下" | → 📋 仅 SUM（其余全跳，跳过全部闸门） |
 
 ## 任务类型 → 步骤裁剪
 
@@ -24,6 +31,12 @@
 | 🐛 Bug修复 | READ → CODE → REVIEW → EXAMINE → GIT → SUM → TALK → SELFCHECK(完整) → ASK |
 | 🔧 重构 | READ → CODE → REVIEW → EXAMINE → GIT → GRAPH → SUM → TALK → SELFCHECK(完整) → ASK |
 | 🚀 功能开发 | READ → CODE → REVIEW → EXAMINE → GIT → GRAPH → SUM → SELFCHECK(完整) → ASK（9步，跳过TALK） |
+| 🥊 单步拷打 | SELFCHECK（完整）——仅此一步，无闸门，无状态文件 |
+| 🧠 单步复盘 | TALK——仅此一步，无闸门，无状态文件 |
+| 📊 单步画图 | GRAPH——仅此一步，无闸门，无状态文件 |
+| 👁️ 单步理解 | READ——仅此一步，无闸门，无状态文件 |
+| 🔍 单步审查 | REVIEW——仅此一步，无闸门，无状态文件 |
+| 📋 单步总结 | SUM——仅此一步，无闸门，无状态文件 |
 
 ## 每步产出
 
