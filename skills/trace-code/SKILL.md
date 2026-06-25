@@ -12,34 +12,34 @@ description: >
 allowed-tools: Read, Bash, Grep, Glob, Write
 model: sonnet
 version: 1.0
-  capability:
-    id: trace-code
-    display_name: 代码追踪器
-    emoji: "🔬"
-    category: learning
-    tier: 1
-    inputs:
-      - { name: entry_function, type: string, required: true, description: "入口函数名或 API 路径" }
-      - { name: entry_file, type: path, required: false, description: "入口函数所在文件（如已知）" }
-      - { name: trace_depth, type: enum, required: false, description: "shallow(2)/standard(4)/deep(6)/exhaustive" }
-    outputs:
-      - { name: trace_report, type: markdown, description: "8 段代码追踪报告（概览→调用树→参数追踪→DB汇总→RPC汇总→错误路径→决策点→影响分析）" }
-    triggers: ["追踪代码", "trace", "调用链", "这个函数怎么走", "代码追踪", "追一下"]
-    related_skills:
-      - { skill: read-project, relationship: inbound, desc: "先理解项目架构再追踪具体调用链" }
-      - { skill: test-coverage, relationship: outbound, desc: "追踪中发现覆盖盲区可建议检查测试覆盖" }
-    suggested_when:
-      - "用户需要理解一个函数/API 的内部实现逻辑"
-      - "接到 Bug 需要定位出问题的代码路径"
-      - "Code Review 时需要理清复杂函数的所有副作用"
-    pipeline_placement:
-      good_after: [read-project]
-      good_before: [test-coverage, code-implement]
-    autonomous:
-      callable_by_other: true
-      requires_confirmation: false
-      max_depth: 2
-    risk_level: L0
+capability:
+  id: trace-code
+  display_name: 代码追踪器
+  emoji: "🔬"
+  category: learning
+  tier: 1
+  inputs:
+    - { name: entry_function, type: string, required: true, description: "入口函数名或 API 路径" }
+    - { name: entry_file, type: path, required: false, description: "入口函数所在文件（如已知）" }
+    - { name: trace_depth, type: enum, required: false, description: "shallow(2)/standard(4)/deep(6)/exhaustive" }
+  outputs:
+    - { name: trace_report, type: markdown, description: "8 段代码追踪报告（概览→调用树→参数追踪→DB汇总→RPC汇总→错误路径→决策点→影响分析）" }
+  triggers: ["追踪代码", "trace", "调用链", "这个函数怎么走", "代码追踪", "追一下"]
+  related_skills:
+    - { skill: read-project, relationship: inbound, desc: "先理解项目架构再追踪具体调用链" }
+    - { skill: test-coverage, relationship: outbound, desc: "追踪中发现覆盖盲区可建议检查测试覆盖" }
+  suggested_when:
+    - "用户需要理解一个函数/API 的内部实现逻辑"
+    - "接到 Bug 需要定位出问题的代码路径"
+    - "Code Review 时需要理清复杂函数的所有副作用"
+  pipeline_placement:
+    good_after: [read-project]
+    good_before: [test-coverage, code-implement]
+  autonomous:
+    callable_by_other: true
+    requires_confirmation: false
+    max_depth: 2
+  risk_level: L0
 ---
 
 # Trace Code（代码追踪器）

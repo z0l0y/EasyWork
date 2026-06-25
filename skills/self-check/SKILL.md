@@ -13,31 +13,31 @@ description: >
 allowed-tools: Read, Search
 model: opus
 version: 2.12
-  capability:
-    id: self-check
-    display_name: CTO拷打
-    emoji: "🥊"
-    category: quality
-    tier: 1
-    inputs:
-      - { name: any_report, type: markdown_or_text, required: true, description: "任何上游技能产出的报告/方案/代码" }
-    outputs:
-      - { name: cto_review, type: markdown, description: "四阶段拷打记录 + 认知缺口 + 汇报就绪评估" }
-    triggers: ["CTO 拷打", "拷打我自己", "帮我拷打", "拷打一下"]
-    related_skills:
-      - { skill: talk-retro, relationship: inbound, desc: "复盘后可进入 CTO 拷打验证" }
-    suggested_when:
-      - "重要决策/方案/代码需要最终审查"
-      - "talk-retro 分析完根因后验证是否真正解决了问题"
-      - "网模式发现高风险问题后最终把关"
-    pipeline_placement:
-      good_after: [talk-retro, sum-session]
-      good_before: []
-    autonomous:
-      callable_by_other: true
-      requires_confirmation: false
-      max_depth: 2
-    risk_level: L0
+capability:
+  id: self-check
+  display_name: CTO拷打
+  emoji: "🥊"
+  category: quality
+  tier: 1
+  inputs:
+    - { name: any_report, type: markdown_or_text, required: true, description: "任何上游技能产出的报告/方案/代码" }
+  outputs:
+    - { name: cto_review, type: markdown, description: "四阶段拷打记录 + 认知缺口 + 汇报就绪评估" }
+  triggers: ["CTO 拷打", "拷打我自己", "帮我拷打", "拷打一下"]
+  related_skills:
+    - { skill: talk-retro, relationship: inbound, desc: "复盘后可进入 CTO 拷打验证" }
+  suggested_when:
+    - "重要决策/方案/代码需要最终审查"
+    - "talk-retro 分析完根因后验证是否真正解决了问题"
+    - "网模式发现高风险问题后最终把关"
+  pipeline_placement:
+    good_after: [talk-retro, sum-session]
+    good_before: []
+  autonomous:
+    callable_by_other: true
+    requires_confirmation: false
+    max_depth: 2
+  risk_level: L0
 ---
 
 # Self Check（CTO 拷打层）

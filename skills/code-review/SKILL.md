@@ -9,30 +9,30 @@ description: >
 allowed-tools: Read, Search, Grep, Glob
 model: opus
 version: 2.12
-  capability:
-    id: code-review
-    display_name: 代码审查
-    emoji: "🔍"
-    category: development
-    tier: 1
-    inputs:
-      - { name: code_changes, type: diff_or_files, required: true, description: "需要审查的代码变更" }
-    outputs:
-      - { name: review_report, type: markdown, description: "七维度审查报告 + 反合理化防御 + 供应链检查" }
-    triggers: ["只审查", "纯 review", "就 review 一下"]
-    related_skills:
-      - { skill: talk-retro, relationship: outbound, desc: "审查发现问题后可进入根因分析" }
-    suggested_when:
-      - "用户提交了代码变更需要审查"
-      - "talk-retro 触发前先审查代码质量"
-    pipeline_placement:
-      good_after: [code-implement]
-      good_before: [talk-retro]
-    autonomous:
-      callable_by_other: true
-      requires_confirmation: true
-      max_depth: 1
-    risk_level: L1
+capability:
+  id: code-review
+  display_name: 代码审查
+  emoji: "🔍"
+  category: development
+  tier: 1
+  inputs:
+    - { name: code_changes, type: diff_or_files, required: true, description: "需要审查的代码变更" }
+  outputs:
+    - { name: review_report, type: markdown, description: "七维度审查报告 + 反合理化防御 + 供应链检查" }
+  triggers: ["只审查", "纯 review", "就 review 一下"]
+  related_skills:
+    - { skill: talk-retro, relationship: outbound, desc: "审查发现问题后可进入根因分析" }
+  suggested_when:
+    - "用户提交了代码变更需要审查"
+    - "talk-retro 触发前先审查代码质量"
+  pipeline_placement:
+    good_after: [code-implement]
+    good_before: [talk-retro]
+  autonomous:
+    callable_by_other: true
+    requires_confirmation: true
+    max_depth: 1
+  risk_level: L1
 ---
 
 # Code Review（七维度自审查 + 反合理化防御）

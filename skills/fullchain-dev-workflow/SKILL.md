@@ -35,30 +35,30 @@ description: >
 allowed-tools: Read, Write, Bash, Search, Grep, Glob
 model: sonnet
 version: 2.13
-  capability:
-    id: fullchain-dev-workflow
-    display_name: 全链路编排中枢
-    emoji: "🔧"
-    category: orchestration
-    tier: 3
-    inputs:
-      - { name: user_intent, type: text, required: true, description: "用户意图描述（自然语言）" }
-    outputs:
-      - { name: orchestrated_execution, type: multi_skill_pipeline, description: "按需裁剪的 10 步执行流程或点线网编排结果" }
-    triggers: ["用 EasyWork", "走 EasyWork 流程", "EasyWork"]
-    related_skills:
-      - { skill: all, relationship: orchestrator, desc: "编排中枢可调度所有 15 个技能点、7 条内置流水线、网模式自治扩散" }
-    suggested_when:
-      - "用户需要完整的开发流程管理"
-      - "任务复杂度超过单个技能能处理的范围"
-    pipeline_placement:
-      good_after: []
-      good_before: [all]
-    autonomous:
-      callable_by_other: false
-      requires_confirmation: false
-      max_depth: 0
-    risk_level: L0
+capability:
+  id: fullchain-dev-workflow
+  display_name: 全链路编排中枢
+  emoji: "🔧"
+  category: orchestration
+  tier: 3
+  inputs:
+    - { name: user_intent, type: text, required: true, description: "用户意图描述（自然语言）" }
+  outputs:
+    - { name: orchestrated_execution, type: multi_skill_pipeline, description: "按需裁剪的 10 步执行流程或点线网编排结果" }
+  triggers: ["用 EasyWork", "走 EasyWork 流程", "EasyWork"]
+  related_skills:
+    - { skill: all, relationship: orchestrator, desc: "编排中枢可调度所有 15 个技能点、7 条内置流水线、网模式自治扩散" }
+  suggested_when:
+    - "用户需要完整的开发流程管理"
+    - "任务复杂度超过单个技能能处理的范围"
+  pipeline_placement:
+    good_after: []
+    good_before: [all]
+  autonomous:
+    callable_by_other: false
+    requires_confirmation: false
+    max_depth: 0
+  risk_level: L0
 ---
 
 # Fullchain Dev Workflow（核心编排中枢）

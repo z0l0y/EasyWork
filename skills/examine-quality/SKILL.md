@@ -9,30 +9,30 @@ description: >
 allowed-tools: Bash, Read, Write, Search, Grep, Glob
 model: sonnet
 version: 2.12
-  capability:
-    id: examine-quality
-    display_name: 测试执行与质量验证
-    emoji: "⚗️"
-    category: quality
-    tier: 2
-    inputs:
-      - { name: code_changes, type: file_edits, required: true, description: "需要验证的代码变更" }
-    outputs:
-      - { name: quality_report, type: markdown, description: "测试执行报告（命令+结果+新增测试+覆盖矩阵）" }
-    triggers: []
-    related_skills:
-      - { skill: code-implement, relationship: inbound, desc: "代码实现完成后执行测试验证" }
-      - { skill: test-coverage, relationship: inbound, desc: "覆盖率分析可为测试执行提供上下文" }
-    suggested_when:
-      - "代码变更完成后需要跑测试验证"
-    pipeline_placement:
-      good_after: [code-implement, test-coverage]
-      good_before: [code-review]
-    autonomous:
-      callable_by_other: false
-      requires_confirmation: true
-      max_depth: 0
-    risk_level: L2
+capability:
+  id: examine-quality
+  display_name: 测试执行与质量验证
+  emoji: "⚗️"
+  category: quality
+  tier: 2
+  inputs:
+    - { name: code_changes, type: file_edits, required: true, description: "需要验证的代码变更" }
+  outputs:
+    - { name: quality_report, type: markdown, description: "测试执行报告（命令+结果+新增测试+覆盖矩阵）" }
+  triggers: []
+  related_skills:
+    - { skill: code-implement, relationship: inbound, desc: "代码实现完成后执行测试验证" }
+    - { skill: test-coverage, relationship: inbound, desc: "覆盖率分析可为测试执行提供上下文" }
+  suggested_when:
+    - "代码变更完成后需要跑测试验证"
+  pipeline_placement:
+    good_after: [code-implement, test-coverage]
+    good_before: [code-review]
+  autonomous:
+    callable_by_other: false
+    requires_confirmation: true
+    max_depth: 0
+  risk_level: L2
 ---
 
 # Examine Quality（测试执行）

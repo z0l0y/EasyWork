@@ -12,35 +12,35 @@ description: >
 allowed-tools: Read, WebFetch, WebSearch, Write, Bash, Grep, Glob
 model: sonnet
 version: 1.0
-  capability:
-    id: read-paper
-    display_name: 论文阅读助手
-    emoji: "📖"
-    category: learning
-    tier: 1
-    inputs:
-      - { name: paper_url, type: url, required: false, description: "ArXiv 论文链接" }
-      - { name: paper_text, type: text, required: false, description: "用户粘贴的论文全文/部分" }
-      - { name: paper_pdf_path, type: path, required: false, description: "本地 PDF 路径" }
-    outputs:
-      - { name: reading_report, type: markdown, description: "10 段论文阅读报告" }
-    triggers: ["读论文", "看论文", "paper", "arxiv", "论文阅读", "帮我读这篇"]
-    related_skills:
-      - { skill: tech-radar, relationship: inbound, desc: "tech-radar 扫描到高价值论文后用户选择深读" }
-      - { skill: sum-session, relationship: outbound, desc: "多篇论文阅读报告可汇总到 SUM" }
-      - { skill: graph-fullchain, relationship: outbound, desc: "论文方法可画 Mermaid 图辅助分享" }
-    suggested_when:
-      - "用户提供了论文链接或论文内容"
-      - "技术分享准备中涉及论文"
-      - "tech-radar 扫描结果中用户选择了深读某篇论文"
-    pipeline_placement:
-      good_after: [tech-radar]
-      good_before: [sum-session, graph-fullchain, self-check]
-    autonomous:
-      callable_by_other: true
-      requires_confirmation: false
-      max_depth: 1
-    risk_level: L0
+capability:
+  id: read-paper
+  display_name: 论文阅读助手
+  emoji: "📖"
+  category: learning
+  tier: 1
+  inputs:
+    - { name: paper_url, type: url, required: false, description: "ArXiv 论文链接" }
+    - { name: paper_text, type: text, required: false, description: "用户粘贴的论文全文/部分" }
+    - { name: paper_pdf_path, type: path, required: false, description: "本地 PDF 路径" }
+  outputs:
+    - { name: reading_report, type: markdown, description: "10 段论文阅读报告" }
+  triggers: ["读论文", "看论文", "paper", "arxiv", "论文阅读", "帮我读这篇"]
+  related_skills:
+    - { skill: tech-radar, relationship: inbound, desc: "tech-radar 扫描到高价值论文后用户选择深读" }
+    - { skill: sum-session, relationship: outbound, desc: "多篇论文阅读报告可汇总到 SUM" }
+    - { skill: graph-fullchain, relationship: outbound, desc: "论文方法可画 Mermaid 图辅助分享" }
+  suggested_when:
+    - "用户提供了论文链接或论文内容"
+    - "技术分享准备中涉及论文"
+    - "tech-radar 扫描结果中用户选择了深读某篇论文"
+  pipeline_placement:
+    good_after: [tech-radar]
+    good_before: [sum-session, graph-fullchain, self-check]
+  autonomous:
+    callable_by_other: true
+    requires_confirmation: false
+    max_depth: 1
+  risk_level: L0
 ---
 
 # Read Paper（论文阅读助手）
