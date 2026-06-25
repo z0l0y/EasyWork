@@ -229,13 +229,14 @@ Agent 加载本 Skill 后，**不要立刻开始流程**。先收集信息，输
 | "读论文 / 看论文 / paper / arxiv / 论文阅读 / 帮我读这篇" | → 📖 单步读论文（仅 READ-PAPER，其余全跳） |
 | "读项目 / 看项目 / 理解项目 / 项目代码 / 接手项目 / read project" | → 📐 单步读项目（仅 READ-PROJECT，其余全跳） |
 | "追踪代码 / trace / 调用链 / 这个函数怎么走 / 代码追踪 / 追一下" | → 🔬 单步代码追踪（仅 TRACE-CODE，其余全跳） |
-| "技术保鲜 / 扫一下技术动态 / tech radar / 前沿扫描 / 技术雷达" | → 🛰️ 单步技术雷达（仅 TECH-RADAR，其余全跳） |
+| "技术保鲜 / 扫一下技术动态 / tech radar / 前沿扫描 / 技术雷达 / 快速扫一下 / 有什么新东西 / 全面深扫 / 深度扫描" | → 🛰️ 单步技术雷达（仅 TECH-RADAR，面/体模式，其余全跳） |
+| "深扫 / 聚焦 / 这个技术怎么样 + 具体技术名" | → 🛰️ 单步技术雷达（仅 TECH-RADAR，点模式聚焦深扫，其余全跳） |
 | "测试覆盖率 / 覆盖盲区 / test coverage / 哪些没测 / 测试有没有用" | → 🧪 单步覆盖率分析（仅 TEST-COVERAGE，其余全跳） |
 
 ### 🆕 v2.13 流水线触发（🔗 线模式）
 | 用户说了什么 | 流水线 | 技能序列 |
 |------------|--------|---------|
-| "扫技术动态并深读 / scan and deep read" | 🔭 扫描→深读 | 🛰️ tech-radar → 📖 read-paper |
+| "扫技术动态并深读 / scan and deep read" | 🔭 扫描→深读 | 🛰️ tech-radar(面/体) → 📖 read-paper |
 | "理解项目并追踪 / understand and trace" | 🏗️ 理解→追踪 | 📐 read-project → 🔬 trace-code |
 | "分析覆盖率并补测试 / coverage and fix" | 🧪 覆盖→补测 | 🧪 test-coverage → 👁️ read-requirements → ✏️ code-implement |
 | "全面理解这个项目 / full understand" | 🏗️🔬 全理解 | 📐 read-project → 🔬 trace-code → 🧪 test-coverage |
