@@ -7,6 +7,32 @@ description: >
 allowed-tools: Read, Search
 model: opus
 version: 2.12
+  capability:
+    id: talk-retro
+    display_name: 深度复盘
+    emoji: "🧠"
+    category: quality
+    tier: 1
+    inputs:
+      - { name: review_report, type: text, required: true, description: "上游技能的审查/分析报告" }
+    outputs:
+      - { name: retro_report, type: markdown, description: "5-Whys 根因追溯 + Trade-offs 取舍分析 + 工程规范提炼" }
+    triggers: ["帮我复盘", "5-whys", "根因分析", "为什么反复出问题"]
+    related_skills:
+      - { skill: code-review, relationship: inbound, desc: "审查发现问题后可进入根因分析" }
+      - { skill: self-check, relationship: outbound, desc: "复盘后可进入 CTO 拷打验证" }
+    suggested_when:
+      - "发现重复出现的问题需要追溯根本原因"
+      - "网模式发现系统性问题"
+      - "生产事故后需要复盘"
+    pipeline_placement:
+      good_after: [code-review, trace-code]
+      good_before: [self-check]
+    autonomous:
+      callable_by_other: true
+      requires_confirmation: false
+      max_depth: 2
+    risk_level: L0
 ---
 
 # Talk Retro（深度复盘）

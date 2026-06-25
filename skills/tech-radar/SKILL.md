@@ -9,6 +9,33 @@ description: >
 allowed-tools: Read, WebFetch, WebSearch, Write, Bash, Grep, Glob
 model: sonnet
 version: 1.0
+  capability:
+    id: tech-radar
+    display_name: 技术前沿雷达
+    emoji: "🛰️"
+    category: learning
+    tier: 1
+    inputs:
+      - { name: domains, type: list, required: false, description: "关注领域：AI/后端/Java/Go/Agent（默认全选）" }
+      - { name: time_range, type: string, required: false, description: "扫描时间范围：7d/30d/today" }
+      - { name: scan_mode, type: enum, required: false, description: "quick/standard/deep" }
+    outputs:
+      - { name: radar_report, type: markdown, description: "5 段雷达报告（概览→必读→关注→了解→趋势→持续追踪）+ 深读交互" }
+    triggers: ["技术保鲜", "扫一下技术动态", "tech radar", "前沿扫描", "技术雷达"]
+    related_skills:
+      - { skill: read-paper, relationship: outbound, desc: "扫描到高价值论文后用户可深读" }
+    suggested_when:
+      - "用户需要了解最近的技术动态"
+      - "定期保鲜（每周/每月）"
+      - "准备技术选型前了解行业现状"
+    pipeline_placement:
+      good_after: []
+      good_before: [read-paper]
+    autonomous:
+      callable_by_other: true
+      requires_confirmation: false
+      max_depth: 1
+    risk_level: L0
 ---
 
 # Tech Radar（技术前沿雷达）

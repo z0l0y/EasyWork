@@ -13,6 +13,33 @@ description: >
 allowed-tools: Read, Bash, Grep, Glob, Write, WebFetch, WebSearch
 model: sonnet
 version: 1.0
+  capability:
+    id: read-project
+    display_name: 项目阅读助手
+    emoji: "📐"
+    category: learning
+    tier: 1
+    inputs:
+      - { name: project_path, type: path, required: true, description: "项目根目录路径" }
+    outputs:
+      - { name: project_report, type: markdown, description: "10 段项目阅读报告" }
+    triggers: ["读项目", "看项目", "理解项目", "项目代码", "接手项目", "read project"]
+    related_skills:
+      - { skill: trace-code, relationship: outbound, desc: "理解架构后可追踪具体接口的调用链" }
+      - { skill: test-coverage, relationship: outbound, desc: "理解项目后可检查测试覆盖情况" }
+      - { skill: graph-fullchain, relationship: outbound, desc: "架构信息可直接用于画图" }
+    suggested_when:
+      - "用户面对陌生项目需要快速建立心智模型"
+      - "用户需要接手/维护一个已有项目"
+      - "PR Review 前需要理解项目上下文"
+    pipeline_placement:
+      good_after: []
+      good_before: [trace-code, test-coverage, graph-fullchain]
+    autonomous:
+      callable_by_other: true
+      requires_confirmation: false
+      max_depth: 1
+    risk_level: L0
 ---
 
 # Read Project（项目阅读助手）

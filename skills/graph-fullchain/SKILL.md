@@ -7,6 +7,31 @@ description: >
 allowed-tools: Read, Search
 model: haiku
 version: 2.12
+  capability:
+    id: graph-fullchain
+    display_name: 可视化画图
+    emoji: "📊"
+    category: development
+    tier: 1
+    inputs:
+      - { name: project_report, type: markdown, required: true, description: "项目阅读报告或架构描述" }
+    outputs:
+      - { name: mermaid_diagrams, type: mermaid_markdown, description: "Mermaid 图表（C4/时序图/ER图/流程图）+ 节点对照表" }
+    triggers: ["画架构图", "画个图", "可视化", "mermaid", "架构图"]
+    related_skills:
+      - { skill: read-project, relationship: inbound, desc: "项目架构信息可直接用于画图" }
+      - { skill: read-paper, relationship: inbound, desc: "论文方法可画 Mermaid 图辅助分享" }
+    suggested_when:
+      - "需要将架构/流程可视化"
+      - "分享准备中需要配图"
+    pipeline_placement:
+      good_after: [read-project, read-paper, trace-code]
+      good_before: [sum-session]
+    autonomous:
+      callable_by_other: true
+      requires_confirmation: false
+      max_depth: 2
+    risk_level: L0
 ---
 
 # Graph Fullchain（架构可视化）

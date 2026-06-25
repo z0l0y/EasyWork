@@ -8,6 +8,31 @@ description: >
 allowed-tools: Read, Write, Edit, Search, Grep, Glob, Bash
 model: sonnet
 version: 2.12
+  capability:
+    id: code-implement
+    display_name: 代码实现
+    emoji: "✏️"
+    category: development
+    tier: 1
+    inputs:
+      - { name: requirement_doc, type: markdown, required: true, description: "需求理解文档" }
+    outputs:
+      - { name: code_changes, type: file_edits, description: "代码变更（文件清单 + 改动原因 + 影响面）" }
+    triggers: []
+    related_skills:
+      - { skill: read-requirements, relationship: inbound, desc: "需求理解完成后进入代码实现" }
+      - { skill: test-coverage, relationship: inbound, desc: "补测建议可直接进入代码实现" }
+    suggested_when:
+      - "read-requirements 产出了明确的开发需求"
+      - "test-coverage 给出了补测优先级列表"
+    pipeline_placement:
+      good_after: [read-requirements, test-coverage]
+      good_before: [code-review]
+    autonomous:
+      callable_by_other: true
+      requires_confirmation: true
+      max_depth: 1
+    risk_level: L2
 ---
 
 # Code Implement（代码实现）

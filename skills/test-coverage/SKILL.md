@@ -13,6 +13,34 @@ description: >
 allowed-tools: Read, Bash, Write, Grep, Glob, Edit
 model: sonnet
 version: 1.0
+  capability:
+    id: test-coverage
+    display_name: 测试覆盖率分析
+    emoji: "🧪"
+    category: learning
+    tier: 1
+    inputs:
+      - { name: project_path, type: path, required: true, description: "项目根目录路径" }
+      - { name: focus_files, type: list, required: false, description: "聚焦分析的文件/目录（默认全项目）" }
+    outputs:
+      - { name: coverage_report, type: markdown, description: "7 段覆盖率报告（概览→盲区→测试价值→增量→风险热点→缺失清单→补测建议→可视化）" }
+    triggers: ["测试覆盖率", "覆盖盲区", "test coverage", "哪些没测", "测试有没有用"]
+    related_skills:
+      - { skill: trace-code, relationship: inbound, desc: "trace-code 发现覆盖盲区后触发覆盖率分析" }
+      - { skill: read-requirements, relationship: outbound, desc: "确定补测优先级后需要理解需求再写代码" }
+      - { skill: code-implement, relationship: outbound, desc: "补测建议可直接进入代码实现" }
+    suggested_when:
+      - "AI 生成测试代码后用户想了解覆盖效果"
+      - "trace-code 发现某函数覆盖率严重不足"
+      - "PR Review 前需要检查增量覆盖是否达标"
+    pipeline_placement:
+      good_after: [trace-code, read-project]
+      good_before: [read-requirements, code-implement]
+    autonomous:
+      callable_by_other: true
+      requires_confirmation: false
+      max_depth: 2
+    risk_level: L0
 ---
 
 # Test Coverage（测试覆盖率可视化）

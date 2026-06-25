@@ -10,7 +10,31 @@ description: >
 allowed-tools: Read, Search, Grep, Glob, WebSearch, WebFetch
 model: haiku
 version: 2.12
-
+  capability:
+    id: read-requirements
+    display_name: 需求理解
+    emoji: "👁️"
+    category: development
+    tier: 1
+    inputs:
+      - { name: requirement_text, type: text, required: true, description: "用户需求描述（文档/截图/口语/代码）" }
+    outputs:
+      - { name: requirement_doc, type: markdown, description: "五要素需求说明 + 完成定义 + 可追溯矩阵" }
+    triggers: ["只理解需求", "只读代码", "只看一下", "帮我看懂"]
+    related_skills:
+      - { skill: code-implement, relationship: outbound, desc: "需求理解完成后进入代码实现" }
+      - { skill: test-coverage, relationship: inbound, desc: "覆盖率分析后可确定补测优先级" }
+    suggested_when:
+      - "用户描述了需要代码改动的需求"
+      - "需求描述模糊需要先理清再动手"
+    pipeline_placement:
+      good_after: [test-coverage]
+      good_before: [code-implement]
+    autonomous:
+      callable_by_other: true
+      requires_confirmation: true
+      max_depth: 1
+    risk_level: L0
 ---
 
 # Read Requirements（需求理解）

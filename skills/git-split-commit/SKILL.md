@@ -11,6 +11,29 @@ description: >
 allowed-tools: Bash, Read, Grep
 model: haiku
 version: 2.12
+  capability:
+    id: git-split-commit
+    display_name: Git提交拆分
+    emoji: "📦"
+    category: development
+    tier: 2
+    inputs:
+      - { name: code_changes, type: file_edits, required: true, description: "需要提交的代码变更" }
+    outputs:
+      - { name: commit_plan, type: markdown, description: "拆分方案（按维度拆多提交单元 + Conventional Commits）" }
+    triggers: []
+    related_skills:
+      - { skill: code-implement, relationship: inbound, desc: "代码实现完成后拆分为多个提交单元" }
+    suggested_when:
+      - "代码变更涉及多个维度需要分提交"
+    pipeline_placement:
+      good_after: [code-implement, code-review]
+      good_before: []
+    autonomous:
+      callable_by_other: false
+      requires_confirmation: true
+      max_depth: 0
+    risk_level: L1
 ---
 
 # Git Split Commit（提交拆分）

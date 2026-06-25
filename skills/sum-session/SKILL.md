@@ -19,7 +19,30 @@ description: >
 allowed-tools: Read, Search, Bash
 model: sonnet
 version: 2.12
-
+  capability:
+    id: sum-session
+    display_name: 汇总总结
+    emoji: "📋"
+    category: development
+    tier: 1
+    inputs:
+      - { name: multi_reports, type: list, required: true, description: "多个上游技能产出的报告" }
+    outputs:
+      - { name: summary_report, type: markdown, description: "六要素总结（背景→发现→问题→解决→效果→展望）" }
+    triggers: ["只写总结", "帮我总结", "写个报告", "汇总一下"]
+    related_skills:
+      - { skill: read-paper, relationship: inbound, desc: "多篇论文阅读报告可汇总" }
+    suggested_when:
+      - "多个技能产出需要汇总为一份报告"
+      - "流水线末端需要统一收口"
+    pipeline_placement:
+      good_after: [read-paper, read-project, trace-code, test-coverage]
+      good_before: [self-check]
+    autonomous:
+      callable_by_other: true
+      requires_confirmation: false
+      max_depth: 1
+    risk_level: L0
 ---
 
 # Sum Session（总结报告）

@@ -8,6 +8,29 @@ description: >
 allowed-tools: Read, Search
 model: sonnet
 version: 2.12
+  capability:
+    id: ask-change-questions
+    display_name: 人工确认问询
+    emoji: "✅"
+    category: quality
+    tier: 2
+    inputs:
+      - { name: code_changes, type: diff_or_files, required: true, description: "需要确认的代码变更" }
+    outputs:
+      - { name: confirmation_checklist, type: markdown, description: "六维度确认清单" }
+    triggers: []
+    related_skills:
+      - { skill: code-implement, relationship: inbound, desc: "代码实现完成后需要人工确认" }
+    suggested_when:
+      - "代码变更完成准备上线前"
+    pipeline_placement:
+      good_after: [code-implement, code-review]
+      good_before: []
+    autonomous:
+      callable_by_other: false
+      requires_confirmation: true
+      max_depth: 0
+    risk_level: L0
 ---
 
 # Ask Change Questions（人工确认）

@@ -3,6 +3,9 @@ name: fullchain-dev-workflow
 description: >
   全链路开发流程编排中枢。根据任务类型智能调整执行步骤（10步→按需裁剪）。
   内置任务分类器、步骤跳过机制、回退循环限制、全局异常SOP和Checklist打卡系统。
+  🆕 v2.13: 点线网三级技能编排——点(单技能精准调用/12个技能点)、
+  线(7条内置流水线+动态流水线/DAG编排)、网(Meta-Orchestrator+技能自治扩散+深度/预算/审批三重控制)。
+  详见 references/skill-graph-orchestration.md。
   v2.12: 11条新铁律(#30-#40)、风险五级分类(L0-L4按级裁剪闸门)、上下文状态文件防丢失(铁律#40)、
   完成定义闸门+需求可追溯矩阵+环境保真闸门+参考基线闸门+测试充分性闸门(回归测试强制)、
   重复失败触发器(2次即BLOCK)+历史版本覆盖矩阵+来源出处闸门+证据账本(最低样本数)、闸门依赖图(DAG)。
@@ -31,7 +34,31 @@ description: >
   Gotchas知识库、交互式新手引导、可访问性审查、供应链检查、Conventional Commits。
 allowed-tools: Read, Write, Bash, Search, Grep, Glob
 model: sonnet
-version: 2.12
+version: 2.13
+  capability:
+    id: fullchain-dev-workflow
+    display_name: 全链路编排中枢
+    emoji: "🔧"
+    category: orchestration
+    tier: 3
+    inputs:
+      - { name: user_intent, type: text, required: true, description: "用户意图描述（自然语言）" }
+    outputs:
+      - { name: orchestrated_execution, type: multi_skill_pipeline, description: "按需裁剪的 10 步执行流程或点线网编排结果" }
+    triggers: ["用 EasyWork", "走 EasyWork 流程", "EasyWork"]
+    related_skills:
+      - { skill: all, relationship: orchestrator, desc: "编排中枢可调度所有 15 个技能点、7 条内置流水线、网模式自治扩散" }
+    suggested_when:
+      - "用户需要完整的开发流程管理"
+      - "任务复杂度超过单个技能能处理的范围"
+    pipeline_placement:
+      good_after: []
+      good_before: [all]
+    autonomous:
+      callable_by_other: false
+      requires_confirmation: false
+      max_depth: 0
+    risk_level: L0
 ---
 
 # Fullchain Dev Workflow（核心编排中枢）
@@ -42,6 +69,18 @@ version: 2.12
 **强制所有任务走完 10 步是愚蠢的**——改一个文案不需要画架构图，看一段代码不需要写测试。实际上，只有重构任务才走全部 10 步，其余类型均按需裁剪。但 **SELFCHECK（CTO 拷打）不可跳过**——任何任务类型都必须执行，仅模式不同（完整/标准/快速/轻量）。
 
 本模块的核心智能在于**任务分类前置**：先判断"这到底是个什么类型的任务"，然后裁剪步骤。
+
+### 🆕 v2.13 点线网三级编排
+
+EasyWork 不只是 10 步开发流程。12 个独立技能节点可以按三种模式组合执行。详见 `references/skill-graph-orchestration.md`。
+
+| 模式 | 触发 | 行为 | 适用场景 |
+|------|------|------|---------|
+| 🎯 **点** | 触发词精准命中 | 单技能直调，零开销 | "读论文" / "追踪代码" |
+| 🔗 **线** | "先...再..." / 流水线触发词 | 技能 DAG 串联，前驱输出→后继输入 | "扫技术动态并深读" |
+| 🌐 **网** | "全面分析 / 帮我搞清楚" | Meta-Orchestrator 分析意图 → 技能自治扩散 | 复杂问题需多技能协作 |
+
+**网模式扩散控制**：最大深度 3 层 / 预算上限 100K token / 涉及代码改动必须用户审批 / 循环检测 / 30 分钟超时自动收敛。
 用户始终保有最终决定权——可以接受建议的裁剪方案，也可以手动指定。
 
 > **新手引导**：如果你是第一次使用，Agent 会运行交互式入门（`assets/onboarding.md`）。想先看示例？读 `assets/walkthrough-example.md` 中的三个端到端示例。
@@ -192,6 +231,21 @@ Agent 加载本 Skill 后，**不要立刻开始流程**。先收集信息，输
 | "追踪代码 / trace / 调用链 / 这个函数怎么走 / 代码追踪 / 追一下" | → 🔬 单步代码追踪（仅 TRACE-CODE，其余全跳） |
 | "技术保鲜 / 扫一下技术动态 / tech radar / 前沿扫描 / 技术雷达" | → 🛰️ 单步技术雷达（仅 TECH-RADAR，其余全跳） |
 | "测试覆盖率 / 覆盖盲区 / test coverage / 哪些没测 / 测试有没有用" | → 🧪 单步覆盖率分析（仅 TEST-COVERAGE，其余全跳） |
+
+### 🆕 v2.13 流水线触发（🔗 线模式）
+| 用户说了什么 | 流水线 | 技能序列 |
+|------------|--------|---------|
+| "扫技术动态并深读 / scan and deep read" | 🔭 扫描→深读 | 🛰️ tech-radar → 📖 read-paper |
+| "理解项目并追踪 / understand and trace" | 🏗️ 理解→追踪 | 📐 read-project → 🔬 trace-code |
+| "分析覆盖率并补测试 / coverage and fix" | 🧪 覆盖→补测 | 🧪 test-coverage → 👁️ read-requirements → ✏️ code-implement |
+| "全面理解这个项目 / full understand" | 🏗️🔬 全理解 | 📐 read-project → 🔬 trace-code → 🧪 test-coverage |
+| "先...再...然后..."（自然语言流水线） | 🔗 动态流水线 | Meta-Orchestrator 解析用户意图 → 构建 DAG |
+
+### 🆕 v2.13 网络触发（🌐 网模式）
+| 用户说了什么 | 行为 |
+|------------|------|
+| "全面分析 / 深度排查 / 帮我搞清楚 / 完整评估" | Meta-Orchestrator 分析意图 → 初始技能图 → 执行中技能自扩散 |
+| 复杂意图（涉及 3+ 技能才能回答的问题） | Meta-Orchestrator 建议切换网模式 |
 
 ### 分类维度
 

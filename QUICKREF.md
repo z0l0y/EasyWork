@@ -83,7 +83,24 @@
 4. **每步自检必填字段**：每步结束对照 data-contract 检查产出，缺失立即补全
 5. **踩坑追加 Gotchas（候选制）**：耗时 >10min 的 bug / 反直觉陷阱 / 用户指出的边界 → 生成候选 → 用户确认后写入
 
-## 🆕 v2.12 新特性（11条新铁律 #30-#40 — 交付可判定/可复现/可追溯/可阻断）
+## 🆕 v2.13 点线网三级编排（技能智能组合）
+
+| 层级 | 触发方式 | 示例 |
+|------|---------|------|
+| 🎯 **点** Point | 单技能触发词 | "读论文" / "追踪代码" / "技术保鲜" |
+| 🔗 **线** Line | "先...再..." / 流水线触发词 | "扫技术动态并深读" / "全面理解这个项目" |
+| 🌐 **网** Net | "全面分析 / 帮我搞清楚 / 深度排查" | "帮我搞清楚这个项目的支付模块能不能扛住双11" |
+
+| 内置流水线 | 触发词 | 技能序列 |
+|----------|--------|---------|
+| 🔭 扫描→深读 | "扫技术动态并深读" | 🛰️ tech-radar → 📖 read-paper |
+| 🏗️ 理解→追踪 | "理解项目并追踪" | 📐 read-project → 🔬 trace-code |
+| 🧪 覆盖→补测 | "分析覆盖率并补测试" | 🧪 test-coverage → 👁️ read-requirements → ✏️ code-implement |
+| 🏗️🔬 全理解 | "全面理解这个项目" | 📐 read-project → 🔬 trace-code → 🧪 test-coverage |
+
+> 点线网完整设计见 `skills/fullchain-dev-workflow/references/skill-graph-orchestration.md`
+
+## 🆕 v2.13 新特性（点线网三级编排 + 5 个学习型技能）
 
 | 特性 | 怎么用 |
 |------|--------|
@@ -221,6 +238,9 @@
 | 语言/框架适配速查 | `skills/fullchain-dev-workflow/references/language-matrix.md` |
 | 渐进式成熟度 L1/L2/L3 | `skills/fullchain-dev-workflow/references/maturity-levels.md` |
 | 编排引擎机制（DAG/并行审查/自定义步骤） | `skills/fullchain-dev-workflow/references/orchestration-engine.md` |
+| 🆕 v2.13 技能图谱（点线网三级编排） | `skills/fullchain-dev-workflow/references/skill-graph-orchestration.md` |
+| 🆕 v2.13 流水线编排器（7条内置流水线+动态DAG） | `skills/fullchain-dev-workflow/references/pipeline-composer.md` |
+| 🆕 v2.13 元编排器（网模式意图解析+自治扩散） | `skills/fullchain-dev-workflow/references/meta-orchestrator.md` |
 | JSONL 日志分析 | `skills/fullchain-dev-workflow/references/log-analysis-guide.md` |
 | JSON Schema 数据契约 | `skills/fullchain-dev-workflow/references/data-contract.schema.json` |
 | Gotchas 知识库 | `skills/fullchain-dev-workflow/references/gotchas.md` |
