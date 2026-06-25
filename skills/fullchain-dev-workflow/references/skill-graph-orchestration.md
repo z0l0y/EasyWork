@@ -341,7 +341,7 @@ capability:
   risk_level: "L0"                # 纯理解任务，无副作用
 ```
 
-### 5.2 12 个技能的能力卡片速览
+### 5.2 13 个技能的能力卡片速览
 
 | 技能 | 类别 | 消费 | 产出 | 好朋友 |
 |------|------|------|------|--------|
@@ -350,13 +350,14 @@ capability:
 | 🔬 trace-code | learning | entry_function | trace_report | read-project→, →test-coverage |
 | 🛰️ tech-radar | learning | domains, time_range | radar_report | →read-paper |
 | 🧪 test-coverage | learning | project_path | coverage_report | trace-code→, →code-implement |
-| 👁️ read-requirements | development | requirement_text | requirement_doc | →code-implement |
+| 👁️ read-requirements | development | requirement_text | requirement_doc | →code-implement, →checklist |
 | ✏️ code-implement | development | requirement_doc | code_changes | read-requirements→, test-coverage→ |
 | 🔍 code-review | development | code_changes | review_report | →talk-retro |
 | 🧠 talk-retro | development | review_report | retro_report | code-review→, →self-check |
-| 🥊 self-check | development | any_report | cto_review | talk-retro→ |
+| 🥊 self-check | development | any_report | cto_review | talk-retro→, checklist→ |
 | 📊 graph-fullchain | development | project_report | mermaid_diagrams | read-project→ |
-| 📋 sum-session | development | multi_reports | summary_report | read-paper→ |
+| 📋 sum-session | development | multi_reports | summary_report | read-paper→, →checklist |
+| ✅ checklist | quality | delivery_definition, task_type | checklist_report, gaps | read-requirements→, sum-session→, →self-check, →ask-change-questions |
 
 ---
 
