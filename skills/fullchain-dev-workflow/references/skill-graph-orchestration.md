@@ -295,6 +295,7 @@ self-check 拷打发现：
 | `cto_review_needed` | 需要 CTO 拷打 | 发现高风险的决策/代码 |
 | `visualization_needed` | 需要可视化 | 调用链/架构需要图 |
 | `knowledge_gap` | 需要外部知识 | 遇到不熟悉的领域/技术 |
+| `long_output_needs_writing` | 长输出需写入文件 | 产出超过 20 行/结构性报告，建议调用 article-write 写入 .md 文件 |
 
 ---
 
@@ -341,7 +342,7 @@ capability:
   risk_level: "L0"                # 纯理解任务，无副作用
 ```
 
-### 5.2 13 个技能的能力卡片速览
+### 5.2 14 个技能的能力卡片速览
 
 | 技能 | 类别 | 消费 | 产出 | 好朋友 |
 |------|------|------|------|--------|
@@ -358,6 +359,7 @@ capability:
 | 📊 graph-fullchain | development | project_report | mermaid_diagrams | read-project→ |
 | 📋 sum-session | development | multi_reports | summary_report | read-paper→, →checklist |
 | ✅ checklist | quality | delivery_definition, task_type | checklist_report, gaps | read-requirements→, sum-session→, →self-check, →ask-change-questions |
+| 📝 article-write | content | raw_content, doc_type, source_skill | written_file_path, doc_preview | all skills→ (底座能力——任何长输出技能均可调用写入 .md 文件) |
 
 ---
 
