@@ -342,7 +342,7 @@ capability:
   risk_level: "L0"                # 纯理解任务，无副作用
 ```
 
-### 5.2 14 个技能的能力卡片速览
+### 5.2 15 个技能的能力卡片速览
 
 | 技能 | 类别 | 消费 | 产出 | 好朋友 |
 |------|------|------|------|--------|
@@ -360,6 +360,7 @@ capability:
 | 📋 sum-session | development | multi_reports | summary_report | read-paper→, →checklist |
 | ✅ checklist | quality | delivery_definition, task_type | checklist_report, gaps | read-requirements→, sum-session→, →self-check, →ask-change-questions |
 | 📝 article-write | content | raw_content, doc_type, source_skill | written_file_path, doc_preview | all skills→ (底座能力——任何长输出技能均可调用写入 .md 文件) |
+| 💻 slash-cmd | orchestration | action, skill_name | command_status | all skills→ (命令入口层——为所有 14 个技能生成 /easywork:<name> 子命令) |
 
 ---
 
