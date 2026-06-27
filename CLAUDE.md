@@ -14,6 +14,7 @@ EasyWork 是一个 Claude Code 技能生态系统，提供 23 个专业技能 + 
 - 编排中枢：`skills/fullchain-dev-workflow/SKILL.md`
 - 快速参考：`QUICKREF.md`
 - MCP Server：`skills/knowledge-base/mcp-server/`（知识库自动索引）
+- 知识存储：SQLite + FTS5（`knowledge/conversation.db`，每轮对话实时写入）
 
 ## 架构概览
 

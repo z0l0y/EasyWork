@@ -46,6 +46,8 @@ TEMPLATE_DIR = PROJECT_ROOT / "knowledge-template"
 KNOWLEDGE_DIR = PROJECT_ROOT / "knowledge"
 BUFFER_DIR = KNOWLEDGE_DIR / ".buffer"
 FLUSH_SCRIPT = PROJECT_ROOT / "hooks" / "knowledge-flush.py"
+STORE_SCRIPT = PROJECT_ROOT / "hooks" / "knowledge-store.py"
+STATE_DIR = BUFFER_DIR  # reuse buffer dir for state files
 KNOWLEDGE_INDEX = KNOWLEDGE_DIR / "README.md"
 MEMORY_FILE = PROJECT_ROOT / "MEMORY.md"
 
@@ -354,6 +356,148 @@ def handle_pre_compact():
 
 # ─── SessionEnd ──────────────────────────────────────────────────────
 
+# ─── Stop (Per-Turn Capture) ──────────────────────────────────────────
+
+def handle_stop():
+    """
+    Called when Claude finishes responding at the end of EACH turn.
+    This is the per-turn capture mechanism — writes Q&A to SQLite IMMEDIATELY.
+
+    Reads the transcript tail, extracts the latest user prompt + assistant response,
+    and stores them as turns in the SQLite database.
+
+    Pattern: claude-mem's Stop hook → SQLite per-turn insert
+    """
+    if is_recursive():
+        return
+
+    try:
+        event = json.loads(sys.stdin.read())
+    except (json.JSONDecodeError, EOFError):
+        return
+
+    # Guard: don't block if stop_hook_active (prevents infinite loops)
+    if event.get("stop_hook_active"):
+        return
+
+    session_id = get_session_id_from_event(event)
+    transcript_path = event.get("transcript_path", "")
+
+    if not transcript_path:
+        return
+
+    # Ensure SQLite DB exists
+    try:
+        subprocess.run(
+            [sys.executable, str(STORE_SCRIPT), "init"],
+            capture_output=True, timeout=5,
+        )
+    except Exception:
+        return
+
+    # Read transcript tail and extract latest Q&A
+    tp = Path(transcript_path)
+    if not tp.exists():
+        return
+
+    # Track last-read position per session (avoid re-reading)
+    cursor_path = STATE_DIR / f"{session_id}.cursor"
+    last_pos = 0
+    if cursor_path.exists():
+        try:
+            last_pos = int(cursor_path.read_text().strip())
+        except Exception:
+            last_pos = 0
+
+    try:
+        file_size = tp.stat().st_size
+        if file_size <= last_pos:
+            return  # No new content
+
+        with open(tp, "r", encoding="utf-8") as f:
+            f.seek(max(0, last_pos))
+            new_content = f.read()
+
+        # Extract latest user prompt and assistant response
+        latest_user = None
+        latest_assistant = None
+        turn_number = 0
+
+        for line in new_content.strip().split("\n"):
+            if not line:
+                continue
+            try:
+                msg_event = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+
+            msg = msg_event.get("message", {})
+            role = msg.get("role", "")
+
+            if role == "user":
+                content = msg.get("content", "")
+                if isinstance(content, list):
+                    content = " ".join(
+                        b.get("text", "") for b in content
+                        if isinstance(b, dict) and b.get("type") == "text"
+                    )
+                if content and len(content) > 5:
+                    # Skip system-injected messages (session summaries, local commands)
+                    if not _is_system_noise(content):
+                        latest_user = content
+
+            elif role == "assistant":
+                content = msg.get("content", "")
+                if isinstance(content, list):
+                    content = " ".join(
+                        b.get("text", "") for b in content
+                        if isinstance(b, dict) and b.get("type") == "text"
+                    )
+                if content and len(content) > 10:
+                    latest_assistant = content
+                    turn_number = msg_event.get("turn_number", 0)
+
+        # Insert turns via knowledge-store
+        if latest_user:
+            subprocess.run(
+                [sys.executable, str(STORE_SCRIPT), "turn",
+                 json.dumps({"session_id": session_id, "turn_number": turn_number,
+                             "role": "user", "content": latest_user},
+                            ensure_ascii=False)],
+                capture_output=True, timeout=10,
+            )
+
+        if latest_assistant:
+            subprocess.run(
+                [sys.executable, str(STORE_SCRIPT), "turn",
+                 json.dumps({"session_id": session_id, "turn_number": turn_number + 1,
+                             "role": "assistant", "content": latest_assistant},
+                            ensure_ascii=False)],
+                capture_output=True, timeout=10,
+            )
+
+        # Update cursor
+        cursor_path.parent.mkdir(parents=True, exist_ok=True)
+        cursor_path.write_text(str(file_size))
+
+    except Exception as e:
+        print(f"[knowledge-hooks] Stop hook error: {e}", file=sys.stderr)
+
+
+def _is_system_noise(content: str) -> bool:
+    """Filter out system-injected messages that aren't real user prompts."""
+    noise_markers = [
+        "<local-command-caveat>",
+        "<command-name>",
+        "<command-args>",
+        "<local-command-stdout>",
+        "This session is being continued from a previous conversation",
+    ]
+    return any(marker in content for marker in noise_markers)
+
+
+# ─── SessionEnd ──────────────────────────────────────────────────────
+
 def handle_session_end():
     """
     Called at session termination. Spawns detached knowledge-flush.py to do the
@@ -424,6 +568,8 @@ if __name__ == "__main__":
         handle_post_tool_use()
     elif command == "pre-compact":
         handle_pre_compact()
+    elif command == "stop":
+        handle_stop()
     elif command == "session-end":
         handle_session_end()
     elif command == "init":
