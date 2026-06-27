@@ -4,7 +4,7 @@
 
 ## 0. 为什么需要点线网
 
-EasyWork 目前有 18 个技能节点，但它们是**孤岛**——每个只能单独调用，彼此不知道对方的存在。
+EasyWork 目前有 19 个技能节点，但它们是**孤岛**——每个只能单独调用，彼此不知道对方的存在。
 
 ```
 现状（孤岛模式）：
@@ -145,7 +145,7 @@ capability:
 规则：跳过全部闸门，风险 L0，无状态文件
 ```
 
-**当前 18 个技能点全部支持点模式**。无需额外实现。
+**当前 19 个技能点全部支持点模式**。无需额外实现。
 
 ---
 
@@ -345,7 +345,7 @@ capability:
   risk_level: "L0"                # 纯理解任务，无副作用
 ```
 
-### 5.2 18 个技能的能力卡片速览
+### 5.2 19 个技能的能力卡片速览
 
 | 技能 | 类别 | 消费 | 产出 | 好朋友 |
 |------|------|------|------|--------|
@@ -367,6 +367,7 @@ capability:
 | ⚡ quick-answer | content | user_question | quick_answer | all skills→ (底座能力——TL;DR 优先的结构化精简回答，答案先行要点为辅) |
 | ⚖️ tech-compare | development | problem_context, candidate_solutions | tech_compare_report, decision_matrix, adr_draft | tech-radar→, read-paper→, →article-write, →self-check (六阶段战略决策框架——问题考古→解空间映射→深度对比→差异化论证→效果量化→演进路线) |
 | 🔌 api-test | quality | api_spec, test_scope | test_case_matrix, error_code_map, db_verify_sql, middleware_verify, test_script | code-implement→, code-review→, →article-write, →self-check (五阶段接口联调——规格解析→用例生成→预期计算→错误码映射→DB/MQ/Redis验证) |
+| 📚 knowledge-base | infrastructure | action, domain, query | knowledge_entry, retrieval_result, maintenance_report | all skills→, all skills← (跨切面底座能力——三维领域模型/五阶段知识生命周期/ETR证据链/会话交接/跨Agent复用) |
 
 ---
 
@@ -479,7 +480,7 @@ graph TD
 ### Phase 1：能力卡片 + 注册表（1-2 天）
 
 **文件变更**：
-- 18 个 SKILL.md 各增加 `capability` frontmatter 块
+- 19 个 SKILL.md 各增加 `capability` frontmatter 块
 - 新建 `skills/fullchain-dev-workflow/references/skill-registry.md`（自动从 capability 生成）
 
 **效果**：
@@ -520,12 +521,12 @@ EasyWork 现有架构：
 
   fullchain-dev-workflow (编排中枢)
     ├── READ → CODE → REVIEW → EXAMINE → GIT → GRAPH → SUM → TALK → SELFCHECK → ASK
-    └── 单步调用（18 个技能点）
+    └── 单步调用（19 个技能点）
 
 点线网架构（在现有基础上增加）：
 
   fullchain-dev-workflow (编排中枢)
-    ├── 🎯 点模式（现有，18 个技能）
+    ├── 🎯 点模式（现有，19 个技能）
     ├── 🔗 线模式（🆕 流水线编排器 + 7 条内置流水线）
     └── 🌐 网模式（🆕 Meta-Orchestrator + 技能自治扩散）
 
