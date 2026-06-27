@@ -3,3 +3,8 @@
 .history/
 knowledge/.buffer/
 knowledge/conversation/raw/
+knowledge/conversation/daily/
+# Auto-generated session handoffs (YYYY-MM-DD-<session_id>.md)
+knowledge/sessions/????-??-??-*.md
+# MCP auto-generated knowledge entries
+knowledge/domain/*/kb-*.md

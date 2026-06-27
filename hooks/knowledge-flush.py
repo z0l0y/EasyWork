@@ -63,8 +63,30 @@ QUARTERLY_PATTERNS = re.compile(
     re.IGNORECASE,
 )
 
+# ANSI escape sequence regex (strips terminal control characters from transcript)
+# Covers: CSI sequences (\x1b[...m), OSC sequences, cursor movements, etc.
+ANSI_ESCAPE_RE = re.compile(
+    r"\x1b\[[0-9;]*[a-zA-Z]|"    # CSI: \x1b[0m, \x1b[2m, \x1b[1;32m, etc.
+    r"\x1b\][^\x07]*\x07|"       # OSC: \x1b]0;title\x07
+    r"\x1b[PX^_].*?\x1b\\\\|"     # DCS/SOS/PM/APC strings
+    r"\x1b\[[0-9;]*[\x40-\x7e]",  # More CSI variants
+)
+
 
 # ─── Helpers ──────────────────────────────────────────────────────────
+
+def strip_ansi(text: str) -> str:
+    """
+    Strip ANSI escape sequences from text.
+    These come from terminal output in Claude Code transcripts (dim/bold/color codes).
+    Without this, raw dumps contain garbled characters like \x1b[2m...\x1b[22m.
+
+    Reference: ECMA-48 / ISO 6429 control functions
+    """
+    if not text:
+        return text
+    return ANSI_ESCAPE_RE.sub("", text)
+
 
 def classify_domain(file_paths: list[str]) -> str:
     """Classify domain from file paths touched."""
@@ -160,7 +182,7 @@ def read_transcript_excerpt(transcript_path: str, max_lines: int = MAX_TRANSCRIP
                 if content and len(content) > 10:
                     result["user_prompts"].append({
                         "ts": event.get("timestamp", ""),
-                        "content": content[:2000],  # truncate very long prompts
+                        "content": strip_ansi(content)[:2000],  # strip ANSI, then truncate
                     })
 
             elif role == "assistant":
@@ -174,7 +196,7 @@ def read_transcript_excerpt(transcript_path: str, max_lines: int = MAX_TRANSCRIP
                 if content and len(content) > 20:
                     result["assistant_messages"].append({
                         "ts": event.get("timestamp", ""),
-                        "content": content[:3000],
+                        "content": strip_ansi(content)[:3000],
                         "stop_reason": msg.get("stop_reason", ""),
                     })
 
