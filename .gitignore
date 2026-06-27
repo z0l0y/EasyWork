@@ -1,3 +1,5 @@
 .claude/*
 !.claude/commands/
 .history/
+knowledge/.buffer/
+knowledge/conversation/raw/

@@ -7,7 +7,7 @@ description: >
   跨上下文、跨 Agent 对话复用，避免每次重读资料，节省 token 和时间。
 allowed-tools: Read, Write, Bash, Grep, Glob, WebSearch, WebFetch
 model: sonnet
-version: 1.1
+version: 1.2
 capability:
   id: knowledge-base
   display_name: 知识库管理
@@ -60,7 +60,7 @@ capability:
 
 # 📚 Knowledge Base（知识库管理）
 
-> Agent 知识沉淀与复用层 · v1.0 · 避免每次重读资料，跨上下文/跨 Agent 复用知识
+> Agent 知识沉淀与复用层 · v1.2 · Hook 级自动化 · 全部沉淀→定时巡检清理→总结归纳汇总 · 跨上下文复用
 
 ## 0. 为什么需要知识库
 
@@ -94,6 +94,46 @@ capability:
 
 ## 1. 知识架构
 
+### 1.0 核心策略：全部沉淀 → 定时巡检清理 → 总结归纳汇总
+
+**不是选择性地存，而是先全部存，再定期清理。**
+
+```
+你的每次对话
+  │
+  ├── PostToolUse hook（每次工具调用后自动触发）
+  │     → 写入 knowledge/.buffer/{session-id}.jsonl
+  │     → 只记录元数据（工具名/文件路径/耗时），不存输出内容
+  │
+  ├── SessionEnd hook（会话结束时自动触发，100% 保证）
+  │     → 读 buffer → 写 raw dump（knowledge/conversation/raw/）
+  │     → 写 session handoff（knowledge/sessions/）
+  │     → 清理 buffer
+  │
+  └── 你说"整理知识库"（定时巡检清理）
+        → 扫描 raw/ → 去重 → 提取关键问答 → 写入 prompts/ + outputs/
+        → 扫描 raw/ → 识别模式 → 合并碎片 → 升级到 domain/
+        → 清理 raw/ 中超过 7 天的旧文件
+        → 输出清理报告：合并 X 条 / 升级 Y 条 / 清理 Z 条
+```
+
+**四层会话存储**：
+
+```
+knowledge/conversation/
+├── raw/           ← Layer 0：全量原始转储（7 天 TTL，自动生成，不经筛选）
+│   └── {YYYYMMDD}/
+│       └── {session-id}.json    ← 完整的工具调用事件日志
+├── prompts/       ← Layer 1：提取的用户提问（清理后，手动/半自动策展）
+│   └── {date}-{topic}.md
+├── outputs/       ← Layer 1：提取的 Agent 回答（清理后，手动/半自动策展）
+│   └── {date}-{topic}.md
+├── sessions/      ← Layer 2：会话交接记录（自动生成，每次会话结束）
+│   └── {date}-{session-id}.md
+└── patterns/      ← Layer 3：从碎片中升级的模式知识（定期清理时生成）
+    └── {tag}-pattern.md        ← 同一标签 ≥3 条碎片 → 合并为综合条目
+```
+
 ### 1.1 三层渐进披露（L1→L2→L3）
 
 ```
@@ -112,8 +152,10 @@ L2 — 领域知识（按需加载）
       │   ├── inner/           ← 用户提供的材料（代码/文档/需求）
       │   └── outer/           ← Agent 搜索的外部资料
       ├── conversation/    ← 按会话维度组织
-      │   ├── prompts/         ← 用户提问归档
-      │   └── outputs/         ← Agent 回答归档
+      │   ├── raw/             ← 🆕 Layer 0：全量原始转储（7 天 TTL）
+      │   ├── prompts/         ← 🆕 Layer 1：提取的用户提问
+      │   ├── outputs/         ← 🆕 Layer 1：提取的 Agent 回答
+      │   └── patterns/        ← 🆕 Layer 3：升级的模式知识
       ├── code/            ← 代码分析知识
       ├── decisions/       ← 架构决策记录（ADR）
       └── sessions/        ← 会话交接记录
@@ -518,38 +560,63 @@ related_knowledge: [kb-20260627-001]
 | 已有条目已过时（代码已变更） | `Edit` 标注 `status: archived` | 不删除，标注失效原因和时间 |
 | 多条碎片化知识可合并 | `Write` 新文件 + 标记旧条目 archived | 合并为一条综合条目 |
 
-### 5.4 Phase 4: 知识维护（Maintain）
+### 5.4 Phase 4: 知识维护（Maintain）—— 定时巡检清理
 
 **触发时机**：
-- 用户说"整理知识库"/"清理知识库"
+- 用户说"整理知识库"/"清理知识库"/"定时巡检"/"归纳汇总"
 - 知识库条目超过 50 条——Agent 主动建议整理
 - 季度末——季度 O 归档
 - 项目重大变更后——检查受影响的知识条目
 
-**维护操作**：
+**核心理念**：全部沉淀 → 定时巡检 → 去重合并 → 总结归纳 → 升级模式
+
+**维护流程**：
 
 ```
-1. 去重检测
-   扫描所有 _index.md → 标题相似度 > 80% 的条目对 →
-   展示给用户确认 → 合并或保留
-
-2. 归档过期条目
-   - integration 类：创建 > 7 天且无更新 → 建议归档
-   - development 类：关联功能已上线 > 2 周 → 建议归档
-   - quarterly-o 类：季度结束后 → 写复盘 → 归档
-   - 所有条目：updated > 90 天 → 标记为"需复查"
-
-3. 一致性检查
-   - 检查 related 链接是否有效（双向链接是否完整）
-   - 检查 source_files 引用的文件是否仍然存在
-   - 检查基于旧代码版本的 derived 条目是否需要更新
-
-4. 升级碎片为模式
-   - 同一个 tag 下 ≥3 条碎片化条目 → 建议合并为一条综合知识
-   - 同类型问题被问 ≥3 次 → 升级为系统化文档（FAQ/最佳实践）
-   - conversation/prompts 中出现 ≥3 次相似提问 → 建议创建专门的 Skill 或文档
-
-5. 生成维护报告
+整理知识库 启动
+  │
+  ├── Step 1：扫描 raw/ 层（conversation/raw/）
+  │     → 列出所有原始转储文件
+  │     → 统计：{N} 个会话 / {M} 次工具调用 / {K} 个涉及文件
+  │
+  ├── Step 2：清理过期 raw（>7 天）
+  │     → 删除 >7 天的 raw JSON 文件
+  │     → 如有关键信息 → 先提取再删除
+  │     → 更新 raw/_index.md
+  │
+  ├── Step 3：从 raw 提取用户提问
+  │     → 扫描 raw 中 Read/WebSearch 事件
+  │     → 识别用户意图（通过文件路径/搜索关键词推断）
+  │     → 写入 conversation/prompts/{date}-{topic}.md
+  │     → 统计：提取了 {X} 条提问
+  │
+  ├── Step 4：从 raw 提取 Agent 回答模式
+  │     → 扫描 raw 中 Write/Edit 事件
+  │     → 识别产出类型（代码/文档/配置/分析）
+  │     → 写入 conversation/outputs/{date}-{topic}.md
+  │     → 统计：记录了 {Y} 类产出
+  │
+  ├── Step 5：升级碎片为模式
+  │     → 扫描所有 knowledge/ 条目的 tags
+  │     → 同一 tag 下 ≥3 条 → 合并为 conversation/patterns/{tag}-pattern.md
+  │     → 同类型问题被问 ≥3 次 → 建议创建 FAQ 或专门的 Skill
+  │     → 统计：发现了 {Z} 个可升级模式
+  │
+  ├── Step 6：去重合并
+  │     → 扫描所有 _index.md → 标题相似度 > 80% 的条目对
+  │     → 展示给用户确认 → 合并或保留
+  │     → 统计：去重 {D} 对
+  │
+  ├── Step 7：归档过期条目
+  │     → integration 类：创建 > 7 天且无更新 → 建议归档
+  │     → development 类：关联功能已上线 > 2 周 → 建议归档
+  │     → quarterly-o 类：季度结束后 → 写复盘 → 归档
+  │     → 所有条目：updated > 90 天 → 标记为"需复查"
+  │
+  └── Step 8：生成维护报告
+        → 汇总以上所有统计
+        → 输出清理前后对比
+        → 建议下一步行动
 ```
 
 **维护报告模板**：
@@ -791,5 +858,6 @@ Output: {
 
 ## 9. 版本历史
 
+- v1.2 (2026-06-27)：Hook 级自动化——PostToolUse hook（每次工具调用自动捕获）+ SessionEnd hook（100% 会话结束沉淀）。四层会话存储（raw→prompts/outputs→sessions→patterns）。"全部沉淀→定时巡检清理→总结归纳汇总"策略。定时巡检 8 步维护流程。
 - v1.1 (2026-06-27)：新增 MCP 集成——MCP Server（5 个工具）、自动索引与检索、去重检测、健康报告。编排中枢 §2 强化为 Pre-Step + Post-Step 十步知识管线。CLAUDE.md 新增 6 条自动触发规则。
 - v1.0 (2026-06-27)：初始版本——三层渐进披露架构、三维领域模型（联调/开发/季度O）、来源维度（inner/outer/derived）、会话维度（prompt/output）、五阶段操作流程（捕获/检索/存储/维护/交接）、ETR 证据链标准、14 条反模式
