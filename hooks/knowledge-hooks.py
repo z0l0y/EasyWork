@@ -555,7 +555,7 @@ def handle_session_end():
 if __name__ == "__main__":
     if len(sys.argv) < 2:
         print(
-            "Usage: python knowledge-hooks.py <session-start|post-tool-use|pre-compact|session-end>",
+            "Usage: python knowledge-hooks.py <session-start|post-tool-use|pre-compact|stop|session-end|init>",
             file=sys.stderr,
         )
         sys.exit(1)

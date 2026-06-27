@@ -1,6 +1,7 @@
 .claude/*
 !.claude/commands/
 .history/
+__pycache__/
 # Runtime knowledge base — user data, NEVER committed
 # Structural templates live in knowledge-template/ (tracked in git)
 # Run "python hooks/knowledge-hooks.py init" to bootstrap knowledge/ from template

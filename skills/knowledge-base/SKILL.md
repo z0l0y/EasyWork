@@ -1,13 +1,13 @@
 ---
 name: knowledge-base
 description: >
-  Agent 知识库管理与沉淀。每次阅读代码/文档/外部资料时自动沉淀结构化知识到知识库，
+  Agent 知识库管理与沉淀（v2.0：SQLite + Stop Hook 每轮实时写入）。
   按领域模型（联调需求/开发需求/季度O）组织，区分来源（用户提供 inner / Agent 搜索 outer）
   和会话维度（用户提问 prompt / Agent 回答 output）。
   跨上下文、跨 Agent 对话复用，避免每次重读资料，节省 token 和时间。
 allowed-tools: Read, Write, Bash, Grep, Glob, WebSearch, WebFetch
 model: sonnet
-version: 1.2
+version: 2.0
 capability:
   id: knowledge-base
   display_name: 知识库管理
@@ -60,9 +60,33 @@ capability:
 
 # 📚 Knowledge Base（知识库管理）
 
-> Agent 知识沉淀与复用层 · v1.2 · Hook 级自动化 · 全部沉淀→定时巡检清理→总结归纳汇总 · 跨上下文复用
+> Agent 知识沉淀与复用层 · v2.0 · Stop Hook 每轮实时写入 · SQLite + FTS5 全文检索 · Markdown 可读备份 · 跨上下文复用
 
-## 0. 为什么需要知识库
+## 0. 存储架构（v2.0）
+
+```
+每轮对话 → Stop hook → SQLite (实时，per-turn)
+   │                      ├── turns 表 (用户提问 + Agent 回答)
+   │                      ├── turns_fts (FTS5 全文索引)
+   │                      └── sessions 表 (会话元数据)
+   │
+工具调用 → PostToolUse hook → buffer (JSONL)
+   │
+会话结束 → SessionEnd hook → flush worker
+   ├── raw dump (JSON, 7天TTL)
+   ├── daily log (Markdown, 人类可读)
+   └── session handoff (Markdown, 会话交接)
+```
+
+**查询方式**：
+```bash
+python hooks/knowledge-store.py search "HBase"      # FTS5 全文搜索
+python hooks/knowledge-store.py recent 20            # 最近 20 轮对话
+python hooks/knowledge-store.py stats <session_id>    # 会话统计
+sqlite3 knowledge/conversation.db "SELECT * FROM turns WHERE content MATCH '技术选型'"
+```
+
+## 1. 为什么需要知识库
 
 ```
 现状（无知识库）：

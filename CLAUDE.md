@@ -14,7 +14,18 @@ EasyWork 是一个 Claude Code 技能生态系统，提供 23 个专业技能 + 
 - 编排中枢：`skills/fullchain-dev-workflow/SKILL.md`
 - 快速参考：`QUICKREF.md`
 - MCP Server：`skills/knowledge-base/mcp-server/`（知识库自动索引）
-- 知识存储：SQLite + FTS5（`knowledge/conversation.db`，每轮对话实时写入）
+- 知识存储：SQLite + FTS5（`knowledge/conversation.db`，Stop hook 每轮实时写入）
+- Hook 管线：SessionStart → PostToolUse → Stop → PreCompact → SessionEnd
+
+## Hook 知识捕获管线
+
+| Hook | 触发时机 | 写入目标 | 延迟 |
+|------|---------|---------|------|
+| **SessionStart** | 会话启动 | 注入知识索引到上下文 | 0 |
+| **PostToolUse** | 每次工具调用 | buffer/{session_id}.jsonl（元数据） | 实时 |
+| **Stop** | 每轮 Agent 回复结束 | SQLite turns 表（Q&A 全文，FTS5 索引） | 实时 |
+| **PreCompact** | 上下文压缩前 | flush → raw/daily/handoff | 压缩时 |
+| **SessionEnd** | 会话退出 | flush → raw/daily/handoff + MCP store | 退出时 |
 
 ## 架构概览
 
