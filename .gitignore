@@ -1,10 +1,7 @@
 .claude/*
 !.claude/commands/
 .history/
-knowledge/.buffer/
-knowledge/conversation/raw/
-knowledge/conversation/daily/
-# Auto-generated session handoffs (YYYY-MM-DD-<session_id>.md)
-knowledge/sessions/????-??-??-*.md
-# MCP auto-generated knowledge entries
-knowledge/domain/*/kb-*.md
+# Runtime knowledge base — user data, NEVER committed
+# Structural templates live in knowledge-template/ (tracked in git)
+# Run "python hooks/knowledge-hooks.py init" to bootstrap knowledge/ from template
+knowledge/

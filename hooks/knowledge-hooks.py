@@ -42,9 +42,11 @@ if sys.platform == "win32":
 # ─── Config ──────────────────────────────────────────────────────────
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
-BUFFER_DIR = PROJECT_ROOT / "knowledge" / ".buffer"
+TEMPLATE_DIR = PROJECT_ROOT / "knowledge-template"
+KNOWLEDGE_DIR = PROJECT_ROOT / "knowledge"
+BUFFER_DIR = KNOWLEDGE_DIR / ".buffer"
 FLUSH_SCRIPT = PROJECT_ROOT / "hooks" / "knowledge-flush.py"
-KNOWLEDGE_INDEX = PROJECT_ROOT / "knowledge" / "README.md"
+KNOWLEDGE_INDEX = KNOWLEDGE_DIR / "README.md"
 MEMORY_FILE = PROJECT_ROOT / "MEMORY.md"
 
 # Tools that trigger knowledge capture
@@ -135,6 +137,44 @@ def spawn_detached(args: list[str]):
         )
 
 
+# ─── Init from Template ────────────────────────────────────────────────
+
+def init_knowledge_dir() -> bool:
+    """
+    Bootstrap knowledge/ from knowledge-template/ if it doesn't exist.
+    Called automatically by SessionStart. Can also be invoked manually:
+      python hooks/knowledge-hooks.py init
+
+    Returns True if init was performed, False if already exists.
+    """
+    if KNOWLEDGE_DIR.exists():
+        return False
+
+    if not TEMPLATE_DIR.exists():
+        print(f"[knowledge-hooks] No template at {TEMPLATE_DIR}, skipping init", file=sys.stderr)
+        return False
+
+    print(f"[knowledge-hooks] Bootstrapping {KNOWLEDGE_DIR} from {TEMPLATE_DIR}...", file=sys.stderr)
+    _copy_tree(TEMPLATE_DIR, KNOWLEDGE_DIR)
+    print(f"[knowledge-hooks] Knowledge dir initialized.", file=sys.stderr)
+    return True
+
+
+def _copy_tree(src: Path, dst: Path):
+    """Copy directory tree, skipping files that would contain user data."""
+    import shutil
+    dst.mkdir(parents=True, exist_ok=True)
+    for item in src.iterdir():
+        s = src / item.name
+        d = dst / item.name
+        if s.is_dir():
+            _copy_tree(s, d)
+        else:
+            # Only copy structural files, never user data
+            if item.name in ("_index.md", "README.md", ".gitkeep"):
+                shutil.copy2(s, d)
+
+
 # ─── SessionStart ────────────────────────────────────────────────────
 
 def handle_session_start():
@@ -143,10 +183,14 @@ def handle_session_start():
     Reads knowledge/README.md (index) + most recent daily log.
     Outputs JSON with `additionalContext` on stdout.
 
+    Also auto-initializes knowledge/ from template if it doesn't exist.
     Pattern: claude-memory-compiler's session-start.py
     """
     if is_recursive():
         return
+
+    # Auto-init knowledge/ from template on first run
+    init_knowledge_dir()
 
     contexts = []
 
@@ -382,6 +426,9 @@ if __name__ == "__main__":
         handle_pre_compact()
     elif command == "session-end":
         handle_session_end()
+    elif command == "init":
+        ok = init_knowledge_dir()
+        print(f"Knowledge dir {'initialized' if ok else 'already exists'}")
     else:
         print(f"Unknown command: {command}", file=sys.stderr)
         sys.exit(1)

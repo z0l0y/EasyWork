@@ -39,11 +39,33 @@ class KnowledgeIndexer:
 
     def __init__(self, knowledge_dir: str):
         self.knowledge_dir = Path(knowledge_dir)
+        self._ensure_init()
         self.entries: dict[str, dict] = {}
         self.tag_index: dict[str, list[str]] = {}
         self.domain_index: dict[str, list[str]] = {}
         self.title_index: dict[str, str] = {}
         self._reindex()
+
+    def _ensure_init(self):
+        """Auto-init knowledge/ from template if it doesn't exist."""
+        if self.knowledge_dir.exists():
+            return
+        template_dir = self.knowledge_dir.parent / "knowledge-template"
+        if not template_dir.exists():
+            return
+        import shutil
+
+        def _copy(src: Path, dst: Path):
+            dst.mkdir(parents=True, exist_ok=True)
+            for item in src.iterdir():
+                s = src / item.name
+                d = dst / item.name
+                if s.is_dir():
+                    _copy(s, d)
+                elif item.name in ("_index.md", "README.md", ".gitkeep"):
+                    shutil.copy2(s, d)
+
+        _copy(template_dir, self.knowledge_dir)
 
     def _reindex(self):
         """Rebuild all indexes from disk."""
