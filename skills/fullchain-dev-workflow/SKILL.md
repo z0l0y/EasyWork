@@ -3,7 +3,7 @@ name: fullchain-dev-workflow
 description: >
   全链路开发流程编排中枢。根据任务类型智能调整执行步骤（10步→按需裁剪）。
   内置任务分类器、步骤跳过机制、回退循环限制、全局异常SOP和Checklist打卡系统。
-  🆕 v2.14: 点线网三级技能编排——点(单技能精准调用/16个技能点)、
+  🆕 v2.15: 点线网三级技能编排——点(单技能精准调用/17个技能点)、
   线(7条内置流水线+动态流水线/DAG编排)、网(Meta-Orchestrator+技能自治扩散+深度/预算/审批三重控制)。
   详见 references/skill-graph-orchestration.md。
   v2.12: 11条新铁律(#30-#40)、风险五级分类(L0-L4按级裁剪闸门)、上下文状态文件防丢失(铁律#40)、
@@ -47,7 +47,7 @@ capability:
     - { name: orchestrated_execution, type: multi_skill_pipeline, description: "按需裁剪的 10 步执行流程或点线网编排结果" }
   triggers: ["用 EasyWork", "走 EasyWork 流程", "EasyWork"]
   related_skills:
-    - { skill: all, relationship: orchestrator, desc: "编排中枢可调度所有 16 个技能点、7 条内置流水线、网模式自治扩散" }
+    - { skill: all, relationship: orchestrator, desc: "编排中枢可调度所有 17 个技能点、7 条内置流水线、网模式自治扩散" }
   suggested_when:
     - "用户需要完整的开发流程管理"
     - "任务复杂度超过单个技能能处理的范围"
@@ -236,6 +236,7 @@ Agent 加载本 Skill 后，**不要立刻开始流程**。先收集信息，输
 | "生成文档 / 输出文档 / 保存输出 / 导出报告 / write article / write doc / save output / generate doc / article-write" | → 📝 单步文档编写（仅 ARTICLE-WRITE，其余全跳） |
 | "斜杠命令 / slash command / 命令管理 / 命令列表 / slash-cmd / command list" | → 💻 单步命令管理（仅 SLASH-CMD，其余全跳） |
 | "快问快答 / quick question / tldr / 说重点 / 别废话 / 直接说 / 快点回答 / 别啰嗦 / 讲核心 / quick-answer" | → ⚡ 单步快问快答（仅 QUICK-ANSWER，其余全跳） |
+| "技术选型 / 方案对比 / 技术对比 / tech compare / 选型分析 / 技术调研 / 方案选型 / 技术评估 / compare solutions / 对比方案 / 选哪个技术 / 技术决策 / tech decision" | → ⚖️ 单步技术选型对比（仅 TECH-COMPARE，其余全跳） |
 
 ### 🆕 v2.13 流水线触发（🔗 线模式）
 | 用户说了什么 | 流水线 | 技能序列 |
@@ -328,11 +329,12 @@ Agent 必须在任务分类时执行风险分级（详见 `references/risk-class
 | 📝 单步文档编写 | ⏭️ | ⏭️ | ⏭️ | ⏭️ | ⏭️ | ⏭️ | ⏭️ | ⏭️ | ⏭️ | ⏭️ | brief | — |
 | 💻 单步命令管理 | ⏭️ | ⏭️ | ⏭️ | ⏭️ | ⏭️ | ⏭️ | ⏭️ | ⏭️ | ⏭️ | ⏭️ | brief | — |
 | ⚡ 单步快问快答 | ⏭️ | ⏭️ | ⏭️ | ⏭️ | ⏭️ | ⏭️ | ⏭️ | ⏭️ | ⏭️ | ⏭️ | brief | — |
+| ⚖️ 单步技术选型对比 | ⏭️ | ⏭️ | ⏭️ | ⏭️ | ⏭️ | ⏭️ | ⏭️ | ⏭️ | ⏭️ | ⏭️ | brief | — |
 
 > 上表是默认建议，不是死规则。具体问题具体分析。团队可在 `references/team-policy.md` 中声明额外约束。
 > 自定义步骤（`.claude/skills/easywork/custom/`）在裁剪方案中以 `[+]` 前缀展示。
 >
-> **🆕 v2.12+ 单步调用规则**（🥊🧠📊👁️🔍📋📖📐🔬🛰️🧪✅📝💻⚡）：
+> **🆕 v2.12+ 单步调用规则**（🥊🧠📊👁️🔍📋📖📐🔬🛰️🧪✅📝💻⚡⚖️）：
 > - **只加载目标 skill 的 SKILL.md**，不加载编排中枢其余步骤和子技能
 > - **跳过全部闸门**（铁律 #1-#40 均不适用），风险固定 L0
 > - **不写状态快照、不写 state file、不写 workflow.log.jsonl**
