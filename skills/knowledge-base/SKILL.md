@@ -7,7 +7,7 @@ description: >
   跨上下文、跨 Agent 对话复用，避免每次重读资料，节省 token 和时间。
 allowed-tools: Read, Write, Bash, Grep, Glob, WebSearch, WebFetch
 model: sonnet
-version: 1.0
+version: 1.1
 capability:
   id: knowledge-base
   display_name: 知识库管理
@@ -669,9 +669,127 @@ session: {session-id}
 - ❌ **知识条目不更新 outdated 标记**——代码已改但知识条目还标着 stable → 误导下一个 Agent。发现过时条目应立即标记 archived + 注明原因
 - ❌ **知识库变成代码仓库的镜像**——代码本身在 git 里，不需要在知识库里再存一遍。知识库存的是**对代码的理解和分析**，不是代码本身
 - ❌ **不检查重复就新建**——同一个模块被分析两次产生两个条目，后来者不知道该信哪个。写入前必须先检索去重
+- ❌ **MCP 可用但不用**——已配置 MCP Server 但 Agent 仍手动 grep _index.md，浪费 token 且搜索结果不准确
 
 ---
 
-## 8. 版本历史
+## 8. MCP 集成
 
+### 8.1 MCP Server 概览
+
+知识库提供了 MCP Server（`skills/knowledge-base/mcp-server/server.py`），将文件系统操作封装为 5 个结构化工具：
+
+| MCP 工具 | 对应的手动操作 | 优势 |
+|---------|-------------|------|
+| `knowledge_search` | 手动 grep + 读 _index.md | 加权评分排序 + 多维度过滤 |
+| `knowledge_context` | 手动提取关键词 + 多次搜索 | 自动关键词提取 + 去重合并 |
+| `knowledge_store` | 手动写 Markdown + frontmatter + 更新 _index.md | 自动 ID / frontmatter / 去重 / 双向链接 |
+| `knowledge_stats` | 手动数文件 + 统计 | 即时统计 + 过期检测 |
+| `knowledge_maintenance` | 手动逐条对比 | 批量去重检测 + 碎片合并建议 |
+
+### 8.2 配置方式
+
+`.mcp.json`（项目根目录）：
+
+```json
+{
+  "mcpServers": {
+    "easywork-knowledge": {
+      "command": "python",
+      "args": [
+        "skills/knowledge-base/mcp-server/server.py",
+        "--knowledge-dir",
+        "knowledge"
+      ],
+      "env": {
+        "EASYWORK_KNOWLEDGE_DIR": "knowledge"
+      }
+    }
+  }
+}
+```
+
+首次使用前安装依赖：
+
+```bash
+pip install -r skills/knowledge-base/mcp-server/requirements.txt
+```
+
+### 8.3 使用优先级
+
+Agent 在操作知识库时遵循以下优先级：
+
+```
+1. MCP Server 可用？
+   ├── YES → 使用 MCP 工具（knowledge_search / knowledge_store / ...）
+   │         → 更快、更准、自动索引
+   └── NO  → 降级为手动文件操作
+             → Agent 直接读写 knowledge/ 目录的 Markdown 文件
+             → 手动维护 _index.md
+```
+
+### 8.4 MCP 工具速查
+
+**knowledge_context** —— 最重要的工具，新任务启动时首先调用：
+
+```
+Tool: knowledge_context
+Input:  { "task_description": "分析 src/auth/login.go 的 token 验证逻辑" }
+Output: {
+          "keywords_extracted": ["auth", "login", "token"],
+          "found": 2,
+          "context_summary": "- [kb-20260627-001] Token 验证链分析 (development/analysis)\n- [kb-20260626-003] 登录性能优化记录 (development/decision)\n"
+        }
+```
+
+**knowledge_store** —— 沉淀知识时调用：
+
+```
+Tool: knowledge_store
+Input:  {
+          "domain": "development",
+          "source": "derived",
+          "dimension": "analysis",
+          "title": "src/auth/login.go token 验证链分析",
+          "content": "## 背景\n...\n## 核心内容\n...\n## ETR\n...",
+          "tags": ["auth", "token", "login"],
+          "source_files": ["src/auth/login.go:45-89", "src/auth/token.go:12-34"]
+        }
+Output: { "status": "stored", "id": "kb-20260627-002", "path": "domain/development/kb-20260627-002.md" }
+```
+
+**knowledge_stats** —— 启动时检查知识库健康状态：
+
+```
+Tool: knowledge_stats
+Input:  {}
+Output: {
+          "total": 15,
+          "by_domain": { "development": 8, "integration": 5, "quarterly-o": 2 },
+          "stale_count": 3,
+          "stale_entries": [...]
+        }
+```
+
+**knowledge_maintenance** —— 维护时调用：
+
+```
+Tool: knowledge_maintenance
+Input:  { "action": "full_report", "dry_run": true }
+Output: {
+          "stats": {...},
+          "duplicates": [...],
+          "consolidation_suggestions": [
+            { "tag": "payment", "entry_count": 4, "suggestion": "标签 #payment 下有 4 条碎片..." }
+          ]
+        }
+```
+
+详见 `skills/knowledge-base/mcp-server/README.md`。
+
+---
+
+## 9. 版本历史
+
+- v1.1 (2026-06-27)：新增 MCP 集成——MCP Server（5 个工具）、自动索引与检索、去重检测、健康报告。编排中枢 §2 强化为 Pre-Step + Post-Step 十步知识管线。CLAUDE.md 新增 6 条自动触发规则。
 - v1.0 (2026-06-27)：初始版本——三层渐进披露架构、三维领域模型（联调/开发/季度O）、来源维度（inner/outer/derived）、会话维度（prompt/output）、五阶段操作流程（捕获/检索/存储/维护/交接）、ETR 证据链标准、14 条反模式

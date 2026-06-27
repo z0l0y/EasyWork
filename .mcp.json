@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "easywork-knowledge": {
+      "command": "python",
+      "args": [
+        "skills/knowledge-base/mcp-server/server.py",
+        "--knowledge-dir",
+        "knowledge"
+      ],
+      "env": {
+        "EASYWORK_KNOWLEDGE_DIR": "knowledge"
+      }
+    }
+  }
+}
