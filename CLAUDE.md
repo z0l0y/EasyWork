@@ -4,7 +4,7 @@
 
 ## 项目概述
 
-EasyWork 是一个 Claude Code 技能生态系统，提供 19 个专业技能 + 流水线编排 + 网状自治分析。覆盖从需求理解、代码实现、审查、测试、复盘到 CTO 拷打的完整研发生命周期。
+EasyWork 是一个 Claude Code 技能生态系统，提供 23 个专业技能 + 流水线编排 + 网状自治分析。覆盖从需求理解、代码实现、审查、测试、复盘到 CTO 拷打的完整研发生命周期。
 
 ## 构建与运行
 
@@ -40,9 +40,13 @@ EasyWork/
 
 ## 技能调用方式
 
-1. **自然语言**：说触发词（如"技术选型"、"帮我测接口"）
-2. **斜杠命令**：`/easywork:<name>`（如 `/easywork:radar`）
+> **⚠️ CRITICAL：EasyWork 技能 ≠ `Skill` 工具。`Skill` 工具只认 Claude Code 内置技能（update-config、claude-api 等），
+> 调用 EasyWork 技能会报 `Unknown skill`。正确做法：直接 `Read` 对应的 `skills/<name>/SKILL.md`，按其中规则执行。**
+
+1. **自然语言**：说触发词（如"技术选型"、"帮我测接口"）→ Agent 自动 Read 对应 SKILL.md
+2. **斜杠命令**：`/easywork:<name>`（如 `/easywork:radar`）→ 命令文件路由 → Agent Read 对应 SKILL.md
 3. **编排中枢**：说"用 EasyWork" 走完整 10 步流程
+4. **禁止行为**：❌ 不要对 EasyWork 技能调用 `Skill` 工具（会报 `Unknown skill`）
 
 ---
 
