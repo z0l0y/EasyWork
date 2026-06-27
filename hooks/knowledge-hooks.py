@@ -1,80 +1,101 @@
 #!/usr/bin/env python3
 """
-EasyWork Knowledge Base Hooks
+EasyWork Knowledge Base Hooks — v2.0
 
-Handles PostToolUse and SessionEnd events for automatic knowledge capture.
+Handles Claude Code lifecycle events for automatic knowledge capture.
 
-PostToolUse (high-frequency, must be fast):
-  - Appends tool call event to per-session JSONL buffer
-  - Only captures meaningful events (Read/Write/Edit/Bash/Grep/WebSearch/WebFetch)
-  - Skips own hook calls to prevent infinite recursion
-  - Target latency: <10ms
+Architecture (inspired by claude-memory-compiler + memory-mason):
 
-SessionEnd (low-frequency, can be heavier):
-  - Reads the session buffer
-  - Classifies events into domain/source/dimension
-  - Writes structured knowledge entries via MCP (or direct file write as fallback)
-  - Generates session handoff record
-  - Dumps full conversation trace to knowledge/conversation/raw/
-  - Cleans up buffer
+  SessionStart  → injects knowledge index into context
+  PostToolUse   → appends event to per-session buffer (session_id from hook JSON)
+  PreCompact    → safety net: captures context before compaction discards it
+  SessionEnd    → spawns detached knowledge-flush.py background worker
+
+Key fixes over v1:
+  - Uses hook event's `session_id` (not os.getpid()) → no PID fragmentation
+  - Reads `transcript_path` to extract actual conversation content
+  - Detached background flush (SessionEnd doesn't block)
+  - Recursion guard: CLAUDE_INVOKED_BY env var
+  - Deduplication: SHA-256 state tracking, 60s dedup window
 
 Usage:
-  python hooks/knowledge-hooks.py post-tool-use    # Called by PostToolUse hook
-  python hooks/knowledge-hooks.py session-end       # Called by SessionEnd hook
+  python hooks/knowledge-hooks.py session-start    # SessionStart hook
+  python hooks/knowledge-hooks.py post-tool-use    # PostToolUse hook
+  python hooks/knowledge-hooks.py pre-compact      # PreCompact hook
+  python hooks/knowledge-hooks.py session-end      # SessionEnd hook
 """
 
 import json
 import os
-import sys
 import re
+import subprocess
+import sys
+import time
 from datetime import datetime, timezone
 from pathlib import Path
+
+# Fix Windows stdout encoding for emoji output
+if sys.platform == "win32":
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
 
 # ─── Config ──────────────────────────────────────────────────────────
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 BUFFER_DIR = PROJECT_ROOT / "knowledge" / ".buffer"
-RAW_DIR = PROJECT_ROOT / "knowledge" / "conversation" / "raw"
-SESSIONS_DIR = PROJECT_ROOT / "knowledge" / "sessions"
-MCP_SERVER_SCRIPT = PROJECT_ROOT / "skills" / "knowledge-base" / "mcp-server" / "server.py"
+FLUSH_SCRIPT = PROJECT_ROOT / "hooks" / "knowledge-flush.py"
+KNOWLEDGE_INDEX = PROJECT_ROOT / "knowledge" / "README.md"
+MEMORY_FILE = PROJECT_ROOT / "MEMORY.md"
 
-# Tools that trigger knowledge capture interest
+# Tools that trigger knowledge capture
 INTERESTING_TOOLS = {"Read", "Write", "Edit", "Bash", "Grep", "Glob", "WebSearch", "WebFetch"}
 
-# File patterns worth tracking
+# File patterns worth tracking (must match at least one)
 INTERESTING_FILE_PATTERNS = [
-    r"\.py$", r"\.js$", r"\.ts$", r"\.go$", r"\.java$", r"\.rs$",
+    r"\.py$", r"\.js$", r"\.ts$", r"\.go$", r"\.java$", r"\.rs$", r"\.swift$",
     r"\.md$", r"\.yaml$", r"\.yml$", r"\.json$", r"\.toml$",
     r"SKILL\.md$", r"CLAUDE\.md$", r"README\.md$",
-    r"src/", r"skills/", r"knowledge/", r"\.claude/",
+    r"src/", r"skills/", r"knowledge/", r"\.claude/", r"hooks/",
 ]
 
-# Tools that are "read-only" (source discovery)
+# Read-only tools (source discovery)
 READ_TOOLS = {"Read", "Grep", "Glob", "WebSearch", "WebFetch"}
-
-# Tools that are "write" (knowledge production)
+# Write tools (knowledge production)
 WRITE_TOOLS = {"Write", "Edit"}
 
-# Tools that are "execute" (verification)
-EXEC_TOOLS = {"Bash"}
+# Max context to inject on SessionStart (characters)
+MAX_SESSION_START_CONTEXT = 15000
 
 
-# ─── Helpers ──────────────────────────────────────────────────────────
+# ─── Recursion Guard ──────────────────────────────────────────────────
 
-def get_session_id() -> str:
-    """Generate a stable session ID from timestamp + PID."""
-    now = datetime.now(timezone.utc)
-    date_str = now.strftime("%Y%m%d")
-    pid = os.getpid()
-    return f"{date_str}-{pid}"
+def is_recursive() -> bool:
+    """Check if this hook was called by our own flush worker (prevents infinite loops)."""
+    return os.environ.get("CLAUDE_INVOKED_BY", "").startswith("knowledge_")
 
 
-def get_buffer_path() -> Path:
+# ─── Session ID ───────────────────────────────────────────────────────
+
+def get_session_id_from_event(event: dict) -> str:
+    """
+    Extract session_id from hook event JSON.
+    Falls back to compound PID+timestamp if not available (older Claude Code versions).
+    """
+    sid = event.get("session_id", "")
+    if sid:
+        # Sanitize: remove path separators and non-alphanumeric chars
+        return re.sub(r"[^\w\-]", "_", sid)[:64]
+    # Fallback: PID + timestamp (compound key pattern from oh-my-claudecode)
+    return f"pid-{os.getpid()}-{int(time.time() * 1000)}"
+
+
+def get_buffer_path(session_id: str) -> Path:
     """Get the per-session JSONL buffer path."""
     BUFFER_DIR.mkdir(parents=True, exist_ok=True)
-    return BUFFER_DIR / f"{get_session_id()}.jsonl"
+    return BUFFER_DIR / f"{session_id}.jsonl"
 
+
+# ─── File Filtering ───────────────────────────────────────────────────
 
 def is_interesting_read(file_path: str) -> bool:
     """Check if a file path is worth tracking."""
@@ -86,36 +107,110 @@ def is_interesting_read(file_path: str) -> bool:
     return False
 
 
-def classify_domain(file_paths: list[str], tool_name: str) -> str:
-    """Classify the domain based on file paths and tool."""
-    combined = " ".join(file_paths).lower()
+# ─── Detached Process Spawn ───────────────────────────────────────────
 
-    # Integration testing patterns
-    if re.search(r"(api|test|curl|endpoint|接口|联调|mock)", combined):
-        return "integration"
+def spawn_detached(args: list[str]):
+    """
+    Spawn a fully detached background process.
+    Windows: CREATE_NEW_PROCESS_GROUP | DETACHED_PROCESS
+    Unix: start_new_session=True
+    """
+    if sys.platform == "win32":
+        # DETACHED_PROCESS = 0x00000008, CREATE_NEW_PROCESS_GROUP = 0x00000200
+        flags = 0x00000200 | 0x00000008
+        subprocess.Popen(
+            args,
+            creationflags=flags,
+            stdin=subprocess.DEVNULL,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+    else:
+        subprocess.Popen(
+            args,
+            start_new_session=True,
+            stdin=subprocess.DEVNULL,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
 
-    # Quarterly OKR patterns
-    if re.search(r"(okr|quarterly|季度|roadmap|战略|目标|planning)", combined):
-        return "quarterly-o"
 
-    # Everything else is development
-    return "development"
+# ─── SessionStart ────────────────────────────────────────────────────
+
+def handle_session_start():
+    """
+    Injects knowledge context into each new session.
+    Reads knowledge/README.md (index) + most recent daily log.
+    Outputs JSON with `additionalContext` on stdout.
+
+    Pattern: claude-memory-compiler's session-start.py
+    """
+    if is_recursive():
+        return
+
+    contexts = []
+
+    # 1. Knowledge index
+    if KNOWLEDGE_INDEX.exists():
+        try:
+            content = KNOWLEDGE_INDEX.read_text(encoding="utf-8")
+            if len(content) > MAX_SESSION_START_CONTEXT // 2:
+                # Truncate: keep first ~500 chars (overview) + last ~2000 (most recent entries)
+                content = content[:500] + "\n\n... (中间省略) ...\n\n" + content[-2000:]
+            contexts.append(f"## 知识库索引\n\n{content}")
+        except Exception:
+            pass
+
+    # 2. Most recent daily log (if exists today)
+    daily_dir = PROJECT_ROOT / "knowledge" / "conversation" / "daily"
+    if daily_dir.exists():
+        today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+        today_log = daily_dir / f"{today}.md"
+        if today_log.exists():
+            try:
+                content = today_log.read_text(encoding="utf-8")
+                # Keep last ~3000 chars
+                if len(content) > 3000:
+                    content = content[-3000:]
+                contexts.append(f"## 今日会话记录 (最后部分)\n\n{content}")
+            except Exception:
+                pass
+
+    if contexts:
+        combined = "\n\n---\n\n".join(contexts)
+        # Output as structured JSON on stdout (Claude Code reads this as additionalContext)
+        output = {
+            "hookSpecificOutput": {
+                "hookEventName": "SessionStart",
+                "additionalContext": combined[:MAX_SESSION_START_CONTEXT],
+            }
+        }
+        print(json.dumps(output, ensure_ascii=False))
+    else:
+        # Minimal output — knowledge base is empty
+        output = {
+            "hookSpecificOutput": {
+                "hookEventName": "SessionStart",
+                "additionalContext": "📚 EasyWork 知识库已准备就绪。当前知识库为空，随会话自动积累。",
+            }
+        }
+        print(json.dumps(output, ensure_ascii=False))
 
 
 # ─── PostToolUse ─────────────────────────────────────────────────────
 
 def handle_post_tool_use():
     """
-    Called after every tool use. Reads event JSON from stdin, appends to buffer.
+    Called after every tool use. Appends event to per-session buffer.
 
-    Input format (stdin JSON):
-    {
-      "tool_name": "Read",
-      "tool_input": {"file_path": "src/auth.go", ...},
-      "tool_output": "...",
-      "duration_ms": 150
-    }
+    Key fix: uses session_id from hook event JSON (not os.getpid()),
+    so all events from the same Claude Code session go to ONE buffer file.
+
+    Input: stdin JSON from Claude Code hook
     """
+    if is_recursive():
+        return
+
     try:
         event = json.loads(sys.stdin.read())
     except (json.JSONDecodeError, EOFError):
@@ -127,7 +222,7 @@ def handle_post_tool_use():
 
     tool_input = event.get("tool_input", {})
 
-    # Extract file paths
+    # Extract file paths from tool input
     file_paths = []
     if "file_path" in tool_input:
         file_paths.append(str(tool_input["file_path"]))
@@ -136,292 +231,155 @@ def handle_post_tool_use():
     if "paths" in tool_input and isinstance(tool_input["paths"], list):
         file_paths.extend(str(p) for p in tool_input["paths"])
 
-    # Filter to interesting files only
+    # Filter to interesting files only (for read tools)
     if tool_name in READ_TOOLS:
         if file_paths and not any(is_interesting_read(p) for p in file_paths):
-            return  # Skip uninteresting reads (e.g., reading /dev/null, temp files)
+            return
+
+    # Get stable session_id from hook event (NOT os.getpid!)
+    session_id = get_session_id_from_event(event)
 
     # Build event record
     record = {
         "ts": datetime.now(timezone.utc).isoformat(),
         "tool": tool_name,
         "files": file_paths,
-        "duration_ms": event.get("duration_ms", 0),
-        # Don't store tool_output in buffer (too large, privacy)
+        "duration_ms": 0,  # not always available in PostToolUse
     }
 
-    # Append to buffer
-    buffer_path = get_buffer_path()
+    # Append to session buffer
+    buffer_path = get_buffer_path(session_id)
     with open(buffer_path, "a", encoding="utf-8") as f:
         f.write(json.dumps(record, ensure_ascii=False) + "\n")
+
+
+# ─── PreCompact ──────────────────────────────────────────────────────
+
+def handle_pre_compact():
+    """
+    Safety net: captures context before Claude Code auto-compacts the context window.
+    Long sessions may trigger multiple compactions before SessionEnd — without this,
+    intermediate context is lost.
+
+    Pattern: claude-memory-compiler's pre-compact.py
+    Guard: skips if transcript_path is empty (known Claude Code bug)
+    """
+    if is_recursive():
+        return
+
+    try:
+        event = json.loads(sys.stdin.read())
+    except (json.JSONDecodeError, EOFError):
+        return
+
+    session_id = get_session_id_from_event(event)
+    transcript_path = event.get("transcript_path", "")
+
+    # Guard: skip if no transcript path (known CC bug #13668)
+    if not transcript_path:
+        return
+
+    buffer_path = get_buffer_path(session_id)
+
+    # Spawn detached flush for pre-compact (lighter: captures context before it's lost)
+    env = os.environ.copy()
+    env["CLAUDE_INVOKED_BY"] = "knowledge_compact"
+
+    if sys.platform == "win32":
+        flags = 0x00000200 | 0x00000008
+        subprocess.Popen(
+            [sys.executable, str(FLUSH_SCRIPT), session_id, transcript_path, str(buffer_path)],
+            creationflags=flags,
+            stdin=subprocess.DEVNULL,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            env=env,
+        )
+    else:
+        subprocess.Popen(
+            [sys.executable, str(FLUSH_SCRIPT), session_id, transcript_path, str(buffer_path)],
+            start_new_session=True,
+            stdin=subprocess.DEVNULL,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            env=env,
+        )
+
+    print(f"[knowledge-hooks] PreCompact: spawned flush for {session_id}", file=sys.stderr)
 
 
 # ─── SessionEnd ──────────────────────────────────────────────────────
 
 def handle_session_end():
     """
-    Called at session end. Reads buffer, writes knowledge entries, cleans up.
+    Called at session termination. Spawns detached knowledge-flush.py to do the
+    heavy lifting (read buffer + transcript → raw dump + daily log + handoff).
 
-    This does the heavy lifting:
-    1. Read JSONL buffer
-    2. Classify by domain
-    3. Write to knowledge/conversation/raw/ (full dump)
-    4. Generate session handoff
-    5. Clean buffer
+    Returns immediately — the flush runs in background.
     """
-    session_id = get_session_id()
-    buffer_path = get_buffer_path()
-
-    if not buffer_path.exists():
-        print(f"[knowledge-hooks] No buffer found for session {session_id}", file=sys.stderr)
-        # Still write a minimal handoff
-        _write_minimal_handoff(session_id)
+    if is_recursive():
         return
 
-    # Read buffer
-    events = []
-    with open(buffer_path, "r", encoding="utf-8") as f:
-        for line in f:
-            line = line.strip()
-            if line:
-                try:
-                    events.append(json.loads(line))
-                except json.JSONDecodeError:
-                    continue
-
-    if not events:
-        _write_minimal_handoff(session_id)
-        buffer_path.unlink(missing_ok=True)
-        return
-
-    # ── Analysis ──────────────────────────────────────────────
-
-    # Count tool usage
-    tool_counts = {}
-    all_files = set()
-    read_files = set()
-    written_files = set()
-    total_duration_ms = 0
-
-    for e in events:
-        tool = e.get("tool", "")
-        tool_counts[tool] = tool_counts.get(tool, 0) + 1
-        files = e.get("files", [])
-        for f in files:
-            all_files.add(f)
-            if e["tool"] in READ_TOOLS:
-                read_files.add(f)
-            elif e["tool"] in WRITE_TOOLS:
-                written_files.add(f)
-        total_duration_ms += e.get("duration_ms", 0)
-
-    # Classify domain
-    domain = classify_domain(list(all_files), "")
-
-    # ── 1. Raw conversation dump ───────────────────────────────
-
-    date_str = datetime.now(timezone.utc).strftime("%Y%m%d")
-    raw_session_dir = RAW_DIR / date_str
-    raw_session_dir.mkdir(parents=True, exist_ok=True)
-
-    raw_dump = {
-        "session_id": session_id,
-        "ended_at": datetime.now(timezone.utc).isoformat(),
-        "domain": domain,
-        "tool_stats": {
-            "total_calls": len(events),
-            "by_tool": tool_counts,
-            "files_read": len(read_files),
-            "files_written": len(written_files),
-            "total_files_touched": len(all_files),
-            "total_duration_ms": total_duration_ms,
-        },
-        "events": events,
-    }
-
-    raw_path = raw_session_dir / f"{session_id}.json"
-    with open(raw_path, "w", encoding="utf-8") as f:
-        json.dump(raw_dump, f, ensure_ascii=False, indent=2)
-
-    # ── 2. Session handoff ─────────────────────────────────────
-
-    read_summary = "\n".join(f"- `{f}`" for f in sorted(read_files)[:20])
-    write_summary = "\n".join(f"- `{f}`" for f in sorted(written_files)[:20])
-    if len(read_files) > 20:
-        read_summary += f"\n- ... 及其他 {len(read_files) - 20} 个文件"
-    if len(written_files) > 20:
-        write_summary += f"\n- ... 及其他 {len(written_files) - 20} 个文件"
-
-    now = datetime.now(timezone.utc)
-    timestamp = now.strftime("%Y-%m-%dT%H:%M:%S+08:00")
-    date_label = now.strftime("%Y-%m-%d")
-
-    handoff_content = f"""---
-dimension: reference
-domain: {domain}
-source: derived
-status: stable
-created: {timestamp}
-session: {session_id}
-tags: [handoff, auto-generated]
----
-
-# 会话交接 — {date_label}
-
-## ✅ 工具调用统计
-
-| 指标 | 值 |
-|------|-----|
-| 总工具调用 | {len(events)} |
-| Read | {tool_counts.get('Read', 0)} |
-| Write/Edit | {tool_counts.get('Write', 0) + tool_counts.get('Edit', 0)} |
-| Bash | {tool_counts.get('Bash', 0)} |
-| Grep/Glob | {tool_counts.get('Grep', 0) + tool_counts.get('Glob', 0)} |
-| WebSearch | {tool_counts.get('WebSearch', 0)} |
-
-## 📁 涉及文件
-
-### 读取 ({len(read_files)} 个)
-{read_summary if read_summary else '（无）'}
-
-### 写入 ({len(written_files)} 个)
-{write_summary if write_summary else '（无）'}
-
-## 📚 原始数据
-
-完整事件日志：`knowledge/conversation/raw/{date_str}/{session_id}.json`
-
-## 🔗 继续方式
-
-下一个 Agent / 会话：
-1. 读 `MEMORY.md` 了解知识库索引
-2. 读本文件了解本次会话统计
-3. 需要详细事件时读原始数据文件
-"""
-
-    handoff_path = SESSIONS_DIR / f"{date_label}-{session_id}.md"
-    SESSIONS_DIR.mkdir(parents=True, exist_ok=True)
-    with open(handoff_path, "w", encoding="utf-8") as f:
-        f.write(handoff_content)
-
-    # ── 3. Try MCP knowledge_store for key findings ────────────
-
-    # Only trigger MCP store if there was substantial activity
-    if len(events) >= 5 and len(all_files) >= 3:
-        _try_mcp_store(domain, all_files, tool_counts, len(events))
-
-    # ── 4. Cleanup ─────────────────────────────────────────────
-
-    buffer_path.unlink(missing_ok=True)
-
-    print(
-        f"[knowledge-hooks] Session {session_id} ended: "
-        f"{len(events)} tool calls, {len(all_files)} files, "
-        f"domain={domain}, raw={raw_path.name}",
-        file=sys.stderr,
-    )
-
-
-def _write_minimal_handoff(session_id: str):
-    """Write a minimal handoff when no buffer exists."""
-    now = datetime.now(timezone.utc)
-    timestamp = now.strftime("%Y-%m-%dT%H:%M:%S+08:00")
-    date_label = now.strftime("%Y-%m-%d")
-
-    content = f"""---
-dimension: reference
-domain: unknown
-source: derived
-status: stable
-created: {timestamp}
-session: {session_id}
-tags: [handoff, auto-generated, minimal]
----
-
-# 会话交接 — {date_label}
-
-## 统计
-
-无工具调用记录（会话无文件操作或 buffer 未生成）。
-
-## 继续方式
-
-下一个 Agent / 会话：读 `MEMORY.md` 了解知识库索引。
-"""
-
-    SESSIONS_DIR.mkdir(parents=True, exist_ok=True)
-    handoff_path = SESSIONS_DIR / f"{date_label}-{session_id}.md"
-    with open(handoff_path, "w", encoding="utf-8") as f:
-        f.write(content)
-
-
-def _try_mcp_store(domain: str, all_files: set, tool_counts: dict, total_events: int):
-    """Try to store a knowledge entry via MCP. Falls back to direct file write."""
     try:
-        import subprocess
+        event = json.loads(sys.stdin.read())
+    except (json.JSONDecodeError, EOFError):
+        return
 
-        files_str = ", ".join(sorted(all_files)[:10])
-        title = f"会话自动沉淀：{len(all_files)} 个文件，{total_events} 次工具调用"
+    session_id = get_session_id_from_event(event)
+    transcript_path = event.get("transcript_path", "")
+    buffer_path = get_buffer_path(session_id)
 
-        content = f"""## 背景
-本次会话自动捕获。涉及 {len(all_files)} 个文件，{total_events} 次工具调用。
+    # Check if buffer has content before spawning
+    if not buffer_path.exists():
+        print(f"[knowledge-hooks] SessionEnd: no buffer for {session_id}, skipping flush",
+              file=sys.stderr)
+        return
 
-## 工具使用
-- Read: {tool_counts.get('Read', 0)}
-- Write/Edit: {tool_counts.get('Write', 0) + tool_counts.get('Edit', 0)}
-- Bash: {tool_counts.get('Bash', 0)}
-- Grep/Glob: {tool_counts.get('Grep', 0) + tool_counts.get('Glob', 0)}
-- WebSearch: {tool_counts.get('WebSearch', 0)}
+    # Spawn detached flush worker
+    env = os.environ.copy()
+    env["CLAUDE_INVOKED_BY"] = "knowledge_flush"
 
-## 涉及文件（前 10 个）
-{files_str}
-
-## ETR
-- **E**: 工具调用日志已保存到 knowledge/conversation/raw/
-- **T**: 基于文件路径和工具类型自动分类领域
-- **R**: 自动分类可能不准确，建议人工复查
-"""
-
-        result = subprocess.run(
-            [
-                sys.executable,
-                str(MCP_SERVER_SCRIPT),
-                "--mode", "cli",
-                "--tool", "knowledge_store",
-                "--args", json.dumps({
-                    "domain": domain,
-                    "source": "derived",
-                    "dimension": "analysis",
-                    "title": title,
-                    "content": content,
-                    "tags": list(all_files)[:5],
-                    "source_files": list(all_files)[:10],
-                    "session": get_session_id(),
-                }),
-            ],
-            capture_output=True,
-            text=True,
-            timeout=10,
+    if sys.platform == "win32":
+        flags = 0x00000200 | 0x00000008
+        subprocess.Popen(
+            [sys.executable, str(FLUSH_SCRIPT), session_id, transcript_path, str(buffer_path)],
+            creationflags=flags,
+            stdin=subprocess.DEVNULL,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            env=env,
         )
-        if result.returncode == 0:
-            print(f"[knowledge-hooks] MCP store: {result.stdout.strip()}", file=sys.stderr)
-        else:
-            print(f"[knowledge-hooks] MCP store failed: {result.stderr}", file=sys.stderr)
-    except Exception as e:
-        print(f"[knowledge-hooks] MCP store error: {e}", file=sys.stderr)
+    else:
+        subprocess.Popen(
+            [sys.executable, str(FLUSH_SCRIPT), session_id, transcript_path, str(buffer_path)],
+            start_new_session=True,
+            stdin=subprocess.DEVNULL,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            env=env,
+        )
+
+    print(f"[knowledge-hooks] SessionEnd: spawned flush for {session_id}", file=sys.stderr)
 
 
 # ─── CLI ─────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        print("Usage: python knowledge-hooks.py <post-tool-use|session-end>", file=sys.stderr)
+        print(
+            "Usage: python knowledge-hooks.py <session-start|post-tool-use|pre-compact|session-end>",
+            file=sys.stderr,
+        )
         sys.exit(1)
 
     command = sys.argv[1]
 
-    if command == "post-tool-use":
+    if command == "session-start":
+        handle_session_start()
+    elif command == "post-tool-use":
         handle_post_tool_use()
+    elif command == "pre-compact":
+        handle_pre_compact()
     elif command == "session-end":
         handle_session_end()
     else:
