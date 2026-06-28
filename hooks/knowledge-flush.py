@@ -51,7 +51,9 @@ MIN_FILES_FOR_STORE = 3
 # Dedup window: skip if same session flushed within this many seconds
 DEDUP_WINDOW_SECONDS = 60
 # Max transcript lines to read (avoid OOM on huge sessions)
-MAX_TRANSCRIPT_LINES = 3000
+MAX_TRANSCRIPT_LINES = 10000
+# Max content length for raw dump (generous — qa-pairs/ has complete full text)
+MAX_CONTENT_LENGTH = 100000
 
 # File patterns for domain classification
 INTEGRATION_PATTERNS = re.compile(
@@ -182,7 +184,7 @@ def read_transcript_excerpt(transcript_path: str, max_lines: int = MAX_TRANSCRIP
                 if content and len(content) > 10:
                     result["user_prompts"].append({
                         "ts": event.get("timestamp", ""),
-                        "content": strip_ansi(content)[:2000],  # strip ANSI, then truncate
+                        "content": strip_ansi(content)[:MAX_CONTENT_LENGTH],
                     })
 
             elif role == "assistant":
@@ -196,7 +198,7 @@ def read_transcript_excerpt(transcript_path: str, max_lines: int = MAX_TRANSCRIP
                 if content and len(content) > 20:
                     result["assistant_messages"].append({
                         "ts": event.get("timestamp", ""),
-                        "content": strip_ansi(content)[:3000],
+                        "content": strip_ansi(content)[:MAX_CONTENT_LENGTH],
                         "stop_reason": msg.get("stop_reason", ""),
                     })
 
@@ -204,6 +206,97 @@ def read_transcript_excerpt(transcript_path: str, max_lines: int = MAX_TRANSCRIP
         result["error"] = str(e)
 
     return result
+
+
+def _sanitize_filename(text: str, max_len: int = 60) -> str:
+    """Convert user prompt to a safe filename segment."""
+    title = text.split("\n")[0].strip()
+    safe = re.sub(r'[\\/:*?"<>|\r\n\t]', "-", title)
+    safe = re.sub(r"\s+", " ", safe).strip()
+    safe = re.sub(r"-{2,}", "-", safe)
+    if len(safe) > max_len:
+        safe = safe[:max_len]
+    return safe or "untitled"
+
+
+def _generate_qa_pairs(transcript_excerpt: dict, date_str: str) -> list[dict]:
+    """
+    Generate qa-pair Markdown files from transcript excerpt (backup path).
+    Skips files that already exist (written by Stop hook).
+    Returns list of dicts for daily log index table.
+    """
+    user_prompts = transcript_excerpt.get("user_prompts", [])
+    assistant_messages = transcript_excerpt.get("assistant_messages", [])
+
+    if not user_prompts or not assistant_messages:
+        return []
+
+    qa_dir = PROJECT_ROOT / "knowledge" / "conversation" / "qa-pairs" / date_str
+    qa_dir.mkdir(parents=True, exist_ok=True)
+
+    rows = []
+    # Pair user prompts with assistant responses by index
+    for i, (user, asst) in enumerate(zip(user_prompts, assistant_messages)):
+        user_content = user.get("content", "")
+        user_ts = user.get("ts", "")
+        asst_content = asst.get("content", "")
+        asst_ts = asst.get("ts", "")
+
+        if not user_content or not asst_content:
+            continue
+
+        # Compute filename (same logic as Stop hook)
+        if user_ts:
+            try:
+                dt_q = datetime.fromisoformat(user_ts.replace("Z", "+00:00"))
+                time_str = dt_q.strftime("%H%M%S")
+            except Exception:
+                time_str = "000000"
+        else:
+            time_str = "000000"
+
+        safe_title = _sanitize_filename(user_content)
+        filename = f"{time_str}-{safe_title}.md"
+        file_path = qa_dir / filename
+
+        # Compute duration
+        dur_str = "N/A"
+        if user_ts and asst_ts:
+            try:
+                t_u = datetime.fromisoformat(user_ts.replace("Z", "+00:00"))
+                t_a = datetime.fromisoformat(asst_ts.replace("Z", "+00:00"))
+                dur = (t_a - t_u).total_seconds()
+                mins = int(dur // 60)
+                secs = dur % 60
+                dur_str = f"{mins}m {secs:.0f}s"
+            except Exception:
+                pass
+
+        # Skip if qa-pair already exists (Stop hook wrote it)
+        if not file_path.exists():
+            content = f"""# {user_content[:200]}
+
+> ⏱ 提问: {user_ts or 'N/A'} | 回答: {asst_ts or 'N/A'} | 耗时: {dur_str}
+
+{asst_content}
+"""
+            try:
+                file_path.write_text(content, encoding="utf-8")
+            except Exception:
+                pass
+
+        # Build index row
+        time_label = time_str[:2] + ":" + time_str[2:4] + ":" + time_str[4:6] if time_str != "000000" else "N/A"
+        question_short = user_content[:80].replace("\n", " ")
+        rows.append({
+            "n": i + 1,
+            "time": time_label,
+            "question": question_short,
+            "duration": dur_str,
+            "file": filename,
+        })
+
+    return rows
 
 
 def count_tool_usage(events: list[dict]) -> dict:
@@ -311,7 +404,10 @@ def flush(session_id: str, transcript_path: str, buffer_path: str):
     with open(raw_path, "w", encoding="utf-8") as f:
         json.dump(raw_dump, f, ensure_ascii=False, indent=2)
 
-    # ── 5. Write daily log ──────────────────────────────────────
+    # ── 5. Generate qa-pair files from transcript (backup for Stop hook) ──
+    qa_rows = _generate_qa_pairs(transcript_excerpt, date_str)
+
+    # ── 6. Write daily log (index, NOT truncated content) ─────────────
     DAILY_DIR.mkdir(parents=True, exist_ok=True)
     daily_path = DAILY_DIR / f"{date_label}.md"
 
@@ -323,15 +419,15 @@ def flush(session_id: str, transcript_path: str, buffer_path: str):
             lines += f"\n- ... 及其他 {len(sorted_files) - max_n} 个文件"
         return lines if lines else "（无）"
 
-    # Format transcript excerpts
-    def fmt_prompts(prompts: list[dict], max_n: int = 5) -> str:
-        if not prompts:
-            return "（未捕获到用户提问）"
-        lines = []
-        for p in prompts[-max_n:]:
-            content = p["content"][:300].replace("\n", " ")
-            lines.append(f"- 💬 {content}...")
-        return "\n".join(lines)
+    # Build Q&A index table
+    qa_table = ""
+    if qa_rows:
+        qa_table = "| # | 时间 | 提问 | 耗时 | 全文 |\n"
+        qa_table += "|---|------|------|------|------|\n"
+        for row in qa_rows:
+            qa_table += f"| {row['n']} | {row['time']} | {row['question']} | {row['duration']} | [→ 查看](qa-pairs/{date_str}/{row['file']}) |\n"
+    else:
+        qa_table = "（本轮未捕获到对话内容）\n"
 
     daily_entry = f"""---
 session: {session_id}
@@ -339,29 +435,26 @@ domain: {domain}
 date: {date_label}
 ---
 
-## 📝 {date_label} — 会话记录
+## 📝 {date_label} — {session_id[:12]}
 
-### 🔧 工具使用
-- 总调用: {len(events)}
-- Read: {tool_counts.get('Read', 0)} | Write/Edit: {tool_counts.get('Write', 0) + tool_counts.get('Edit', 0)}
+### 🔧 统计
+- 总调用: {len(events)} | Read: {tool_counts.get('Read', 0)} | Write/Edit: {tool_counts.get('Write', 0) + tool_counts.get('Edit', 0)}
 - Bash: {tool_counts.get('Bash', 0)} | WebSearch: {tool_counts.get('WebSearch', 0)}
 - 涉及文件: {len(all_files)} 个
 
+### 💬 对话记录
+
+{qa_table}
 ### 📖 读取的文件
 {fmt_files(read_files)}
 
 ### ✏️ 写入的文件
 {fmt_files(written_files)}
 
-### 💬 用户提问
-{fmt_prompts(transcript_excerpt.get('user_prompts', []))}
-
-### 🤖 Agent 回复摘要
-{fmt_prompts(transcript_excerpt.get('assistant_messages', []), max_n=3)}
-
-### 📚 原始数据
-- SQLite: `knowledge/conversation.db` → turns 表（完整 Q&A 全文，支持 FTS5 搜索）
-- Raw: `knowledge/conversation/raw/{date_str}/{session_id}.json`
+### 📚 完整数据
+- **qa-pairs/**: `knowledge/conversation/qa-pairs/{date_str}/` — 完整 Q&A 全文，无截断
+- **SQLite**: `knowledge/conversation.db` — FTS5 全文搜索
+- **Raw**: `knowledge/conversation/raw/{date_str}/{session_id}.json`
 
 ---
 """

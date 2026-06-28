@@ -516,6 +516,11 @@ def handle_stop():
             else:
                 _log_stop(f"FAIL: insert assistant turn: {result.stderr[:200]}")
 
+        # ── 5. Write qa-pair Markdown file (complete, no truncation) ──
+        if latest_user and latest_assistant:
+            _write_qa_pair(session_id, latest_user, latest_user_ts,
+                           latest_assistant, latest_assistant_ts, duration)
+
         # Update cursor
         cursor_path.parent.mkdir(parents=True, exist_ok=True)
         cursor_path.write_text(str(file_size))
@@ -554,6 +559,77 @@ def _log_stop(msg: str):
             f.write(f"[{ts}] {msg}\n")
     except Exception:
         pass
+
+
+def _sanitize_filename(text: str, max_len: int = 60) -> str:
+    """Convert user prompt to a safe filename segment."""
+    # Take first line
+    title = text.split("\n")[0].strip()
+    # Remove/replace unsafe characters
+    safe = re.sub(r'[\\/:*?"<>|\r\n\t]', "-", title)
+    # Collapse whitespace and dashes
+    safe = re.sub(r"\s+", " ", safe).strip()
+    safe = re.sub(r"-{2,}", "-", safe)
+    # Truncate
+    if len(safe) > max_len:
+        safe = safe[:max_len]
+    return safe or "untitled"
+
+
+def _write_qa_pair(session_id: str, user_content: str, user_ts: str,
+                   assistant_content: str, assistant_ts: str,
+                   duration: float | None):
+    """Write a full Q&A pair as a readable Markdown file. No truncation."""
+    try:
+        qa_dir = PROJECT_ROOT / "knowledge" / "conversation" / "qa-pairs"
+        # Parse date from user timestamp
+        if user_ts:
+            try:
+                dt_q = datetime.fromisoformat(user_ts.replace("Z", "+00:00"))
+                date_str = dt_q.strftime("%Y-%m-%d")
+                time_str = dt_q.strftime("%H%M%S")
+            except Exception:
+                now = datetime.now(timezone.utc).astimezone()
+                date_str = now.strftime("%Y-%m-%d")
+                time_str = now.strftime("%H%M%S")
+        else:
+            now = datetime.now(timezone.utc).astimezone()
+            date_str = now.strftime("%Y-%m-%d")
+            time_str = now.strftime("%H%M%S")
+
+        # Sanitize question for filename
+        safe_title = _sanitize_filename(user_content)
+        filename = f"{time_str}-{safe_title}.md"
+
+        day_dir = qa_dir / date_str
+        day_dir.mkdir(parents=True, exist_ok=True)
+
+        file_path = day_dir / filename
+        # Skip if already exists (idempotent — may have been written by flush)
+        if file_path.exists():
+            return
+
+        # Format duration
+        if duration is not None:
+            mins = int(duration // 60)
+            secs = duration % 60
+            dur_str = f"{mins}m {secs:.0f}s"
+        else:
+            dur_str = "N/A"
+
+        # Write complete markdown file — FULL content, zero truncation
+        content = f"""# {user_content[:200]}
+
+> ⏱ 提问: {user_ts or 'N/A'} | 回答: {assistant_ts or 'N/A'} | 耗时: {dur_str}
+> 🔗 会话: {session_id[:12]}
+
+{assistant_content}
+"""
+        file_path.write_text(content, encoding="utf-8")
+        _log_stop(f"QA-PAIR: wrote {filename}")
+
+    except Exception as e:
+        _log_stop(f"FAIL: write qa-pair: {e}")
 
 
 def _is_system_noise(content: str) -> bool:
