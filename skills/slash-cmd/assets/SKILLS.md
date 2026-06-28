@@ -1,6 +1,6 @@
 # EasyWork 技能目录总览
 
-> 14 个技能 · 4 个类别 · 16 条斜杠命令。输入 `/easywork:` 后按 **Tab** 自动补全。
+> 15 个技能 · 4 个类别 · 17 条斜杠命令。输入 `/easywork:` 后按 **Tab** 自动补全。
 
 ## 🧠 学习类（Learning）
 
@@ -11,6 +11,7 @@
 | `/easywork:trace` | trace-code | 函数调用链追踪（入口→路径→分支→数据流） | `/easywork:trace handlePayment` |
 | `/easywork:radar` | tech-radar | 技术动态扫描（点/面/体三级粒度） | `/easywork:radar 深扫 MCP 协议` |
 | `/easywork:coverage` | test-coverage | 测试覆盖率分析（五维覆盖+盲区检测） | `/easywork:coverage src/payment/` |
+| `/easywork:learn` | learn-from-zero | 从零学习——四级解释阶梯（ELI5→专家）+ 图解 + 知识树 | `/easywork:learn Docker` |
 
 ## ✏️ 开发类（Development）
 

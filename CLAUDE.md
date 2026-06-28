@@ -4,13 +4,13 @@
 
 ## 项目概述
 
-EasyWork 是一个 Claude Code 技能生态系统，提供 23 个专业技能 + 流水线编排 + 网状自治分析。覆盖从需求理解、代码实现、审查、测试、复盘到 CTO 拷打的完整研发生命周期。
+EasyWork 是一个 Claude Code 技能生态系统，提供 24 个专业技能 + 流水线编排 + 网状自治分析。覆盖从需求理解、代码实现、审查、测试、复盘到 CTO 拷打的完整研发生命周期。
 
 ## 构建与运行
 
 - 本项目为 Claude Code Skills 集合，无编译/构建步骤
 - Skill 文件位于 `skills/` 目录，每个技能一个 `SKILL.md`
-- 斜杠命令位于 `.claude/commands/easywork/`（21 条命令）
+- 斜杠命令位于 `.claude/commands/easywork/`（22 条命令）
 - 编排中枢：`skills/fullchain-dev-workflow/SKILL.md`
 - 快速参考：`QUICKREF.md`
 - MCP Server：`skills/knowledge-base/mcp-server/`（知识库自动索引）
@@ -34,11 +34,11 @@ EasyWork/
 ├── CLAUDE.md                 ← 本文件（L1 路由，始终加载）
 ├── MEMORY.md                 ← 知识库索引（指针列表）
 ├── QUICKREF.md               ← 30 秒快速参考
-├── skills/                   ← 19 个技能定义
+├── skills/                   ← 20 个技能定义
 │   ├── fullchain-dev-workflow/  ← 编排中枢
 │   ├── knowledge-base/          ← 知识库管理（跨切面能力 + MCP Server）
 │   └── ...
-├── .claude/commands/easywork/ ← 21 条斜杠命令入口
+├── .claude/commands/easywork/ ← 22 条斜杠命令入口
 └── knowledge/                 ← 知识库内容层（L2）
 ```
 

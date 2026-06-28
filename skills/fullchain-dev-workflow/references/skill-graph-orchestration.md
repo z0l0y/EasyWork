@@ -4,7 +4,7 @@
 
 ## 0. 为什么需要点线网
 
-EasyWork 目前有 19 个技能节点，但它们是**孤岛**——每个只能单独调用，彼此不知道对方的存在。
+EasyWork 目前有 20 个技能节点，但它们是**孤岛**——每个只能单独调用，彼此不知道对方的存在。
 
 ```
 现状（孤岛模式）：
@@ -145,7 +145,7 @@ capability:
 规则：跳过全部闸门，风险 L0，无状态文件
 ```
 
-**当前 19 个技能点全部支持点模式**。无需额外实现。
+**当前 20 个技能点全部支持点模式**。无需额外实现。
 
 ---
 
@@ -299,6 +299,7 @@ self-check 拷打发现：
 | `needs_quick_answer` | 需要快速精简回答 | 用户问题明确但不想看长篇大论，建议用 quick-answer 模式回答 |
 | `needs_tech_compare` | 需要技术方案选型对比 | 面临多方案选择/技术决策/架构选型，建议调用 tech-compare 做六阶段战略分析 |
 | `needs_api_test` | 需要接口联调测试 | 新接口开发完成/联调阶段/需要构造测试参数，建议调用 api-test 做全覆盖测试 |
+| `needs_zero_baseline_explanation` | 需要零基础概念解释 | 用户对某概念理解不足/连续追问/表达"不懂"/自称零基础，建议调用 learn-from-zero 做四级分层解释 |
 
 ---
 
@@ -345,7 +346,7 @@ capability:
   risk_level: "L0"                # 纯理解任务，无副作用
 ```
 
-### 5.2 19 个技能的能力卡片速览
+### 5.2 20 个技能的能力卡片速览
 
 | 技能 | 类别 | 消费 | 产出 | 好朋友 |
 |------|------|------|------|--------|
@@ -368,6 +369,7 @@ capability:
 | ⚖️ tech-compare | development | problem_context, candidate_solutions | tech_compare_report, decision_matrix, adr_draft | tech-radar→, read-paper→, →article-write, →self-check (六阶段战略决策框架——问题考古→解空间映射→深度对比→差异化论证→效果量化→演进路线) |
 | 🔌 api-test | quality | api_spec, test_scope | test_case_matrix, error_code_map, db_verify_sql, middleware_verify, test_script | code-implement→, code-review→, →article-write, →self-check (五阶段接口联调——规格解析→用例生成→预期计算→错误码映射→DB/MQ/Redis验证) |
 | 📚 knowledge-base | infrastructure | action, domain, query | knowledge_entry, retrieval_result, maintenance_report | all skills→, all skills← (跨切面底座能力——三维领域模型/五阶段知识生命周期/ETR证据链/会话交接/跨Agent复用) |
+| 🧠 learn-from-zero | learning | concept, user_level, previous_explanation | layered_explanation, knowledge_tree, concept_card | quick-answer→, read-paper→, tech-compare→, read-project→, →graph-fullchain, →article-write, →knowledge-base (四级解释阶梯——ELI5→直觉→技术概览→深入原理+图解+知识树+类比+误区) |
 
 ---
 
