@@ -80,6 +80,16 @@ TOPIC_DEFAULT = "📖-其他"
 # Stop hook fires in real-time; user→reply rarely exceeds 2 hours.
 MAX_EVENT_AGE_HOURS = 2
 
+# Capture pause flag file — when present, Stop hook skips ALL capture
+CAPTURE_PAUSE_FLAG = BUFFER_DIR / "capture-paused"
+
+# No-capture marker — include this anywhere in a message to skip that turn
+NO_CAPTURE_MARKER = "[nc]"
+
+# Capture control phrases — toggle session-wide pause/resume
+CAPTURE_PAUSE_PHRASES = ["暂停捕获", "暂停记录", "停止捕获", "停止记录", "pause capture"]
+CAPTURE_RESUME_PHRASES = ["恢复捕获", "继续捕获", "恢复记录", "继续记录", "resume capture"]
+
 # Tools that trigger knowledge capture
 INTERESTING_TOOLS = {"Read", "Write", "Edit", "Bash", "Grep", "Glob", "WebSearch", "WebFetch"}
 
@@ -416,7 +426,12 @@ def handle_stop():
         _log_stop("SKIP: no transcript_path in event")
         return
 
-    # ── 1. Ensure SQLite DB exists ───────────────────────────────────
+    # ── 1. Check capture pause flag ──────────────────────────────────
+    if _is_capture_paused():
+        _log_stop("SKIP: capture is paused (flag file exists)")
+        return
+
+    # ── 2. Ensure SQLite DB exists ───────────────────────────────────
     try:
         subprocess.run(
             [sys.executable, str(STORE_SCRIPT), "init"],
@@ -487,6 +502,22 @@ def handle_stop():
                 if content and len(content) > 5:
                     # Skip system-injected messages (session summaries, local commands)
                     if not _is_system_noise(content):
+                        # Check for capture control commands (pause/resume)
+                        ctrl = _check_capture_control(content)
+                        if ctrl == "pause":
+                            _set_capture_paused(True)
+                            _log_stop(f"CAPTURE PAUSED: user said '{content[:60]}'")
+                            return  # Skip this entire turn
+                        elif ctrl == "resume":
+                            _set_capture_paused(False)
+                            _log_stop(f"CAPTURE RESUMED: user said '{content[:60]}'")
+                            return  # Skip this entire turn
+
+                        # Check for per-message [nc] marker
+                        if _is_nocapture_marked(content):
+                            _log_stop(f"SKIP [nc]: {content[:80]}")
+                            return  # Skip this entire turn
+
                         msg_ts = msg_event.get("timestamp", "")
                         # Skip stale messages injected from old conversation context
                         # (e.g. /compact summaries that include historical user messages)
@@ -692,6 +723,37 @@ def _is_system_noise(content: str) -> bool:
         "This session is being continued from a previous conversation",
     ]
     return any(marker in content for marker in noise_markers)
+
+
+def _is_nocapture_marked(content: str) -> bool:
+    """Check if a user message contains the [nc] no-capture marker."""
+    return NO_CAPTURE_MARKER in content
+
+
+def _is_capture_paused() -> bool:
+    """Check if session-wide capture is paused (flag file exists)."""
+    return CAPTURE_PAUSE_FLAG.exists()
+
+
+def _set_capture_paused(paused: bool) -> None:
+    """Create or remove the capture-paused flag file."""
+    CAPTURE_PAUSE_FLAG.parent.mkdir(parents=True, exist_ok=True)
+    if paused:
+        CAPTURE_PAUSE_FLAG.write_text("paused")
+    else:
+        CAPTURE_PAUSE_FLAG.unlink(missing_ok=True)
+
+
+def _check_capture_control(content: str) -> str | None:
+    """Detect if a user message is a capture control command.
+    Returns 'pause', 'resume', or None."""
+    for phrase in CAPTURE_PAUSE_PHRASES:
+        if phrase in content:
+            return "pause"
+    for phrase in CAPTURE_RESUME_PHRASES:
+        if phrase in content:
+            return "resume"
+    return None
 
 
 def _classify_topic(user_content: str) -> str:
@@ -924,7 +986,18 @@ def handle_session_end():
 if __name__ == "__main__":
     if len(sys.argv) < 2:
         print(
-            "Usage: python knowledge-hooks.py <session-start|post-tool-use|pre-compact|stop|session-end|init>",
+            "Usage: python knowledge-hooks.py <command>\n"
+            "\n  Hook commands (called by Claude Code):\n"
+            "    session-start       Inject knowledge index into context\n"
+            "    post-tool-use       Record tool usage to buffer\n"
+            "    pre-compact         Safety net before context compaction\n"
+            "    stop               Per-turn Q&A capture (user + assistant)\n"
+            "    session-end         Spawn detached flush worker\n"
+            "\n  User commands:\n"
+            "    init                Bootstrap knowledge/ from template\n"
+            "    capture-pause       Pause all knowledge capture (session-wide)\n"
+            "    capture-resume      Resume knowledge capture\n"
+            "    capture-status      Show current capture state",
             file=sys.stderr,
         )
         sys.exit(1)
@@ -944,6 +1017,17 @@ if __name__ == "__main__":
     elif command == "init":
         ok = init_knowledge_dir()
         print(f"Knowledge dir {'initialized' if ok else 'already exists'}")
+    elif command == "capture-pause":
+        _set_capture_paused(True)
+        print("📚 知识捕获已暂停 — 后续对话不写入知识库")
+    elif command == "capture-resume":
+        _set_capture_paused(False)
+        print("📚 知识捕获已恢复")
+    elif command == "capture-status":
+        if _is_capture_paused():
+            print("📚 知识捕获状态: **已暂停** (恢复: `python hooks/knowledge-hooks.py capture-resume`)")
+        else:
+            print("📚 知识捕获状态: **正常** (暂停: `python hooks/knowledge-hooks.py capture-pause`)")
     else:
         print(f"Unknown command: {command}", file=sys.stderr)
         sys.exit(1)

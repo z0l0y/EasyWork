@@ -110,9 +110,22 @@ python -c "import sqlite3; conn=sqlite3.connect('knowledge/conversation.db'); co
 
 | 触发 | 写入 | 时机 |
 |------|------|------|
-| **Stop hook** | turns 表（Q&A 全文） | 每轮 Agent 回复结束 |
+| **Stop hook** | turns 表（Q&A 全文）| 每轮 Agent 回复结束 |
+| **Stop hook** | qa-pairs/ 目录（Markdown 全文）| 每轮 Agent 回复结束 |
 | **PostToolUse hook** | buffer JSONL | 每次工具调用后 |
 | **SessionEnd hook** | tool_calls 表 + sessions 更新 | 会话退出时 |
+
+## 📂 文件归档
+
+除了 SQLite 数据库，对话还以可读 Markdown 存在：
+
+| 目录 | 内容 | 格式 |
+|------|------|------|
+| `qa-pairs/{date}/{topic}/` | 完整 Q&A 全文 | 单个 `.md` 文件，按主题子目录 |
+| `daily/{date}.md` | 每日索引（主题分组）| 概览表 + 分组表格 |
+| `raw/{date}/` | Layer 0 原始 JSON | 7 天 TTL |
+
+> `qa-pairs/` 是主要的可读归档，`daily/` 是快速索引。两者都由 Stop hook 自动维护。
 
 ## 隐私说明
 

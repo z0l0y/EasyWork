@@ -65,6 +65,9 @@ TOPIC_RULES = [
 TOPIC_DEFAULT = "📖-其他"
 MAX_EVENT_AGE_HOURS = 2
 
+# No-capture marker — skip messages containing this (synced with knowledge-hooks.py)
+NO_CAPTURE_MARKER = "[nc]"
+
 # Minimum activity thresholds to trigger MCP knowledge_store
 MIN_EVENTS_FOR_STORE = 5
 MIN_FILES_FOR_STORE = 3
@@ -380,6 +383,11 @@ def _rebuild_daily_log(date_str: str) -> None:
         pass
 
 
+def _is_nocapture_marked(content: str) -> bool:
+    """Check if a user message contains the [nc] no-capture marker."""
+    return NO_CAPTURE_MARKER in content
+
+
 def _generate_qa_pairs(transcript_excerpt: dict, date_str: str) -> list[dict]:
     """
     Generate qa-pair Markdown files from transcript excerpt (backup path).
@@ -413,6 +421,10 @@ def _generate_qa_pairs(transcript_excerpt: dict, date_str: str) -> list[dict]:
         user_ts = user.get("ts", "")
 
         if not user_content:
+            continue
+
+        # Skip messages marked with [nc] (no-capture)
+        if _is_nocapture_marked(user_content):
             continue
 
         # Skip user prompts with stale timestamps (>2h old — injected from context)

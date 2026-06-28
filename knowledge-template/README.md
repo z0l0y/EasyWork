@@ -42,9 +42,11 @@ knowledge-template/
 │   │   └── _index.md
 │   ├── outputs/           ← Agent回答
 │   │   └── _index.md
+│   ├── qa-pairs/          ← Q&A 全文归档（按日期+主题，Stop hook 实时写入）
+│   │   └── _index.md
 │   ├── raw/               ← Layer 0 原始转储 (7天TTL)
 │   │   └── _index.md
-│   └── daily/             ← 每日日志
+│   └── daily/             ← 每日日志（主题分组，Stop hook 实时重建）
 │       └── _index.md
 └── sessions/              ← 会话交接记录
     └── _index.md
