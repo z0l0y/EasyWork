@@ -59,6 +59,7 @@ CREATE TABLE IF NOT EXISTS turns (
     timestamp TEXT NOT NULL DEFAULT (datetime('now')),
     role TEXT NOT NULL CHECK(role IN ('user','assistant','system','tool')),
     content TEXT NOT NULL,
+    duration_seconds REAL,
     content_preview TEXT GENERATED ALWAYS AS (substr(content, 1, 200)) STORED
 );
 CREATE INDEX IF NOT EXISTS idx_turns_session ON turns(session_id, turn_number);
@@ -137,14 +138,23 @@ def get_conn() -> sqlite3.Connection:
 
 
 def init_db():
-    """Create database and all tables if they don't exist."""
+    """Create database and all tables if they don't exist. Also runs migrations."""
     conn = get_conn()
     try:
         conn.executescript(SCHEMA)
+        # Migrations: add columns that may not exist in older databases
+        _migrate_add_column(conn, "turns", "duration_seconds", "REAL")
         conn.commit()
         print(f"[knowledge-store] Database initialized at {DB_PATH}", file=sys.stderr)
     finally:
         conn.close()
+
+
+def _migrate_add_column(conn: sqlite3.Connection, table: str, column: str, col_type: str):
+    """Add a column if it doesn't already exist (idempotent migration)."""
+    existing = [r[1] for r in conn.execute(f"PRAGMA table_info({table})").fetchall()]
+    if column not in existing:
+        conn.execute(f"ALTER TABLE {table} ADD COLUMN {column} {col_type}")
 
 
 def ensure_session(session_id: str) -> None:
@@ -160,16 +170,21 @@ def ensure_session(session_id: str) -> None:
         conn.close()
 
 
-def insert_turn(session_id: str, turn_number: int, role: str, content: str) -> int:
-    """Insert a single conversation turn. Returns turn rowid."""
+def insert_turn(session_id: str, turn_number: int, role: str, content: str, timestamp: str = None, duration_seconds: float = None) -> int:
+    """Insert a single conversation turn. Returns turn rowid.
+
+    If timestamp is provided, use it (from transcript event).
+    If duration_seconds is provided, store it (for assistant turns: elapsed since user prompt).
+    Otherwise use current local time.
+    """
     ensure_session(session_id)
     conn = get_conn()
     try:
-        # Use local time (not UTC) — SQLite DEFAULT datetime('now') is UTC
-        local_ts = datetime.now(timezone.utc).astimezone().isoformat()
+        # Use provided timestamp if available, otherwise current local time
+        ts = timestamp or datetime.now(timezone.utc).astimezone().isoformat()
         cursor = conn.execute(
-            "INSERT INTO turns (session_id, turn_number, timestamp, role, content) VALUES (?, ?, ?, ?, ?)",
-            (session_id, turn_number, local_ts, role, content),
+            "INSERT INTO turns (session_id, turn_number, timestamp, role, content, duration_seconds) VALUES (?, ?, ?, ?, ?, ?)",
+            (session_id, turn_number, ts, role, content, duration_seconds),
         )
         # Update session turn count
         conn.execute(
@@ -251,7 +266,7 @@ def recent_turns(limit: int = 10) -> list[dict]:
     conn = get_conn()
     try:
         rows = conn.execute(
-            "SELECT id, session_id, turn_number, timestamp, role, content_preview "
+            "SELECT id, session_id, turn_number, timestamp, role, duration_seconds, content_preview "
             "FROM turns ORDER BY id DESC LIMIT ?",
             (limit,),
         ).fetchall()
@@ -298,7 +313,7 @@ def get_turn_detail(turn_id: int) -> dict | None:
     conn = get_conn()
     try:
         r = conn.execute(
-            "SELECT id, session_id, turn_number, timestamp, role, content FROM turns WHERE id=?",
+            "SELECT id, session_id, turn_number, timestamp, role, duration_seconds, content FROM turns WHERE id=?",
             (turn_id,),
         ).fetchone()
         return dict(r) if r else None
@@ -312,7 +327,7 @@ def browse_turns(limit: int = 20, role: str = "") -> list[dict]:
     try:
         where = f"WHERE role = '{role}'" if role in ("user", "assistant") else ""
         rows = conn.execute(
-            f"SELECT id, session_id, turn_number, timestamp, role, content_preview "
+            f"SELECT id, session_id, turn_number, timestamp, role, duration_seconds, content_preview "
             f"FROM turns {where} ORDER BY id DESC LIMIT ?",
             (limit,),
         ).fetchall()
@@ -393,13 +408,15 @@ if __name__ == "__main__":
         if not rows:
             print("(no turns in database)")
             sys.exit(0)
-        print(f"{'ID':<6} {'Session':<12} {'T#':<4} {'Role':<10} {'Time':<20} {'Preview':<60}")
-        print("-" * 112)
+        print(f"{'ID':<6} {'Session':<12} {'T#':<4} {'Role':<10} {'Time':<26} {'⏱':>6} {'Preview':<48}")
+        print("-" * 114)
         for r in rows:
             sid_short = r.get("session_id", "")[:12]
-            ts = r.get("timestamp", "")[:19] if r.get("timestamp") else ""
-            preview = r.get("content_preview", "")[:58] or "(no preview)"
-            print(f"{r['id']:<6} {sid_short:<12} {r.get('turn_number',0):<4} {r['role']:<10} {ts:<20} {preview:<60}")
+            ts = r.get("timestamp", "")[:25] if r.get("timestamp") else ""
+            dur = r.get("duration_seconds")
+            dur_str = f"{dur:.0f}s" if dur else "-"
+            preview = r.get("content_preview", "")[:46] or "(no preview)"
+            print(f"{r['id']:<6} {sid_short:<12} {r.get('turn_number',0):<4} {r['role']:<10} {ts:<26} {dur_str:>6} {preview:<48}")
 
     elif cmd == "turn-detail":
         if len(sys.argv) < 3:
@@ -412,6 +429,10 @@ if __name__ == "__main__":
             print(f"Turn #:     {detail['turn_number']}")
             print(f"Role:       {detail['role']}")
             print(f"Timestamp:  {detail['timestamp']}")
+            if detail.get("duration_seconds"):
+                mins = int(detail["duration_seconds"] // 60)
+                secs = detail["duration_seconds"] % 60
+                print(f"Duration:   {mins}m {secs:.0f}s ({detail['duration_seconds']:.1f}s)")
             print(f"Content:\n{detail['content']}")
         else:
             print(f"Turn {sys.argv[2]} not found.")
@@ -423,6 +444,8 @@ if __name__ == "__main__":
             data.get("turn_number", 0),
             data["role"],
             data["content"],
+            data.get("timestamp"),  # optional: event time from transcript
+            data.get("duration_seconds"),  # optional: elapsed time (assistant turns)
         )
         print(rid)
 

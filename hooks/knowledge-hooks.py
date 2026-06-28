@@ -366,42 +366,46 @@ def handle_stop():
     Called when Claude finishes responding at the end of EACH turn.
     This is the per-turn capture mechanism — writes Q&A to SQLite IMMEDIATELY.
 
-    Reads the transcript tail, extracts the latest user prompt + assistant response,
-    and stores them as turns in the SQLite database.
+    Reads the transcript tail, extracts the latest user prompt + assistant response
+    WITH their original event timestamps, and stores them as turns in SQLite.
 
     Pattern: claude-mem's Stop hook → SQLite per-turn insert
     """
     if is_recursive():
         return
 
+    # ── 0. Parse hook event ──────────────────────────────────────────
     try:
         event = json.loads(sys.stdin.read())
     except (json.JSONDecodeError, EOFError):
+        _log_stop("FAIL: cannot parse stdin JSON")
         return
 
-    # Guard: don't block if stop_hook_active (prevents infinite loops)
-    if event.get("stop_hook_active"):
-        return
+    # Log full event keys for diagnostics (once per session)
+    _log_stop(f"EVENT keys: {list(event.keys())} | stop_hook_active={event.get('stop_hook_active')}")
 
     session_id = get_session_id_from_event(event)
     transcript_path = event.get("transcript_path", "")
 
     if not transcript_path:
+        _log_stop("SKIP: no transcript_path in event")
         return
 
-    # Ensure SQLite DB exists
+    # ── 1. Ensure SQLite DB exists ───────────────────────────────────
     try:
         subprocess.run(
             [sys.executable, str(STORE_SCRIPT), "init"],
             capture_output=True, timeout=5,
             creationflags=CREATE_NO_WINDOW if sys.platform == "win32" else 0,
         )
-    except Exception:
+    except Exception as e:
+        _log_stop(f"FAIL: db init error: {e}")
         return
 
-    # Read transcript tail and extract latest Q&A
+    # ── 2. Read transcript tail ──────────────────────────────────────
     tp = Path(transcript_path)
     if not tp.exists():
+        _log_stop(f"SKIP: transcript not found: {transcript_path}")
         return
 
     # Track last-read position per session+transcript (avoid re-reading)
@@ -420,17 +424,21 @@ def handle_stop():
         # CRITICAL: if file_size < last_pos, the transcript was truncated (e.g. after /compact).
         # Reset cursor to 0 so we don't skip new content.
         if file_size < last_pos:
+            _log_stop(f"RESET cursor: file_size({file_size}) < last_pos({last_pos}) — /compact detected")
             last_pos = 0
         if file_size <= last_pos:
+            _log_stop(f"SKIP: no new content (file={file_size}, cursor={last_pos})")
             return  # No new content
 
         with open(tp, "r", encoding="utf-8") as f:
             f.seek(max(0, last_pos))
             new_content = f.read()
 
-        # Extract latest user prompt and assistant response
+        # ── 3. Extract latest user prompt and assistant response ──────
         latest_user = None
+        latest_user_ts = None
         latest_assistant = None
+        latest_assistant_ts = None
         turn_number = 0
 
         for line in new_content.strip().split("\n"):
@@ -455,6 +463,8 @@ def handle_stop():
                     # Skip system-injected messages (session summaries, local commands)
                     if not _is_system_noise(content):
                         latest_user = content
+                        latest_user_ts = msg_event.get("timestamp", "")
+                        turn_number = msg_event.get("turn_number", turn_number)
 
             elif role == "assistant":
                 content = msg.get("content", "")
@@ -465,38 +475,85 @@ def handle_stop():
                     )
                 if content and len(content) > 10:
                     latest_assistant = content
-                    turn_number = msg_event.get("turn_number", 0)
+                    latest_assistant_ts = msg_event.get("timestamp", "")
+                    turn_number = msg_event.get("turn_number", turn_number)
 
-        # Insert turns via knowledge-store (pass data via stdin to avoid
-        # Windows command-line encoding issues with non-ASCII characters)
+        # ── 4. Compute duration & insert turns with precise event timestamps ─
+        # Parse timestamps to calculate elapsed seconds between user prompt and assistant reply
+        duration = _compute_duration(latest_user_ts, latest_assistant_ts)
+
+        inserted = 0
         if latest_user:
-            subprocess.run(
+            result = subprocess.run(
                 [sys.executable, str(STORE_SCRIPT), "turn"],
                 input=json.dumps({"session_id": session_id, "turn_number": turn_number,
-                                  "role": "user", "content": latest_user},
+                                  "role": "user", "content": latest_user,
+                                  "timestamp": latest_user_ts or None},
                                  ensure_ascii=False),
                 encoding="utf-8",
                 capture_output=True, timeout=10,
                 creationflags=CREATE_NO_WINDOW if sys.platform == "win32" else 0,
             )
+            if result.returncode == 0:
+                inserted += 1
+            else:
+                _log_stop(f"FAIL: insert user turn: {result.stderr[:200]}")
 
         if latest_assistant:
-            subprocess.run(
+            result = subprocess.run(
                 [sys.executable, str(STORE_SCRIPT), "turn"],
                 input=json.dumps({"session_id": session_id, "turn_number": turn_number + 1,
-                                  "role": "assistant", "content": latest_assistant},
+                                  "role": "assistant", "content": latest_assistant,
+                                  "timestamp": latest_assistant_ts or None,
+                                  "duration_seconds": duration},
                                  ensure_ascii=False),
                 encoding="utf-8",
                 capture_output=True, timeout=10,
                 creationflags=CREATE_NO_WINDOW if sys.platform == "win32" else 0,
             )
+            if result.returncode == 0:
+                inserted += 1
+            else:
+                _log_stop(f"FAIL: insert assistant turn: {result.stderr[:200]}")
 
         # Update cursor
         cursor_path.parent.mkdir(parents=True, exist_ok=True)
         cursor_path.write_text(str(file_size))
 
+        _log_stop(f"OK: inserted {inserted} turns (T#{turn_number}), "
+                  f"user_ts={latest_user_ts or 'N/A'}, asst_ts={latest_assistant_ts or 'N/A'}, "
+                  f"cursor={file_size}")
+
     except Exception as e:
-        print(f"[knowledge-hooks] Stop hook error: {e}", file=sys.stderr)
+        _log_stop(f"ERROR: {e}")
+        import traceback
+        _log_stop(traceback.format_exc())
+
+
+def _compute_duration(user_ts: str, assistant_ts: str) -> float | None:
+    """Compute elapsed seconds between user prompt and assistant reply timestamps."""
+    if not user_ts or not assistant_ts:
+        return None
+    try:
+        # Timestamps from transcript are ISO format, possibly with timezone
+        from datetime import datetime as dt
+        t_user = dt.fromisoformat(user_ts.replace("Z", "+00:00"))
+        t_asst = dt.fromisoformat(assistant_ts.replace("Z", "+00:00"))
+        return (t_asst - t_user).total_seconds()
+    except Exception:
+        return None
+
+
+def _log_stop(msg: str):
+    """Write diagnostic log for Stop hook troubleshooting."""
+    try:
+        log_path = PROJECT_ROOT / "knowledge" / ".buffer" / "hook-debug.log"
+        log_path.parent.mkdir(parents=True, exist_ok=True)
+        ts = datetime.now(timezone.utc).astimezone().isoformat()
+        with open(log_path, "a", encoding="utf-8") as f:
+            f.write(f"[{ts}] {msg}\n")
+    except Exception:
+        pass
 
 
 def _is_system_noise(content: str) -> bool:
