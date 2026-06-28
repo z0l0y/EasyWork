@@ -277,9 +277,9 @@ def flush(session_id: str, transcript_path: str, buffer_path: str):
 
     domain = classify_domain(list(all_files))
 
-    now = datetime.now(timezone.utc)
+    now = datetime.now(timezone.utc).astimezone()
     date_str = now.strftime("%Y%m%d")
-    timestamp = now.strftime("%Y-%m-%dT%H:%M:%S+08:00")
+    timestamp = now.isoformat()
     date_label = now.strftime("%Y-%m-%d")
 
     # ── 4. Write raw dump (Layer 0, 7-day TTL) ──────────────────
@@ -356,8 +356,12 @@ date: {date_label}
 ### 💬 用户提问
 {fmt_prompts(transcript_excerpt.get('user_prompts', []))}
 
+### 🤖 Agent 回复摘要
+{fmt_prompts(transcript_excerpt.get('assistant_messages', []), max_n=3)}
+
 ### 📚 原始数据
-`knowledge/conversation/raw/{date_str}/{session_id}.json`
+- SQLite: `knowledge/conversation.db` → turns 表（完整 Q&A 全文，支持 FTS5 搜索）
+- Raw: `knowledge/conversation/raw/{date_str}/{session_id}.json`
 
 ---
 """
@@ -461,6 +465,8 @@ def _try_mcp_store(domain: str, all_files: list[str], tool_counts: dict, total_e
 - **R**: 自动分类可能不准确，建议人工复查
 """
 
+        # CREATE_NO_WINDOW = 0x08000000 on Windows
+        win_flags = 0x08000000 if sys.platform == "win32" else 0
         result = subprocess.run(
             [
                 sys.executable,
@@ -481,6 +487,7 @@ def _try_mcp_store(domain: str, all_files: list[str], tool_counts: dict, total_e
             capture_output=True,
             text=True,
             timeout=10,
+            creationflags=win_flags,
         )
         if result.returncode == 0:
             print(f"[knowledge-flush] MCP store: {result.stdout.strip()}", file=sys.stderr)

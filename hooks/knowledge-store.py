@@ -153,7 +153,7 @@ def ensure_session(session_id: str) -> None:
     try:
         conn.execute(
             "INSERT OR IGNORE INTO sessions (id, started_at) VALUES (?, ?)",
-            (session_id, datetime.now(timezone.utc).isoformat()),
+            (session_id, datetime.now(timezone.utc).astimezone().isoformat()),
         )
         conn.commit()
     finally:
@@ -165,9 +165,11 @@ def insert_turn(session_id: str, turn_number: int, role: str, content: str) -> i
     ensure_session(session_id)
     conn = get_conn()
     try:
+        # Use local time (not UTC) — SQLite DEFAULT datetime('now') is UTC
+        local_ts = datetime.now(timezone.utc).astimezone().isoformat()
         cursor = conn.execute(
-            "INSERT INTO turns (session_id, turn_number, role, content) VALUES (?, ?, ?, ?)",
-            (session_id, turn_number, role, content),
+            "INSERT INTO turns (session_id, turn_number, timestamp, role, content) VALUES (?, ?, ?, ?, ?)",
+            (session_id, turn_number, local_ts, role, content),
         )
         # Update session turn count
         conn.execute(
@@ -209,7 +211,7 @@ def end_session(session_id: str) -> None:
     try:
         conn.execute(
             "UPDATE sessions SET ended_at = ? WHERE id = ? AND ended_at IS NULL",
-            (datetime.now(timezone.utc).isoformat(), session_id),
+            (datetime.now(timezone.utc).astimezone().isoformat(), session_id),
         )
         conn.commit()
     finally:
@@ -425,7 +427,7 @@ if __name__ == "__main__":
         print(rid)
 
     elif cmd == "tool-call":
-        data = json.loads(sys.stdin.read()) if len(sys.argv) < 3 else json.loads(sys.argv[2])
+        data = json.loads(sys.stdin.read())
         rid = insert_tool_call(
             data["session_id"],
             data["tool_name"],
@@ -436,9 +438,8 @@ if __name__ == "__main__":
         print(rid)
 
     elif cmd == "session-end":
-        data = json.loads(sys.stdin.read()) if len(sys.argv) < 3 else {}
-        sid = data.get("session_id", "") if isinstance(data, dict) else sys.argv[2]
-        end_session(sid)
+        data = json.loads(sys.stdin.read())
+        end_session(data.get("session_id", ""))
         print("ok")
 
     elif cmd == "search":

@@ -16,7 +16,7 @@ import json
 import os
 import re
 import sys
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
@@ -303,7 +303,7 @@ class KnowledgeIndexer:
             updated_str = entry.get("updated", "")
             if updated_str:
                 try:
-                    updated = datetime.fromisoformat(updated_str.replace("+08:00", ""))
+                    updated = datetime.fromisoformat(re.sub(r'[+-]\d{2}:\d{2}$', '', updated_str))
                     days_since = (now - updated).days
                     if days_since > 90:
                         stale_entries.append({
@@ -620,9 +620,9 @@ class KnowledgeMCPServer:
         session = args.get("session", "")
         entry_id = args.get("entry_id", "")
 
-        now = datetime.now()
+        now = datetime.now(timezone.utc).astimezone()
         date_str = now.strftime("%Y%m%d")
-        timestamp = now.strftime("%Y-%m-%dT%H:%M:%S+08:00")
+        timestamp = now.isoformat()
 
         # Generate ID if not provided
         if not entry_id:

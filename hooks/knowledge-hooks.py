@@ -38,6 +38,10 @@ from pathlib import Path
 if sys.platform == "win32":
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
+# Windows: prevent console windows from popping up for subprocess calls
+CREATE_NO_WINDOW = 0x08000000
+WINDOWS_FLAGS = 0x00000200 | 0x00000008 | CREATE_NO_WINDOW  # CREATE_NEW_PROCESS_GROUP | DETACHED_PROCESS | CREATE_NO_WINDOW
+
 
 # ─── Config ──────────────────────────────────────────────────────────
 
@@ -210,7 +214,7 @@ def handle_session_start():
     # 2. Most recent daily log (if exists today)
     daily_dir = PROJECT_ROOT / "knowledge" / "conversation" / "daily"
     if daily_dir.exists():
-        today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+        today = datetime.now(timezone.utc).astimezone().strftime("%Y-%m-%d")
         today_log = daily_dir / f"{today}.md"
         if today_log.exists():
             try:
@@ -332,10 +336,9 @@ def handle_pre_compact():
     env["CLAUDE_INVOKED_BY"] = "knowledge_compact"
 
     if sys.platform == "win32":
-        flags = 0x00000200 | 0x00000008
         subprocess.Popen(
             [sys.executable, str(FLUSH_SCRIPT), session_id, transcript_path, str(buffer_path)],
-            creationflags=flags,
+            creationflags=WINDOWS_FLAGS,
             stdin=subprocess.DEVNULL,
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
@@ -391,6 +394,7 @@ def handle_stop():
         subprocess.run(
             [sys.executable, str(STORE_SCRIPT), "init"],
             capture_output=True, timeout=5,
+            creationflags=CREATE_NO_WINDOW if sys.platform == "win32" else 0,
         )
     except Exception:
         return
@@ -473,6 +477,7 @@ def handle_stop():
                                  ensure_ascii=False),
                 encoding="utf-8",
                 capture_output=True, timeout=10,
+                creationflags=CREATE_NO_WINDOW if sys.platform == "win32" else 0,
             )
 
         if latest_assistant:
@@ -483,6 +488,7 @@ def handle_stop():
                                  ensure_ascii=False),
                 encoding="utf-8",
                 capture_output=True, timeout=10,
+                creationflags=CREATE_NO_WINDOW if sys.platform == "win32" else 0,
             )
 
         # Update cursor
@@ -537,10 +543,9 @@ def handle_session_end():
     env["CLAUDE_INVOKED_BY"] = "knowledge_flush"
 
     if sys.platform == "win32":
-        flags = 0x00000200 | 0x00000008
         subprocess.Popen(
             [sys.executable, str(FLUSH_SCRIPT), session_id, transcript_path, str(buffer_path)],
-            creationflags=flags,
+            creationflags=WINDOWS_FLAGS,
             stdin=subprocess.DEVNULL,
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
