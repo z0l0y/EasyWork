@@ -1,6 +1,6 @@
 # EasyWork 技能目录总览
 
-> 16 个技能 · 4 个类别 · 18 条斜杠命令。输入 `/easywork:` 后按 **Tab** 自动补全。
+> 25 个技能 · 6 个类别 · 23 条斜杠命令。输入 `/easywork:` 后按 **Tab** 自动补全。
 
 ## 🧠 学习类（Learning）
 
@@ -25,18 +25,21 @@
 | `/easywork:selfcheck` | self-check | 四阶段 CTO 盘问+认知缺口 | `/easywork:selfcheck 我刚改的登录逻辑` |
 | `/easywork:graph` | graph-fullchain | Mermaid 架构图+节点对照表 | `/easywork:graph 支付系统` |
 | `/easywork:sum` | sum-session | 六要素总结（背景→发现→问题→解决→效果→展望） | `/easywork:sum 本次迭代` |
+| `/easywork:compare` | tech-compare | 技术方案选型对比（多维度+评分矩阵+推荐） | `/easywork:compare React vs Vue` |
 
 ## ✅ 质量类（Quality）
 
 | 命令 | 技能 ID | 做什么 | 试一下 |
 |------|---------|--------|--------|
 | `/easywork:checklist` | checklist | 开发清单审计（Pre-flight 就绪+Audit 交付） | `/easywork:checklist 开发前检查` |
+| `/easywork:test` | api-test | 接口联调测试（curl/契约/自动化验证） | `/easywork:test POST /api/users` |
 
 ## 📝 内容类（Content）
 
 | 命令 | 技能 ID | 做什么 | 试一下 |
 |------|---------|--------|--------|
 | `/easywork:article` | article-write | Agent 输出→格式化 Markdown 文档（6 种模板） | `/easywork:article 把刚才的分析写成报告` |
+| `/easywork:quick` | quick-answer | 快问快答——TL;DR 前置+结构化压缩 | `/easywork:quick 什么是 CAP 定理` |
 
 ## 🔗 编排入口（Orchestration）
 
@@ -44,6 +47,13 @@
 |------|------|--------|--------|
 | `/easywork:pipeline` | 🔗 线模式 | 7 条内置流水线+动态 DAG 编排 | `/easywork:pipeline 先理解项目，再追踪支付` |
 | `/easywork:meta` | 🌐 网模式 | Meta-Orchestrator 自治扩散+深度分析 | `/easywork:meta 支付模块能不能扛住双11` |
+| `/easywork:slash-cmd` | 💻 命令管理 | 创建/更新/删除斜杠命令+技能索引 | `/easywork:slash-cmd sync` |
+
+## 🔧 基础设施（Infrastructure）
+
+| 命令 | 技能 ID | 做什么 | 试一下 |
+|------|---------|--------|--------|
+| `/easywork:knowledge` | knowledge-base | 知识库管理（搜索/存储/统计/维护+MCP Server） | `/easywork:knowledge search HBase` |
 
 ---
 
@@ -67,6 +77,10 @@
 | "追踪一下这个函数的调用链" | 🔬 trace-code |
 | "最近 AI Agent 有什么新东西" | 🛰️ tech-radar |
 | "测试覆盖率怎么样" | 🧪 test-coverage |
+| "对比一下这两个技术方案" | ⚖️ tech-compare |
+| "帮我测试一下这个接口" | 🔌 api-test |
+| "这个概念我不太懂" | 🧠 learn-from-zero |
+| "说重点" | ⚡ quick-answer |
 
 ---
 
