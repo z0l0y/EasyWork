@@ -400,8 +400,10 @@ def handle_stop():
     if not tp.exists():
         return
 
-    # Track last-read position per session (avoid re-reading)
-    cursor_path = STATE_DIR / f"{session_id}.cursor"
+    # Track last-read position per session+transcript (avoid re-reading)
+    # Keyed by session_id + transcript filename to detect transcript rotation after /compact
+    transcript_key = tp.name.replace(".jsonl", "").replace(".json", "")
+    cursor_path = STATE_DIR / f"{session_id}_{transcript_key}.cursor"
     last_pos = 0
     if cursor_path.exists():
         try:
@@ -411,6 +413,10 @@ def handle_stop():
 
     try:
         file_size = tp.stat().st_size
+        # CRITICAL: if file_size < last_pos, the transcript was truncated (e.g. after /compact).
+        # Reset cursor to 0 so we don't skip new content.
+        if file_size < last_pos:
+            last_pos = 0
         if file_size <= last_pos:
             return  # No new content
 
@@ -457,22 +463,25 @@ def handle_stop():
                     latest_assistant = content
                     turn_number = msg_event.get("turn_number", 0)
 
-        # Insert turns via knowledge-store
+        # Insert turns via knowledge-store (pass data via stdin to avoid
+        # Windows command-line encoding issues with non-ASCII characters)
         if latest_user:
             subprocess.run(
-                [sys.executable, str(STORE_SCRIPT), "turn",
-                 json.dumps({"session_id": session_id, "turn_number": turn_number,
-                             "role": "user", "content": latest_user},
-                            ensure_ascii=False)],
+                [sys.executable, str(STORE_SCRIPT), "turn"],
+                input=json.dumps({"session_id": session_id, "turn_number": turn_number,
+                                  "role": "user", "content": latest_user},
+                                 ensure_ascii=False),
+                encoding="utf-8",
                 capture_output=True, timeout=10,
             )
 
         if latest_assistant:
             subprocess.run(
-                [sys.executable, str(STORE_SCRIPT), "turn",
-                 json.dumps({"session_id": session_id, "turn_number": turn_number + 1,
-                             "role": "assistant", "content": latest_assistant},
-                            ensure_ascii=False)],
+                [sys.executable, str(STORE_SCRIPT), "turn"],
+                input=json.dumps({"session_id": session_id, "turn_number": turn_number + 1,
+                                  "role": "assistant", "content": latest_assistant},
+                                 ensure_ascii=False),
+                encoding="utf-8",
                 capture_output=True, timeout=10,
             )
 

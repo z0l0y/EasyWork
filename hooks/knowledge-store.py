@@ -28,6 +28,10 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
+# Fix Windows stdout encoding for emoji/Chinese output
+if sys.platform == "win32":
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 DB_PATH = PROJECT_ROOT / "knowledge" / "conversation.db"
 
@@ -411,7 +415,7 @@ if __name__ == "__main__":
             print(f"Turn {sys.argv[2]} not found.")
 
     elif cmd == "turn":
-        data = json.loads(sys.stdin.read()) if len(sys.argv) < 3 else json.loads(sys.argv[2])
+        data = json.loads(sys.stdin.read())
         rid = insert_turn(
             data["session_id"],
             data.get("turn_number", 0),
