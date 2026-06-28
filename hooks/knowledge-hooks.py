@@ -562,6 +562,17 @@ def _log_stop(msg: str):
         pass
 
 
+def _utc_to_local(ts: str) -> str:
+    """Convert UTC timestamp (Z suffix) to local ISO format."""
+    if not ts:
+        return ts
+    try:
+        dt_utc = datetime.fromisoformat(ts.replace("Z", "+00:00"))
+        return dt_utc.astimezone().isoformat()
+    except Exception:
+        return ts
+
+
 def _sanitize_filename(text: str, max_len: int = 60) -> str:
     """Convert user prompt to a safe filename segment."""
     # Take first line
@@ -583,10 +594,12 @@ def _write_qa_pair(session_id: str, user_content: str, user_ts: str,
     """Write a full Q&A pair as a readable Markdown file. No truncation."""
     try:
         qa_dir = PROJECT_ROOT / "knowledge" / "conversation" / "qa-pairs"
-        # Parse date from user timestamp
-        if user_ts:
+        # Convert UTC timestamps to local time for filename + display
+        local_user_ts = _utc_to_local(user_ts)
+        local_asst_ts = _utc_to_local(assistant_ts)
+        if local_user_ts:
             try:
-                dt_q = datetime.fromisoformat(user_ts.replace("Z", "+00:00"))
+                dt_q = datetime.fromisoformat(local_user_ts)
                 date_str = dt_q.strftime("%Y-%m-%d")
                 time_str = dt_q.strftime("%H%M%S")
             except Exception:
@@ -621,7 +634,7 @@ def _write_qa_pair(session_id: str, user_content: str, user_ts: str,
         # Write complete markdown file — FULL content, zero truncation
         content = f"""# {user_content[:200]}
 
-> ⏱ 提问: {user_ts or 'N/A'} | 回答: {assistant_ts or 'N/A'} | 耗时: {dur_str}
+> ⏱ 提问: {local_user_ts or user_ts or 'N/A'} | 回答: {local_asst_ts or assistant_ts or 'N/A'} | 耗时: {dur_str}
 > 🔗 会话: {session_id[:12]}
 
 {assistant_content}
@@ -629,8 +642,50 @@ def _write_qa_pair(session_id: str, user_content: str, user_ts: str,
         file_path.write_text(content, encoding="utf-8")
         _log_stop(f"QA-PAIR: wrote {filename}")
 
+        # Also update daily log in real-time
+        _append_daily_log(date_str, time_str, user_content, dur_str, filename, session_id)
+
     except Exception as e:
         _log_stop(f"FAIL: write qa-pair: {e}")
+
+
+def _append_daily_log(date_str: str, time_str: str, user_content: str,
+                      dur_str: str, filename: str, session_id: str):
+    """Append a Q&A row to today's daily log. Create header if new day."""
+    try:
+        daily_dir = PROJECT_ROOT / "knowledge" / "conversation" / "daily"
+        daily_dir.mkdir(parents=True, exist_ok=True)
+        daily_path = daily_dir / f"{date_str}.md"
+
+        # Count existing rows for turn number
+        row_num = 1
+        if daily_path.exists():
+            existing = daily_path.read_text(encoding="utf-8")
+            # Count table rows (lines starting with |)
+            row_num = existing.count("\n| ") + 1
+
+        # Format time label
+        time_label = f"{time_str[:2]}:{time_str[2:4]}:{time_str[4:6]}"
+        question_short = user_content[:80].replace("\n", " ").replace("|", "/")
+
+        row_line = f"| {row_num} | {time_label} | {question_short} | {dur_str} | [→ 查看](qa-pairs/{date_str}/{filename}) |\n"
+
+        if not daily_path.exists():
+            # Create new daily log with header
+            header = f"""# 📝 {date_str} — 对话记录
+
+| # | 时间 | 提问 | 耗时 | 全文 |
+|---|------|------|------|------|
+{row_line}
+"""
+            daily_path.write_text(header, encoding="utf-8")
+        else:
+            # Append row
+            with open(daily_path, "a", encoding="utf-8") as f:
+                f.write(row_line)
+
+    except Exception:
+        pass  # Best-effort; never block main flow
 
 
 def _is_system_noise(content: str) -> bool:

@@ -161,6 +161,7 @@ def read_transcript_excerpt(transcript_path: str, max_lines: int = MAX_TRANSCRIP
             lines = lines[-max_lines:]
             result["excerpted"] = True
 
+        prev_role = None
         for line in lines:
             if not line:
                 continue
@@ -197,11 +198,20 @@ def read_transcript_excerpt(transcript_path: str, max_lines: int = MAX_TRANSCRIP
                             text_parts.append(block.get("text", ""))
                     content = " ".join(text_parts)
                 if content and len(content) > 20:
-                    result["assistant_messages"].append({
+                    entry = {
                         "ts": event.get("timestamp", ""),
                         "content": strip_ansi(content)[:MAX_CONTENT_LENGTH],
                         "stop_reason": msg.get("stop_reason", ""),
-                    })
+                    }
+                    # CRITICAL: merge consecutive assistant events (streaming chunks).
+                    # The last event in a group contains the FULL response; earlier ones
+                    # are partial chunks. Replace the previous entry instead of appending.
+                    if prev_role == "assistant" and result["assistant_messages"]:
+                        result["assistant_messages"][-1] = entry
+                    else:
+                        result["assistant_messages"].append(entry)
+
+            prev_role = role
 
     except Exception as e:
         result["error"] = str(e)
@@ -458,61 +468,33 @@ def flush(session_id: str, transcript_path: str, buffer_path: str):
     # ── 5. Generate qa-pair files from transcript (backup for Stop hook) ──
     qa_rows = _generate_qa_pairs(transcript_excerpt, date_str)
 
-    # ── 6. Write daily log (index, NOT truncated content) ─────────────
+    # ── 6. Append session stats to daily log (Q&A table maintained by Stop hook) ──
     DAILY_DIR.mkdir(parents=True, exist_ok=True)
     daily_path = DAILY_DIR / f"{date_label}.md"
 
     # Format file lists
-    def fmt_files(files: set, max_n: int = 15) -> str:
+    def fmt_files(files: set, max_n: int = 12) -> str:
         sorted_files = sorted(files)
         lines = "\n".join(f"- `{f}`" for f in sorted_files[:max_n])
         if len(sorted_files) > max_n:
             lines += f"\n- ... 及其他 {len(sorted_files) - max_n} 个文件"
         return lines if lines else "（无）"
 
-    # Build Q&A index table
-    qa_table = ""
-    if qa_rows:
-        qa_table = "| # | 时间 | 提问 | 耗时 | 全文 |\n"
-        qa_table += "|---|------|------|------|------|\n"
-        for row in qa_rows:
-            qa_table += f"| {row['n']} | {row['time']} | {row['question']} | {row['duration']} | [→ 查看](qa-pairs/{date_str}/{row['file']}) |\n"
-    else:
-        qa_table = "（本轮未捕获到对话内容）\n"
+    # Only append stats — Q&A rows are already written by Stop hook in real-time
+    stats_entry = f"""
 
-    daily_entry = f"""---
-session: {session_id}
-domain: {domain}
-date: {date_label}
----
-
-## 📝 {date_label} — {session_id[:12]}
-
-### 🔧 统计
-- 总调用: {len(events)} | Read: {tool_counts.get('Read', 0)} | Write/Edit: {tool_counts.get('Write', 0) + tool_counts.get('Edit', 0)}
+### 🔧 会话 {session_id[:12]} 统计
+- 工具调用: {len(events)} | Read: {tool_counts.get('Read', 0)} | Write/Edit: {tool_counts.get('Write', 0) + tool_counts.get('Edit', 0)}
 - Bash: {tool_counts.get('Bash', 0)} | WebSearch: {tool_counts.get('WebSearch', 0)}
 - 涉及文件: {len(all_files)} 个
-
-### 💬 对话记录
-
-{qa_table}
-### 📖 读取的文件
-{fmt_files(read_files)}
-
-### ✏️ 写入的文件
-{fmt_files(written_files)}
-
-### 📚 完整数据
-- **qa-pairs/**: `knowledge/conversation/qa-pairs/{date_str}/` — 完整 Q&A 全文，无截断
-- **SQLite**: `knowledge/conversation.db` — FTS5 全文搜索
-- **Raw**: `knowledge/conversation/raw/{date_str}/{session_id}.json`
+- 读取: {fmt_files(read_files)}
+- 写入: {fmt_files(written_files)}
 
 ---
 """
 
-    # Append to daily log (multiple sessions can write to same day)
     with open(daily_path, "a", encoding="utf-8") as f:
-        f.write(daily_entry)
+        f.write(stats_entry)
 
     # ── 6. Write session handoff ────────────────────────────────
     SESSIONS_DIR.mkdir(parents=True, exist_ok=True)
