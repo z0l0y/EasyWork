@@ -524,7 +524,7 @@ Phase 5: 写后验证
 {workspace}/docs/{date}-{slug}.md
 ```
 
-- `{workspace}` = 当前 git 仓库根目录（`~/project`）
+- `{workspace}` = 当前 git 仓库根目录（如 `~/project`）
 - `{date}` = YYYY-MM-DD
 - `{slug}` = 标题的 kebab-case（英文/拼音，≤50 字符）
 
