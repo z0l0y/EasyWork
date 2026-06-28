@@ -182,10 +182,11 @@ def read_transcript_excerpt(transcript_path: str, max_lines: int = MAX_TRANSCRIP
                             text_parts.append(block.get("text", ""))
                     content = " ".join(text_parts)
                 if content and len(content) > 10:
-                    result["user_prompts"].append({
-                        "ts": event.get("timestamp", ""),
-                        "content": strip_ansi(content)[:MAX_CONTENT_LENGTH],
-                    })
+                    if not _is_system_noise(content):
+                        result["user_prompts"].append({
+                            "ts": event.get("timestamp", ""),
+                            "content": strip_ansi(content)[:MAX_CONTENT_LENGTH],
+                        })
 
             elif role == "assistant":
                 content = msg.get("content", "")
@@ -206,6 +207,18 @@ def read_transcript_excerpt(transcript_path: str, max_lines: int = MAX_TRANSCRIP
         result["error"] = str(e)
 
     return result
+
+
+def _is_system_noise(content: str) -> bool:
+    """Filter out system-injected messages that aren't real user prompts."""
+    noise_markers = [
+        "<local-command-caveat>",
+        "<command-name>",
+        "<command-args>",
+        "<local-command-stdout>",
+        "This session is being continued from a previous conversation",
+    ]
+    return any(marker in content for marker in noise_markers)
 
 
 def _sanitize_filename(text: str, max_len: int = 60) -> str:
@@ -234,13 +247,50 @@ def _generate_qa_pairs(transcript_excerpt: dict, date_str: str) -> list[dict]:
     qa_dir = PROJECT_ROOT / "knowledge" / "conversation" / "qa-pairs" / date_str
     qa_dir.mkdir(parents=True, exist_ok=True)
 
+    # Filter out interrupted/incomplete assistant messages
+    valid_assistant = []
+    for a in assistant_messages:
+        ac = a.get("content", "")
+        if "[Request interrupted by user" in ac:
+            continue
+        if len(ac) < 20:
+            continue
+        valid_assistant.append(a)
+
     rows = []
-    # Pair user prompts with assistant responses by index
-    for i, (user, asst) in enumerate(zip(user_prompts, assistant_messages)):
+    # Pair: for each user prompt, find the next assistant response with a later timestamp
+    asst_idx = 0
+    for i, user in enumerate(user_prompts):
         user_content = user.get("content", "")
         user_ts = user.get("ts", "")
+
+        if not user_content:
+            continue
+
+        # Find matching assistant response (timestamp must be after user timestamp)
+        while asst_idx < len(valid_assistant):
+            asst = valid_assistant[asst_idx]
+            asst_ts = asst.get("ts", "")
+            # Check if assistant timestamp is after user timestamp
+            if user_ts and asst_ts:
+                try:
+                    t_u = datetime.fromisoformat(user_ts.replace("Z", "+00:00"))
+                    t_a = datetime.fromisoformat(asst_ts.replace("Z", "+00:00"))
+                    if t_a >= t_u:
+                        break  # Found matching assistant
+                except Exception:
+                    break
+            else:
+                break
+            asst_idx += 1
+
+        if asst_idx >= len(valid_assistant):
+            break  # No more assistant responses
+
+        asst = valid_assistant[asst_idx]
         asst_content = asst.get("content", "")
         asst_ts = asst.get("ts", "")
+        asst_idx += 1  # Consume this assistant response
 
         if not user_content or not asst_content:
             continue
@@ -266,9 +316,10 @@ def _generate_qa_pairs(transcript_excerpt: dict, date_str: str) -> list[dict]:
                 t_u = datetime.fromisoformat(user_ts.replace("Z", "+00:00"))
                 t_a = datetime.fromisoformat(asst_ts.replace("Z", "+00:00"))
                 dur = (t_a - t_u).total_seconds()
-                mins = int(dur // 60)
-                secs = dur % 60
-                dur_str = f"{mins}m {secs:.0f}s"
+                if dur >= 0:
+                    mins = int(dur // 60)
+                    secs = dur % 60
+                    dur_str = f"{mins}m {secs:.0f}s"
             except Exception:
                 pass
 
@@ -371,7 +422,7 @@ def flush(session_id: str, transcript_path: str, buffer_path: str):
     domain = classify_domain(list(all_files))
 
     now = datetime.now(timezone.utc).astimezone()
-    date_str = now.strftime("%Y%m%d")
+    date_str = now.strftime("%Y-%m-%d")
     timestamp = now.isoformat()
     date_label = now.strftime("%Y-%m-%d")
 

@@ -34,9 +34,10 @@ import time
 from datetime import datetime, timezone
 from pathlib import Path
 
-# Fix Windows stdout encoding for emoji output
+# Fix Windows I/O encoding — stdin/stdout default to GBK on Windows
 if sys.platform == "win32":
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    sys.stdin.reconfigure(encoding="utf-8")
 
 # Windows: prevent console windows from popping up for subprocess calls
 CREATE_NO_WINDOW = 0x08000000
