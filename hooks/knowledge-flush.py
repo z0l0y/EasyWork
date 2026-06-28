@@ -45,6 +45,26 @@ SESSIONS_DIR = PROJECT_ROOT / "knowledge" / "sessions"
 STATE_FILE = PROJECT_ROOT / "knowledge" / ".buffer" / "state.json"
 MCP_SERVER_SCRIPT = PROJECT_ROOT / "skills" / "knowledge-base" / "mcp-server" / "server.py"
 
+# Topic classification: keyword-based auto-categorization (synced with knowledge-hooks.py)
+TOPIC_RULES = [
+    ("🧠-概念解释", ["是什么", "什么意思", "区别", "对比", "定义", "概念", "解释", "理解",
+                     "介绍", "diff", "compare", "what is", "概述", "简介", "有啥区别",
+                     "有什么不同", "区别是", "不同点"]),
+    ("🐛-问题排查", ["bug", "error", "报错", "不工作", "失败", "出问题", "修复", "fix",
+                     "排查", "debug", "坏了", "不对", "错误", "异常", "怎么没", "不更新",
+                     "没反应", "不行", "有问题", "出不来"]),
+    ("💻-代码实现", ["实现", "开发", "写代码", "添加功能", "创建", "生成", "implement",
+                     "create", "build", "coding", "编写", "写一个", "帮我写", "代码"]),
+    ("🔧-工具配置", ["安装", "配置", "setup", "install", "config", "部署", "deploy",
+                     "环境", "插件", "plugin", "hook", "hooks", "mcp", "skill"]),
+    ("📊-架构设计", ["设计", "架构", "重构", "architecture", "design", "refactor",
+                     "结构", "模式", "pattern", "方案", "选型", "技术栈", "框架"]),
+    ("🚀-性能优化", ["性能", "优化", "慢", "加速", "perf", "卡顿", "memory", "内存",
+                     "CPU", "提速", "瓶颈", "吞吐"]),
+]
+TOPIC_DEFAULT = "📖-其他"
+MAX_EVENT_AGE_HOURS = 2
+
 # Minimum activity thresholds to trigger MCP knowledge_store
 MIN_EVENTS_FOR_STORE = 5
 MIN_FILES_FOR_STORE = 3
@@ -242,10 +262,130 @@ def _sanitize_filename(text: str, max_len: int = 60) -> str:
     return safe or "untitled"
 
 
+def _classify_topic(user_content: str) -> str:
+    """Classify a user question into a topic category based on keyword matching."""
+    text = user_content.lower()
+    for topic_dir, keywords in TOPIC_RULES:
+        for kw in keywords:
+            if kw.lower() in text:
+                return topic_dir
+    return TOPIC_DEFAULT
+
+
+def _is_stale_timestamp(ts: str, max_age_hours: int = MAX_EVENT_AGE_HOURS) -> bool:
+    """Check if a transcript event timestamp is too old to be a current-turn message."""
+    if not ts:
+        return False
+    try:
+        event_dt = datetime.fromisoformat(ts.replace("Z", "+00:00"))
+        now_dt = datetime.now(timezone.utc)
+        age = (now_dt - event_dt).total_seconds()
+        return age > max_age_hours * 3600
+    except Exception:
+        return False
+
+
+def _rebuild_daily_log(date_str: str) -> None:
+    """Rebuild the daily log from all qa-pair files in the date directory.
+    Groups entries by topic, generates an overview table + per-topic sections.
+    (synced with knowledge-hooks.py)"""
+    try:
+        daily_dir = PROJECT_ROOT / "knowledge" / "conversation" / "daily"
+        qa_dir = PROJECT_ROOT / "knowledge" / "conversation" / "qa-pairs" / date_str
+        daily_dir.mkdir(parents=True, exist_ok=True)
+
+        if not qa_dir.exists():
+            daily_path = daily_dir / f"{date_str}.md"
+            daily_path.write_text(f"# 📝 {date_str} — 对话记录\n\n尚无非系统噪声的问答记录。\n", encoding="utf-8")
+            return
+
+        entries = []
+        for topic_dir in sorted(qa_dir.iterdir()):
+            if not topic_dir.is_dir():
+                continue
+            topic_name = topic_dir.name
+            for md_file in sorted(topic_dir.glob("*.md")):
+                try:
+                    text = md_file.read_text(encoding="utf-8")
+                    lines = text.split("\n")
+                    title = lines[0][2:].strip() if lines[0].startswith("# ") else md_file.stem
+                    fname = md_file.name
+                    time_label = "N/A"
+                    if len(fname) >= 6 and fname[:6].isdigit():
+                        hh, mm, ss = fname[:2], fname[2:4], fname[4:6]
+                        time_label = f"{hh}:{mm}:{ss}"
+                    dur_str = "N/A"
+                    if len(lines) >= 3:
+                        meta_line = lines[2]
+                        dur_match = re.search(r"耗时:\s*(\d+m\s*\d+s|N/A)", meta_line)
+                        if dur_match:
+                            dur_str = dur_match.group(1)
+                    rel_path = f"qa-pairs/{date_str}/{topic_name}/{fname}"
+                    entries.append({
+                        "topic": topic_name,
+                        "time": time_label,
+                        "title": title[:100],
+                        "duration": dur_str,
+                        "rel_path": rel_path,
+                    })
+                except Exception:
+                    continue
+
+        if not entries:
+            daily_path = daily_dir / f"{date_str}.md"
+            daily_path.write_text(f"# 📝 {date_str} — 对话记录\n\n尚无非系统噪声的问答记录。\n", encoding="utf-8")
+            return
+
+        entries.sort(key=lambda e: e["time"])
+        grouped = {}
+        for e in entries:
+            grouped.setdefault(e["topic"], []).append(e)
+
+        topic_order = [t[0] for t in TOPIC_RULES] + [TOPIC_DEFAULT]
+        counts = {}
+        for t in topic_order:
+            counts[t] = len(grouped.get(t, []))
+        total = sum(counts.values())
+
+        overview_header = "| " + " | ".join(
+            t.replace("📖-其他", "📖其他").replace("🧠-概念解释", "🧠概念").replace("🐛-问题排查", "🐛排查")
+             .replace("💻-代码实现", "💻实现").replace("🔧-工具配置", "🔧配置")
+             .replace("📊-架构设计", "📊架构").replace("🚀-性能优化", "🚀性能")
+            for t in topic_order) + " | **总计** |"
+        overview_sep = "|" + "|".join(":---:" for _ in range(len(topic_order) + 1)) + "|"
+        overview_row = "| " + " | ".join(str(counts[t]) for t in topic_order) + f" | **{total}** |"
+
+        md = f"""# 📝 {date_str} — 对话记录
+
+## 📊 概览
+{overview_header}
+{overview_sep}
+{overview_row}
+"""
+        for topic in topic_order:
+            items = grouped.get(topic, [])
+            if not items:
+                continue
+            md += f"\n## {topic}（{len(items)} 条）\n"
+            md += "| # | 时间 | 提问 | 耗时 |\n"
+            md += "|---|------|------|------|\n"
+            for i, item in enumerate(items, 1):
+                time_short = item["time"][:5] if len(item["time"]) >= 5 else item["time"]
+                title_short = item["title"][:80].replace("|", "/")
+                md += f"| {i} | {time_short} | [{title_short}]({item['rel_path']}) | {item['duration']} |\n"
+
+        daily_path = daily_dir / f"{date_str}.md"
+        daily_path.write_text(md, encoding="utf-8")
+    except Exception:
+        pass
+
+
 def _generate_qa_pairs(transcript_excerpt: dict, date_str: str) -> list[dict]:
     """
     Generate qa-pair Markdown files from transcript excerpt (backup path).
     Skips files that already exist (written by Stop hook).
+    Skips user prompts with stale timestamps (injected from old context).
+    Saves into topic subdirectories.
     Returns list of dicts for daily log index table.
     """
     user_prompts = transcript_excerpt.get("user_prompts", [])
@@ -255,7 +395,6 @@ def _generate_qa_pairs(transcript_excerpt: dict, date_str: str) -> list[dict]:
         return []
 
     qa_dir = PROJECT_ROOT / "knowledge" / "conversation" / "qa-pairs" / date_str
-    qa_dir.mkdir(parents=True, exist_ok=True)
 
     # Filter out interrupted/incomplete assistant messages
     valid_assistant = []
@@ -268,7 +407,6 @@ def _generate_qa_pairs(transcript_excerpt: dict, date_str: str) -> list[dict]:
         valid_assistant.append(a)
 
     rows = []
-    # Pair: for each user prompt, find the next assistant response with a later timestamp
     asst_idx = 0
     for i, user in enumerate(user_prompts):
         user_content = user.get("content", "")
@@ -277,17 +415,20 @@ def _generate_qa_pairs(transcript_excerpt: dict, date_str: str) -> list[dict]:
         if not user_content:
             continue
 
+        # Skip user prompts with stale timestamps (>2h old — injected from context)
+        if _is_stale_timestamp(user_ts):
+            continue
+
         # Find matching assistant response (timestamp must be after user timestamp)
         while asst_idx < len(valid_assistant):
             asst = valid_assistant[asst_idx]
             asst_ts = asst.get("ts", "")
-            # Check if assistant timestamp is after user timestamp
             if user_ts and asst_ts:
                 try:
                     t_u = datetime.fromisoformat(user_ts.replace("Z", "+00:00"))
                     t_a = datetime.fromisoformat(asst_ts.replace("Z", "+00:00"))
                     if t_a >= t_u:
-                        break  # Found matching assistant
+                        break
                 except Exception:
                     break
             else:
@@ -300,16 +441,17 @@ def _generate_qa_pairs(transcript_excerpt: dict, date_str: str) -> list[dict]:
         asst = valid_assistant[asst_idx]
         asst_content = asst.get("content", "")
         asst_ts = asst.get("ts", "")
-        asst_idx += 1  # Consume this assistant response
+        asst_idx += 1
 
         if not user_content or not asst_content:
             continue
 
-        # Compute filename (same logic as Stop hook)
+        # Compute filename
         if user_ts:
             try:
                 dt_q = datetime.fromisoformat(user_ts.replace("Z", "+00:00"))
-                time_str = dt_q.strftime("%H%M%S")
+                dt_local = dt_q.astimezone()
+                time_str = dt_local.strftime("%H%M%S")
             except Exception:
                 time_str = "000000"
         else:
@@ -317,7 +459,12 @@ def _generate_qa_pairs(transcript_excerpt: dict, date_str: str) -> list[dict]:
 
         safe_title = _sanitize_filename(user_content)
         filename = f"{time_str}-{safe_title}.md"
-        file_path = qa_dir / filename
+
+        # Classify topic and save into topic subdirectory
+        topic = _classify_topic(user_content)
+        topic_dir = qa_dir / topic
+        topic_dir.mkdir(parents=True, exist_ok=True)
+        file_path = topic_dir / filename
 
         # Compute duration
         dur_str = "N/A"
@@ -355,6 +502,7 @@ def _generate_qa_pairs(transcript_excerpt: dict, date_str: str) -> list[dict]:
             "question": question_short,
             "duration": dur_str,
             "file": filename,
+            "topic": topic,
         })
 
     return rows
@@ -468,7 +616,8 @@ def flush(session_id: str, transcript_path: str, buffer_path: str):
     # ── 5. Generate qa-pair files from transcript (backup for Stop hook) ──
     qa_rows = _generate_qa_pairs(transcript_excerpt, date_str)
 
-    # ── 6. Append session stats to daily log (Q&A table maintained by Stop hook) ──
+    # ── 6. Append session stats to daily log ──
+    # Stats go AFTER the Q&A index (which is rebuilt from qa-pairs/ by Stop hook)
     DAILY_DIR.mkdir(parents=True, exist_ok=True)
     daily_path = DAILY_DIR / f"{date_label}.md"
 
@@ -480,7 +629,8 @@ def flush(session_id: str, transcript_path: str, buffer_path: str):
             lines += f"\n- ... 及其他 {len(sorted_files) - max_n} 个文件"
         return lines if lines else "（无）"
 
-    # Only append stats — Q&A rows are already written by Stop hook in real-time
+    _rebuild_daily_log(date_str)
+
     stats_entry = f"""
 
 ### 🔧 会话 {session_id[:12]} 统计
@@ -496,7 +646,7 @@ def flush(session_id: str, transcript_path: str, buffer_path: str):
     with open(daily_path, "a", encoding="utf-8") as f:
         f.write(stats_entry)
 
-    # ── 6. Write session handoff ────────────────────────────────
+    # ── 7. Write session handoff ────────────────────────────────
     SESSIONS_DIR.mkdir(parents=True, exist_ok=True)
 
     read_summary = fmt_files(read_files)

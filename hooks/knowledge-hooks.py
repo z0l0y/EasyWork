@@ -56,6 +56,30 @@ STATE_DIR = BUFFER_DIR  # reuse buffer dir for state files
 KNOWLEDGE_INDEX = KNOWLEDGE_DIR / "README.md"
 MEMORY_FILE = PROJECT_ROOT / "MEMORY.md"
 
+# Topic classification: keyword-based auto-categorization of user questions.
+# Rules are evaluated in order; first match wins. Default: "📖-其他"
+TOPIC_RULES = [
+    ("🧠-概念解释", ["是什么", "什么意思", "区别", "对比", "定义", "概念", "解释", "理解",
+                     "介绍", "diff", "compare", "what is", "概述", "简介", "有啥区别",
+                     "有什么不同", "区别是", "不同点"]),
+    ("🐛-问题排查", ["bug", "error", "报错", "不工作", "失败", "出问题", "修复", "fix",
+                     "排查", "debug", "坏了", "不对", "错误", "异常", "怎么没", "不更新",
+                     "没反应", "不行", "有问题", "出不来"]),
+    ("💻-代码实现", ["实现", "开发", "写代码", "添加功能", "创建", "生成", "implement",
+                     "create", "build", "coding", "编写", "写一个", "帮我写", "代码"]),
+    ("🔧-工具配置", ["安装", "配置", "setup", "install", "config", "部署", "deploy",
+                     "环境", "插件", "plugin", "hook", "hooks", "mcp", "skill"]),
+    ("📊-架构设计", ["设计", "架构", "重构", "architecture", "design", "refactor",
+                     "结构", "模式", "pattern", "方案", "选型", "技术栈", "框架"]),
+    ("🚀-性能优化", ["性能", "优化", "慢", "加速", "perf", "卡顿", "memory", "内存",
+                     "CPU", "提速", "瓶颈", "吞吐"]),
+]
+TOPIC_DEFAULT = "📖-其他"
+
+# Max age for a user message timestamp before it's considered stale (hours).
+# Stop hook fires in real-time; user→reply rarely exceeds 2 hours.
+MAX_EVENT_AGE_HOURS = 2
+
 # Tools that trigger knowledge capture
 INTERESTING_TOOLS = {"Read", "Write", "Edit", "Bash", "Grep", "Glob", "WebSearch", "WebFetch"}
 
@@ -463,8 +487,14 @@ def handle_stop():
                 if content and len(content) > 5:
                     # Skip system-injected messages (session summaries, local commands)
                     if not _is_system_noise(content):
+                        msg_ts = msg_event.get("timestamp", "")
+                        # Skip stale messages injected from old conversation context
+                        # (e.g. /compact summaries that include historical user messages)
+                        if _is_stale_timestamp(msg_ts):
+                            _log_stop(f"SKIP stale user msg: ts={msg_ts}, preview={content[:80]}")
+                            continue
                         latest_user = content
-                        latest_user_ts = msg_event.get("timestamp", "")
+                        latest_user_ts = msg_ts
                         turn_number = msg_event.get("turn_number", turn_number)
 
             elif role == "assistant":
@@ -591,7 +621,8 @@ def _sanitize_filename(text: str, max_len: int = 60) -> str:
 def _write_qa_pair(session_id: str, user_content: str, user_ts: str,
                    assistant_content: str, assistant_ts: str,
                    duration: float | None):
-    """Write a full Q&A pair as a readable Markdown file. No truncation."""
+    """Write a full Q&A pair as a readable Markdown file. No truncation.
+    Saves into a topic subdirectory (auto-classified from user prompt)."""
     try:
         qa_dir = PROJECT_ROOT / "knowledge" / "conversation" / "qa-pairs"
         # Convert UTC timestamps to local time for filename + display
@@ -615,7 +646,9 @@ def _write_qa_pair(session_id: str, user_content: str, user_ts: str,
         safe_title = _sanitize_filename(user_content)
         filename = f"{time_str}-{safe_title}.md"
 
-        day_dir = qa_dir / date_str
+        # Classify topic and save into topic subdirectory
+        topic = _classify_topic(user_content)
+        day_dir = qa_dir / date_str / topic
         day_dir.mkdir(parents=True, exist_ok=True)
 
         file_path = day_dir / filename
@@ -640,52 +673,13 @@ def _write_qa_pair(session_id: str, user_content: str, user_ts: str,
 {assistant_content}
 """
         file_path.write_text(content, encoding="utf-8")
-        _log_stop(f"QA-PAIR: wrote {filename}")
+        _log_stop(f"QA-PAIR: wrote {topic}/{filename}")
 
-        # Also update daily log in real-time
-        _append_daily_log(date_str, time_str, user_content, dur_str, filename, session_id)
+        # Rebuild daily log (topic-grouped structure — cannot simple-append)
+        _rebuild_daily_log(date_str)
 
     except Exception as e:
         _log_stop(f"FAIL: write qa-pair: {e}")
-
-
-def _append_daily_log(date_str: str, time_str: str, user_content: str,
-                      dur_str: str, filename: str, session_id: str):
-    """Append a Q&A row to today's daily log. Create header if new day."""
-    try:
-        daily_dir = PROJECT_ROOT / "knowledge" / "conversation" / "daily"
-        daily_dir.mkdir(parents=True, exist_ok=True)
-        daily_path = daily_dir / f"{date_str}.md"
-
-        # Count existing rows for turn number
-        row_num = 1
-        if daily_path.exists():
-            existing = daily_path.read_text(encoding="utf-8")
-            # Count table rows (lines starting with |)
-            row_num = existing.count("\n| ") + 1
-
-        # Format time label
-        time_label = f"{time_str[:2]}:{time_str[2:4]}:{time_str[4:6]}"
-        question_short = user_content[:80].replace("\n", " ").replace("|", "/")
-
-        row_line = f"| {row_num} | {time_label} | {question_short} | {dur_str} | [→ 查看](qa-pairs/{date_str}/{filename}) |\n"
-
-        if not daily_path.exists():
-            # Create new daily log with header
-            header = f"""# 📝 {date_str} — 对话记录
-
-| # | 时间 | 提问 | 耗时 | 全文 |
-|---|------|------|------|------|
-{row_line}
-"""
-            daily_path.write_text(header, encoding="utf-8")
-        else:
-            # Append row
-            with open(daily_path, "a", encoding="utf-8") as f:
-                f.write(row_line)
-
-    except Exception:
-        pass  # Best-effort; never block main flow
 
 
 def _is_system_noise(content: str) -> bool:
@@ -698,6 +692,178 @@ def _is_system_noise(content: str) -> bool:
         "This session is being continued from a previous conversation",
     ]
     return any(marker in content for marker in noise_markers)
+
+
+def _classify_topic(user_content: str) -> str:
+    """Classify a user question into a topic category based on keyword matching.
+    Returns the topic directory name (e.g. '🧠-概念解释'), or '📖-其他' as default.
+    """
+    text = user_content.lower()
+    for topic_dir, keywords in TOPIC_RULES:
+        for kw in keywords:
+            if kw.lower() in text:
+                return topic_dir
+    return TOPIC_DEFAULT
+
+
+def _is_stale_timestamp(ts: str, max_age_hours: int = MAX_EVENT_AGE_HOURS) -> bool:
+    """Check if a transcript event timestamp is too old to be a current-turn message.
+    Returns True if the timestamp is more than max_age_hours before now (stale context injection).
+    Returns False if the timestamp is recent or unparseable (safe default: accept it).
+    """
+    if not ts:
+        return False  # No timestamp → can't judge, accept it
+    try:
+        from datetime import timezone as tz_mod
+        event_dt = datetime.fromisoformat(ts.replace("Z", "+00:00"))
+        now_dt = datetime.now(tz_mod.utc)
+        age = (now_dt - event_dt).total_seconds()
+        return age > max_age_hours * 3600
+    except Exception:
+        return False  # Unparseable timestamp → accept it (safe default)
+
+
+def _rebuild_daily_log(date_str: str) -> None:
+    """Rebuild the daily log from all qa-pair files in the date directory.
+    Groups entries by topic, generates an overview table + per-topic sections.
+    """
+    try:
+        daily_dir = PROJECT_ROOT / "knowledge" / "conversation" / "daily"
+        qa_dir = PROJECT_ROOT / "knowledge" / "conversation" / "qa-pairs" / date_str
+        daily_dir.mkdir(parents=True, exist_ok=True)
+
+        if not qa_dir.exists():
+            # No qa-pairs yet — write minimal daily log
+            daily_path = daily_dir / f"{date_str}.md"
+            daily_path.write_text(f"# 📝 {date_str} — 对话记录\n\n尚无非系统噪声的问答记录。\n", encoding="utf-8")
+            return
+
+        # Collect all qa-pair entries from topic subdirectories
+        entries = []  # list of {topic, time_str, title, dur_str, rel_path, filename}
+        for topic_dir in sorted(qa_dir.iterdir()):
+            if not topic_dir.is_dir():
+                continue
+            topic_name = topic_dir.name
+            for md_file in sorted(topic_dir.glob("*.md")):
+                try:
+                    text = md_file.read_text(encoding="utf-8")
+                    lines = text.split("\n")
+                    # Line 0: "# {title}"
+                    title = lines[0][2:].strip() if lines[0].startswith("# ") else md_file.stem
+                    # Line 2: "> ⏱ 提问: ... | 回答: ... | 耗时: Xm Ys"
+                    dur_str = "N/A"
+                    time_label = "N/A"
+                    if len(lines) >= 3 and lines[2].startswith("> ⏱"):
+                        meta = lines[2]
+                        # Extract time: from "> ⏱ 提问: ..." take the first time
+                        # or extract the local HH:MM from the filename (more reliable)
+                        pass
+                    # Extract time from filename: format is HHMMSS-title.md
+                    fname = md_file.name
+                    if len(fname) >= 6 and fname[:6].isdigit():
+                        hh, mm, ss = fname[:2], fname[2:4], fname[4:6]
+                        time_label = f"{hh}:{mm}:{ss}"
+                    # Extract duration from metadata line
+                    if len(lines) >= 3:
+                        meta_line = lines[2]
+                        dur_match = re.search(r"耗时:\s*(\d+m\s*\d+s|N/A)", meta_line)
+                        if dur_match:
+                            dur_str = dur_match.group(1)
+                    # Build relative path from daily dir
+                    rel_path = f"qa-pairs/{date_str}/{topic_name}/{fname}"
+                    entries.append({
+                        "topic": topic_name,
+                        "time": time_label,
+                        "title": title[:100],
+                        "duration": dur_str,
+                        "rel_path": rel_path,
+                    })
+                except Exception:
+                    continue
+
+        if not entries:
+            daily_path = daily_dir / f"{date_str}.md"
+            daily_path.write_text(f"# 📝 {date_str} — 对话记录\n\n尚无非系统噪声的问答记录。\n", encoding="utf-8")
+            return
+
+        # Sort entries by time
+        entries.sort(key=lambda e: e["time"])
+
+        # Group by topic
+        grouped = {}
+        for e in entries:
+            grouped.setdefault(e["topic"], []).append(e)
+
+        # Build overview row
+        topic_order = [t[0] for t in TOPIC_RULES] + [TOPIC_DEFAULT]
+        counts = {}
+        for t in topic_order:
+            counts[t] = len(grouped.get(t, []))
+        total = sum(counts.values())
+
+        overview_header = "| " + " | ".join(t.replace("📖-其他", "📖其他").replace("🧠-概念解释", "🧠概念").replace("🐛-问题排查", "🐛排查").replace("💻-代码实现", "💻实现").replace("🔧-工具配置", "🔧配置").replace("📊-架构设计", "📊架构").replace("🚀-性能优化", "🚀性能") for t in topic_order) + " | **总计** |"
+        overview_sep = "|" + "|".join(":---:" for _ in range(len(topic_order) + 1)) + "|"
+        overview_row = "| " + " | ".join(str(counts[t]) for t in topic_order) + f" | **{total}** |"
+
+        # Build markdown
+        md = f"""# 📝 {date_str} — 对话记录
+
+## 📊 概览
+{overview_header}
+{overview_sep}
+{overview_row}
+"""
+        # Per-topic sections
+        for topic in topic_order:
+            items = grouped.get(topic, [])
+            if not items:
+                continue
+            md += f"\n## {topic}（{len(items)} 条）\n"
+            md += "| # | 时间 | 提问 | 耗时 |\n"
+            md += "|---|------|------|------|\n"
+            for i, item in enumerate(items, 1):
+                time_short = item["time"][:5] if len(item["time"]) >= 5 else item["time"]
+                title_short = item["title"][:80].replace("|", "/")
+                md += f"| {i} | {time_short} | [{title_short}]({item['rel_path']}) | {item['duration']} |\n"
+
+        # Write daily log
+        daily_path = daily_dir / f"{date_str}.md"
+        daily_path.write_text(md, encoding="utf-8")
+
+    except Exception:
+        pass  # Best-effort; never block main flow
+
+
+def _migrate_flat_to_topic(date_str: str) -> int:
+    """Migrate existing flat qa-pair files into topic subdirectories.
+    Returns count of files migrated.
+    """
+    qa_dir = PROJECT_ROOT / "knowledge" / "conversation" / "qa-pairs" / date_str
+    if not qa_dir.exists():
+        return 0
+
+    migrated = 0
+    for md_file in sorted(qa_dir.glob("*.md")):
+        if not md_file.is_file():
+            continue
+        try:
+            text = md_file.read_text(encoding="utf-8")
+            # Extract user content from first line: "# {title}"
+            first_line = text.split("\n")[0]
+            user_content = first_line[2:].strip() if first_line.startswith("# ") else first_line
+
+            topic = _classify_topic(user_content)
+            topic_dir = qa_dir / topic
+            topic_dir.mkdir(parents=True, exist_ok=True)
+
+            target = topic_dir / md_file.name
+            if not target.exists():
+                md_file.rename(target)
+                migrated += 1
+        except Exception:
+            continue
+
+    return migrated
 
 
 # ─── SessionEnd ──────────────────────────────────────────────────────
