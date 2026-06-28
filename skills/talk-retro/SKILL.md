@@ -6,6 +6,7 @@ description: >
   （诚实记录代价）、工程规范提炼（输出可落地的团队规则）。
 allowed-tools: Read, Search
 model: opus
+model_fallback: sonnet
 version: 2.12
 capability:
   id: talk-retro

@@ -34,7 +34,7 @@ EasyWork/
 ├── CLAUDE.md                 ← 本文件（L1 路由，始终加载）
 ├── MEMORY.md                 ← 知识库索引（指针列表）
 ├── QUICKREF.md               ← 30 秒快速参考
-├── skills/                   ← 21 个技能定义
+├── skills/                   ← 25 个技能定义
 │   ├── fullchain-dev-workflow/  ← 编排中枢
 │   ├── knowledge-base/          ← 知识库管理（跨切面能力 + MCP Server）
 │   └── ...

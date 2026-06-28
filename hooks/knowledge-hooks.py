@@ -559,7 +559,7 @@ def handle_stop():
             if result.returncode == 0:
                 inserted += 1
             else:
-                _log_stop(f"FAIL: insert user turn: {result.stderr[:200]}")
+                _log_stop(f"FAIL: insert user turn: {result.stderr[:2000]}")
 
         if latest_assistant:
             result = subprocess.run(
@@ -576,7 +576,7 @@ def handle_stop():
             if result.returncode == 0:
                 inserted += 1
             else:
-                _log_stop(f"FAIL: insert assistant turn: {result.stderr[:200]}")
+                _log_stop(f"FAIL: insert assistant turn: {result.stderr[:2000]}")
 
         # ── 5. Write qa-pair Markdown file (complete, no truncation) ──
         if latest_user and latest_assistant:
@@ -888,9 +888,11 @@ def _rebuild_daily_log(date_str: str) -> None:
                 title_short = item["title"][:80].replace("|", "/")
                 md += f"| {i} | {time_short} | [{title_short}]({item['rel_path']}) | {item['duration']} |\n"
 
-        # Write daily log
+        # Atomic write: temp file → rename (prevents corruption on concurrent access)
         daily_path = daily_dir / f"{date_str}.md"
-        daily_path.write_text(md, encoding="utf-8")
+        daily_tmp = daily_path.with_suffix(".tmp")
+        daily_tmp.write_text(md, encoding="utf-8")
+        daily_tmp.replace(daily_path)
 
     except Exception:
         pass  # Best-effort; never block main flow
@@ -1028,6 +1030,21 @@ if __name__ == "__main__":
             print("📚 知识捕获状态: **已暂停** (恢复: `python hooks/knowledge-hooks.py capture-resume`)")
         else:
             print("📚 知识捕获状态: **正常** (暂停: `python hooks/knowledge-hooks.py capture-pause`)")
+    elif command == "backup":
+        import shutil
+        backup_dir = sys.argv[2] if len(sys.argv) > 2 else str(PROJECT_ROOT / ".." / "EasyWork-backup")
+        backup_path = Path(backup_dir)
+        backup_path.mkdir(parents=True, exist_ok=True)
+        now = datetime.now(timezone.utc).astimezone().strftime("%Y%m%d_%H%M%S")
+        archive_name = f"easywork-knowledge-{now}.zip"
+        archive_path = backup_path / archive_name
+        knowledge_path = PROJECT_ROOT / "knowledge"
+        if knowledge_path.exists():
+            shutil.make_archive(str(archive_path.with_suffix("")), "zip", str(knowledge_path.parent), "knowledge")
+            size_mb = archive_path.stat().st_size / (1024 * 1024)
+            print(f"📚 知识库已备份到: {archive_path} ({size_mb:.1f} MB)")
+        else:
+            print("📚 知识库目录不存在，无需备份")
     else:
         print(f"Unknown command: {command}", file=sys.stderr)
         sys.exit(1)

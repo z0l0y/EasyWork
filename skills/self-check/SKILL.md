@@ -12,6 +12,7 @@ description: >
   v2.9: MCR+质量升级——≥8个CTO追问/≥2反事实问题/≥2替代方案质询/≥1防复发追问/≥1认知缺口+补救动作。禁止模糊回答放水。
 allowed-tools: Read, Search
 model: opus
+model_fallback: sonnet
 version: 2.12
 capability:
   id: self-check

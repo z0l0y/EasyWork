@@ -4,6 +4,16 @@
 __pycache__/
 *.py[cod]
 *.pyo
+# IDE / editor files
+.vscode/
+.idea/
+.DS_Store
+*~
+*.swp
+# Environment files
+.env
+.env.*
+.env.local
 # Runtime knowledge base — user data, NEVER committed
 # Structural templates live in knowledge-template/ (tracked in git)
 # Run "python hooks/knowledge-hooks.py init" to bootstrap knowledge/ from template

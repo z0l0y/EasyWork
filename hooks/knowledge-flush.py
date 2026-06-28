@@ -77,6 +77,8 @@ DEDUP_WINDOW_SECONDS = 60
 MAX_TRANSCRIPT_LINES = 10000
 # Max content length for raw dump (generous — qa-pairs/ has complete full text)
 MAX_CONTENT_LENGTH = 100000
+# Raw dump TTL: delete JSON files older than this many days
+RAW_TTL_DAYS = 7
 
 # File patterns for domain classification
 INTEGRATION_PATTERNS = re.compile(
@@ -378,7 +380,40 @@ def _rebuild_daily_log(date_str: str) -> None:
                 md += f"| {i} | {time_short} | [{title_short}]({item['rel_path']}) | {item['duration']} |\n"
 
         daily_path = daily_dir / f"{date_str}.md"
-        daily_path.write_text(md, encoding="utf-8")
+        # Atomic write: temp file → rename (prevents corruption on concurrent access)
+        daily_tmp = daily_path.with_suffix(".tmp")
+        daily_tmp.write_text(md, encoding="utf-8")
+        daily_tmp.replace(daily_path)
+    except Exception:
+        pass
+
+
+def _cleanup_raw_dumps():
+    """Delete raw dump JSON files older than RAW_TTL_DAYS."""
+    try:
+        import time as time_mod
+        raw_dir = PROJECT_ROOT / "knowledge" / "conversation" / "raw"
+        if not raw_dir.exists():
+            return
+        cutoff = time_mod.time() - RAW_TTL_DAYS * 86400
+        deleted = 0
+        for date_dir in raw_dir.iterdir():
+            if not date_dir.is_dir():
+                continue
+            for json_file in date_dir.glob("*.json"):
+                try:
+                    if json_file.stat().st_mtime < cutoff:
+                        json_file.unlink()
+                        deleted += 1
+                except OSError:
+                    continue
+            try:
+                date_dir.rmdir()
+            except OSError:
+                pass
+        if deleted:
+            print(f"[knowledge-flush] Raw TTL cleanup: deleted {deleted} stale dumps",
+                  file=sys.stderr)
     except Exception:
         pass
 
@@ -717,6 +752,7 @@ tags: [handoff, auto-generated]
         _try_mcp_store(domain, list(all_files), tool_counts, len(events), session_id)
 
     # ── 8. Cleanup ──────────────────────────────────────────────
+    _cleanup_raw_dumps()
     bp.unlink(missing_ok=True)
     mark_flushed(session_id)
 
@@ -779,8 +815,13 @@ def _try_mcp_store(domain: str, all_files: list[str], tool_counts: dict, total_e
         )
         if result.returncode == 0:
             print(f"[knowledge-flush] MCP store: {result.stdout.strip()}", file=sys.stderr)
-    except Exception:
-        pass  # MCP store is best-effort; never fail the flush for it
+        else:
+            print(f"[knowledge-flush] MCP store failed (rc={result.returncode}): {result.stderr[:500]}",
+                  file=sys.stderr)
+    except FileNotFoundError:
+        print("[knowledge-flush] MCP store skipped: Python/mcp not available", file=sys.stderr)
+    except Exception as e:
+        print(f"[knowledge-flush] MCP store error: {e}", file=sys.stderr)
 
 
 # ─── CLI ─────────────────────────────────────────────────────────────

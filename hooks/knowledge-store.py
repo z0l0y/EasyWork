@@ -276,6 +276,32 @@ def recent_turns(limit: int = 10) -> list[dict]:
         conn.close()
 
 
+def search_full(query: str, limit: int = 10) -> list[dict]:
+    """FTS5 search across turns — returns FULL content (not just preview)."""
+    conn = get_conn()
+    try:
+        rows = conn.execute(
+            "SELECT t.id, t.session_id, t.turn_number, t.timestamp, t.role, "
+            "t.duration_seconds, t.content "
+            "FROM turns t "
+            "JOIN turns_fts fts ON t.rowid = fts.rowid "
+            "WHERE turns_fts MATCH ? "
+            "ORDER BY rank "
+            "LIMIT ?",
+            (query, limit),
+        ).fetchall()
+        return [dict(r) for r in rows]
+    except sqlite3.OperationalError:
+        rows = conn.execute(
+            "SELECT id, session_id, turn_number, timestamp, role, duration_seconds, content "
+            "FROM turns WHERE content LIKE ? ORDER BY timestamp DESC LIMIT ?",
+            (f"%{query}%", limit),
+        ).fetchall()
+        return [dict(r) for r in rows]
+    finally:
+        conn.close()
+
+
 def get_schema() -> list[str]:
     """Return CREATE TABLE statements for all user tables."""
     conn = get_conn()
@@ -326,12 +352,18 @@ def browse_turns(limit: int = 20, role: str = "") -> list[dict]:
     """Browse recent turns in a human-readable format."""
     conn = get_conn()
     try:
-        where = f"WHERE role = '{role}'" if role in ("user", "assistant") else ""
-        rows = conn.execute(
-            f"SELECT id, session_id, turn_number, timestamp, role, duration_seconds, content_preview "
-            f"FROM turns {where} ORDER BY id DESC LIMIT ?",
-            (limit,),
-        ).fetchall()
+        if role in ("user", "assistant"):
+            rows = conn.execute(
+                "SELECT id, session_id, turn_number, timestamp, role, duration_seconds, content_preview "
+                "FROM turns WHERE role = ? ORDER BY id DESC LIMIT ?",
+                (role, limit),
+            ).fetchall()
+        else:
+            rows = conn.execute(
+                "SELECT id, session_id, turn_number, timestamp, role, duration_seconds, content_preview "
+                "FROM turns ORDER BY id DESC LIMIT ?",
+                (limit,),
+            ).fetchall()
         return [dict(r) for r in rows]
     finally:
         conn.close()
@@ -373,7 +405,8 @@ if __name__ == "__main__":
             "    summary           Overall stats (sessions/turns/facts)\n"
             "    browse   [N] [role]  Browse last N turns (default: 20)\n"
             "    turn-detail <id>   Show full content of a turn\n"
-            "    search   <query>  FTS5 full-text search\n"
+            "    search   <query>  FTS5 full-text search (previews)\n"
+            "    search-full <query> [N]  FTS5 search with FULL content\n"
             "    recent   [N]      Recent turns (JSON, default: 10)\n"
             "    stats    <id>     Session stats\n"
             "\n  Internal commands (called by hooks):\n"
@@ -471,6 +504,19 @@ if __name__ == "__main__":
         results = search(query)
         # Use ensure_ascii to avoid Windows GBK encoding issues with emoji
         print(json.dumps(results, ensure_ascii=True, indent=2))
+
+    elif cmd == "search-full":
+        query = sys.argv[2] if len(sys.argv) > 2 else ""
+        limit = int(sys.argv[3]) if len(sys.argv) > 3 else 10
+        results = search_full(query, limit)
+        for r in results:
+            dur = r.get("duration_seconds")
+            dur_str = f" ({dur:.0f}s)" if dur else ""
+            print(f"{'='*70}")
+            print(f"[#{r['id']}] {r['role']} | {r['timestamp']}{dur_str}")
+            print(f"{'='*70}")
+            print(r.get("content", "(no content)"))
+            print()
 
     elif cmd == "recent":
         limit = int(sys.argv[2]) if len(sys.argv) > 2 else 10

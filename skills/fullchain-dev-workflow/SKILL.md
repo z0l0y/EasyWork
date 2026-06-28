@@ -3,7 +3,7 @@ name: fullchain-dev-workflow
 description: >
   全链路开发流程编排中枢。根据任务类型智能调整执行步骤（10步→按需裁剪）。
   内置任务分类器、步骤跳过机制、回退循环限制、全局异常SOP和Checklist打卡系统。
-  🆕 v2.16: 点线网三级技能编排——点(单技能精准调用/19个技能点)、
+  🆕 v2.16: 点线网三级技能编排——点(单技能精准调用/25个技能点)、
   线(7条内置流水线+动态流水线/DAG编排)、网(Meta-Orchestrator+技能自治扩散+深度/预算/审批三重控制)。
   详见 references/skill-graph-orchestration.md。
   v2.12: 11条新铁律(#30-#40)、风险五级分类(L0-L4按级裁剪闸门)、上下文状态文件防丢失(铁律#40)、
@@ -47,7 +47,7 @@ capability:
     - { name: orchestrated_execution, type: multi_skill_pipeline, description: "按需裁剪的 10 步执行流程或点线网编排结果" }
   triggers: ["用 EasyWork", "走 EasyWork 流程", "EasyWork"]
   related_skills:
-    - { skill: all, relationship: orchestrator, desc: "编排中枢可调度所有 19 个技能点、7 条内置流水线、网模式自治扩散" }
+    - { skill: all, relationship: orchestrator, desc: "编排中枢可调度所有 25 个技能点、7 条内置流水线、网模式自治扩散" }
   suggested_when:
     - "用户需要完整的开发流程管理"
     - "任务复杂度超过单个技能能处理的范围"

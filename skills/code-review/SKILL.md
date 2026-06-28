@@ -8,6 +8,7 @@ description: >
   v2.9: MCR+质量升级——检查点绑定代码位置/"通过"必须写依据/发现问题写全位置+触发+影响+修复+回归。禁止"正确性：通过"式水文。
 allowed-tools: Read, Search, Grep, Glob
 model: opus
+model_fallback: sonnet
 version: 2.12
 capability:
   id: code-review
