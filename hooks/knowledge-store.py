@@ -216,10 +216,10 @@ def search(query: str, limit: int = 20) -> list[dict]:
     """FTS5 search across turns."""
     conn = get_conn()
     try:
-        # Try FTS5 first
+        # FTS5 search with external content table (reads content from turns table)
         rows = conn.execute(
             "SELECT t.id, t.session_id, t.turn_number, t.timestamp, t.role, "
-            "t.content_preview, snippet(turns_fts, 2, '<mark>', '</mark>', '...', 40) as snippet "
+            "t.content_preview "
             "FROM turns t "
             "JOIN turns_fts fts ON t.rowid = fts.rowid "
             "WHERE turns_fts MATCH ? "
@@ -247,6 +247,67 @@ def recent_turns(limit: int = 10) -> list[dict]:
         rows = conn.execute(
             "SELECT id, session_id, turn_number, timestamp, role, content_preview "
             "FROM turns ORDER BY id DESC LIMIT ?",
+            (limit,),
+        ).fetchall()
+        return [dict(r) for r in rows]
+    finally:
+        conn.close()
+
+
+def get_schema() -> list[str]:
+    """Return CREATE TABLE statements for all user tables."""
+    conn = get_conn()
+    try:
+        rows = conn.execute(
+            "SELECT sql FROM sqlite_master WHERE sql IS NOT NULL AND name NOT LIKE 'sqlite_%' AND name NOT LIKE '%_fts_%' ORDER BY name"
+        ).fetchall()
+        return [r[0] for r in rows if r[0]]
+    finally:
+        conn.close()
+
+
+def get_summary() -> dict:
+    """Overall knowledge base summary."""
+    conn = get_conn()
+    try:
+        sessions = conn.execute("SELECT COUNT(*) FROM sessions").fetchone()[0]
+        sessions_active = conn.execute("SELECT COUNT(*) FROM sessions WHERE ended_at IS NULL").fetchone()[0]
+        turns = conn.execute("SELECT COUNT(*) FROM turns").fetchone()[0]
+        user_turns = conn.execute("SELECT COUNT(*) FROM turns WHERE role='user'").fetchone()[0]
+        assistant_turns = conn.execute("SELECT COUNT(*) FROM turns WHERE role='assistant'").fetchone()[0]
+        tool_calls = conn.execute("SELECT COUNT(*) FROM tool_calls").fetchone()[0]
+        facts = conn.execute("SELECT COUNT(*) FROM facts WHERE retracted=0").fetchone()[0]
+        return {
+            "sessions": {"total": sessions, "active": sessions_active},
+            "turns": {"total": turns, "user": user_turns, "assistant": assistant_turns},
+            "tool_calls": tool_calls,
+            "facts": facts,
+        }
+    finally:
+        conn.close()
+
+
+def get_turn_detail(turn_id: int) -> dict | None:
+    """Get a single turn with full content."""
+    conn = get_conn()
+    try:
+        r = conn.execute(
+            "SELECT id, session_id, turn_number, timestamp, role, content FROM turns WHERE id=?",
+            (turn_id,),
+        ).fetchone()
+        return dict(r) if r else None
+    finally:
+        conn.close()
+
+
+def browse_turns(limit: int = 20, role: str = "") -> list[dict]:
+    """Browse recent turns in a human-readable format."""
+    conn = get_conn()
+    try:
+        where = f"WHERE role = '{role}'" if role in ("user", "assistant") else ""
+        rows = conn.execute(
+            f"SELECT id, session_id, turn_number, timestamp, role, content_preview "
+            f"FROM turns {where} ORDER BY id DESC LIMIT ?",
             (limit,),
         ).fetchall()
         return [dict(r) for r in rows]
@@ -283,7 +344,20 @@ def session_stats(session_id: str) -> dict:
 if __name__ == "__main__":
     if len(sys.argv) < 2:
         print(
-            "Usage: python knowledge-store.py <init|turn|tool-call|session-end|search|recent|stats> [args]",
+            "Usage: python knowledge-store.py <command> [args]\n"
+            "\n  User commands:\n"
+            "    init              Create database and all tables\n"
+            "    schema            Show table schema (CREATE statements)\n"
+            "    summary           Overall stats (sessions/turns/facts)\n"
+            "    browse   [N] [role]  Browse last N turns (default: 20)\n"
+            "    turn-detail <id>   Show full content of a turn\n"
+            "    search   <query>  FTS5 full-text search\n"
+            "    recent   [N]      Recent turns (JSON, default: 10)\n"
+            "    stats    <id>     Session stats\n"
+            "\n  Internal commands (called by hooks):\n"
+            "    turn <json>       Insert a turn\n"
+            "    tool-call <json>  Insert a tool call\n"
+            "    session-end <json> Mark session ended",
             file=sys.stderr,
         )
         sys.exit(1)
@@ -292,6 +366,49 @@ if __name__ == "__main__":
 
     if cmd == "init":
         init_db()
+
+    elif cmd == "schema":
+        statements = get_schema()
+        for s in statements:
+            print(f"{s};\n")
+
+    elif cmd == "summary":
+        s = get_summary()
+        print(f"[Knowledge Base Summary]")
+        print(f"  Sessions:   {s['sessions']['total']} total ({s['sessions']['active']} active)")
+        print(f"  Turns:      {s['turns']['total']} total ({s['turns']['user']} user, {s['turns']['assistant']} assistant)")
+        print(f"  Tool calls: {s['tool_calls']}")
+        print(f"  Facts:      {s['facts']}")
+
+    elif cmd == "browse":
+        limit = int(sys.argv[2]) if len(sys.argv) > 2 else 20
+        role = sys.argv[3] if len(sys.argv) > 3 else ""
+        rows = browse_turns(limit, role)
+        if not rows:
+            print("(no turns in database)")
+            sys.exit(0)
+        print(f"{'ID':<6} {'Session':<12} {'T#':<4} {'Role':<10} {'Time':<20} {'Preview':<60}")
+        print("-" * 112)
+        for r in rows:
+            sid_short = r.get("session_id", "")[:12]
+            ts = r.get("timestamp", "")[:19] if r.get("timestamp") else ""
+            preview = r.get("content_preview", "")[:58] or "(no preview)"
+            print(f"{r['id']:<6} {sid_short:<12} {r.get('turn_number',0):<4} {r['role']:<10} {ts:<20} {preview:<60}")
+
+    elif cmd == "turn-detail":
+        if len(sys.argv) < 3:
+            print("Usage: python knowledge-store.py turn-detail <id>", file=sys.stderr)
+            sys.exit(1)
+        detail = get_turn_detail(int(sys.argv[2]))
+        if detail:
+            print(f"=== Turn #{detail['id']} ===")
+            print(f"Session:    {detail['session_id']}")
+            print(f"Turn #:     {detail['turn_number']}")
+            print(f"Role:       {detail['role']}")
+            print(f"Timestamp:  {detail['timestamp']}")
+            print(f"Content:\n{detail['content']}")
+        else:
+            print(f"Turn {sys.argv[2]} not found.")
 
     elif cmd == "turn":
         data = json.loads(sys.stdin.read()) if len(sys.argv) < 3 else json.loads(sys.argv[2])
@@ -323,17 +440,18 @@ if __name__ == "__main__":
     elif cmd == "search":
         query = sys.argv[2] if len(sys.argv) > 2 else ""
         results = search(query)
-        print(json.dumps(results, ensure_ascii=False, indent=2))
+        # Use ensure_ascii to avoid Windows GBK encoding issues with emoji
+        print(json.dumps(results, ensure_ascii=True, indent=2))
 
     elif cmd == "recent":
         limit = int(sys.argv[2]) if len(sys.argv) > 2 else 10
         results = recent_turns(limit)
-        print(json.dumps(results, ensure_ascii=False, indent=2))
+        print(json.dumps(results, ensure_ascii=True, indent=2))
 
     elif cmd == "stats":
         sid = sys.argv[2] if len(sys.argv) > 2 else ""
         results = session_stats(sid)
-        print(json.dumps(results, ensure_ascii=False, indent=2))
+        print(json.dumps(results, ensure_ascii=True, indent=2))
 
     else:
         print(f"Unknown command: {cmd}", file=sys.stderr)
