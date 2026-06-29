@@ -1,6 +1,6 @@
 ---
 id: kb-{{DATE}}-{{SEQ}}
-domain: {{DOMAIN}}              # integration | development | quarterly-o
+domain: {{DOMAIN}}              # 从 .easywork/config.json → knowledge.domains 中选取
 source: {{SOURCE}}              # inner | outer | derived
 dimension: {{DIMENSION}}        # prompt | output | analysis | reference | decision
 status: draft                   # draft | stable | archived

@@ -11,7 +11,7 @@ description: >
   图解析逐区域标注(非"如上图所示")、分享就绪自检(讲得清楚吗？图能解释吗？能被问倒吗？)
 allowed-tools: Read, WebFetch, WebSearch, Write, Bash, Grep, Glob
 model: sonnet
-version: 1.0
+version: 3.0
 capability:
   id: read-paper
   display_name: 论文阅读助手

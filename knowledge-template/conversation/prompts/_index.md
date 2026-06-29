@@ -11,5 +11,5 @@
 
 ## 统计
 
-- **按领域**：integration: 0 | development: 0 | quarterly-o: 0
+- **按领域**：见 `.easywork/config.json` → `knowledge.domains`（用户自定义，不再硬编码）
 - **高频标签**：—

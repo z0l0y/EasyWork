@@ -10,7 +10,7 @@ capabilities: [create_doc, append_blocks, create_whiteboard, share_link, batch_w
 requires_mcp: [lark-cli]
 requires_network: true
 streaming: true
-version: 1.6
+version: 3.0
 ---
 
 # Lark Doc Backend（飞书文档后端适配器）

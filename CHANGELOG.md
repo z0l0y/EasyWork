@@ -7,6 +7,36 @@ EasyWork 的所有重要变更记录。
 
 ---
 
+## [3.0.0] — 2026-06-29
+
+### 架构重构：通用化 + 可配置化
+
+> 参考 `well-actually`（路径范围规则）、`claude-ground`（通用/角色分层）、`kevinchamplin/claude-skills`（Core vs Utility 双层模型）、Anthropic 官方 Skill 规范（渐进式加载）、`claude-skill-lint`（质量棘轮）、VS Code Extension 模型（激活事件）
+
+### 新增
+- **`.easywork/config.json`**：用户唯一配置入口。包含 `knowledge.enabled` 开关、`knowledge.domains` 多角色领域列表、`topic_rules` 话题分类、风险模式、路径配置
+- **`hooks/config.py`**：共享配置读取器（json.load + mtime 缓存），无 config.json 时自动回落 v3 内置默认值。提供 `load_config()` / `is_knowledge_enabled()` / `get_domains()` / `get_domain_ids()` / `get_topic_rules()` / `get_topic_default()` / `get_data_dir()` / `get_skills_path()` / `get_tools_path()` / `get_risk_patterns()`
+- **`tools/` 目录**：Core vs Utility 双层技能模型。`skills/` 存放核心流程技能（自动发现），`tools/` 存放对话生成的工具技能（手动调用）
+- **3 条新斜杠命令**：`/easywork:examine`（测试质量验证）、`/easywork:git`（智能提交拆分）、`/easywork:ask`（六维度变更确认），补齐到 **26 条命令**
+
+### 变更
+- **知识库可选化**：`hooks/knowledge-hooks.py` 5 个 handler 入口均加 `_is_kb_enabled()` 检查。KB 关闭时静默跳过，零开销
+- **领域配置驱动**：6 个多角色领域（backend/frontend/data/devops/mobile/design）替代硬编码三元组（integration/development/quarterly-o）。用户可在 config.json 中自由增删改
+- **话题规则配置驱动**：`hooks/knowledge-flush.py` 的 `classify_domain()` 改为 config 驱动关键词匹配，删除 `INTEGRATION_PATTERNS` / `QUARTERLY_PATTERNS` 硬编码正则
+- **MCP Server 动态化**：`skills/knowledge-base/mcp-server/server.py` 的 `dir_map` + domain enum 从 config 动态构建，不再硬编码。TTL 过期检查改用各领域配置的 `ttl_days`
+- **`CLAUDE.md` 瘦身**：知识触发规则从 ~100 行压缩到 ~15 行，引用 `skills/knowledge-base/SKILL.md` 和 `.easywork/config.json`
+- **`MEMORY.md` 去硬编码**：领域链接改为 "领域定义见 `.easywork/config.json` → `knowledge.domains`（用户自定义，不再硬编码）"
+- **命令文件标准化**：26 条命令统一格式（YAML frontmatter + `加载并执行` + `$ARGUMENTS` + Git 上下文注入块）
+- **`knowledge-template/` 去硬编码**：删除旧领域子目录（integration/development/quarterly-o），改为 config 驱动的通用 `_index.md`
+- **多角色示例**：`skills/slash-cmd/assets/SKILLS.md` 的 "试一下" 列加多角色场景
+- **数字修正**：CLAUDE.md 命令数 23→26、QUICKREF.md 命令数 20→26
+
+### 移除
+- 删除 `hooks/knowledge-flush.py` 中重复的旧 `classify_domain()` 函数（含未定义的 `INTEGRATION_PATTERNS` / `QUARTERLY_PATTERNS` 引用）
+- 删除 `knowledge-template/domain/` 下的硬编码子目录
+
+---
+
 ## [2.12.0] — 2026-06-21
 
 ### 新增

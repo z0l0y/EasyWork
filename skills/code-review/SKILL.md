@@ -9,7 +9,7 @@ description: >
 allowed-tools: Read, Search, Grep, Glob
 model: opus
 model_fallback: sonnet
-version: 2.12
+version: 3.0
 capability:
   id: code-review
   display_name: 代码审查

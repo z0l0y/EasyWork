@@ -12,7 +12,7 @@ description: >
   用例缺失清单(该测没测)→补测建议(优先级排序)→可视化(Mermaid图+热力图)。
 allowed-tools: Read, Bash, Write, Grep, Glob, Edit
 model: sonnet
-version: 1.0
+version: 3.0
 capability:
   id: test-coverage
   display_name: 测试覆盖率分析

@@ -7,7 +7,7 @@ description: >
   cc-simpler-token-saver（output style 注入 prompt）的业界实践。
 allowed-tools: Read, Write, Bash, Grep, Glob, WebSearch, WebFetch
 model: haiku
-version: 1.0
+version: 3.0
 capability:
   id: quick-answer
   display_name: 快问快答

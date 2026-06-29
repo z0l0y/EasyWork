@@ -10,7 +10,7 @@ description: >
   claude-code-documentation-skill（文本→Mermaid自动转换）的业界实践。
 allowed-tools: Read, Write, Bash, Grep, Glob, WebSearch, WebFetch
 model: sonnet
-version: 1.0
+version: 3.0
 capability:
   id: learn-from-zero
   display_name: 从零学习

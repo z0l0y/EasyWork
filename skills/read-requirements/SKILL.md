@@ -9,7 +9,7 @@ description: >
   v2.8: 需求理解显式确认(铁律#24)——必须用自己的话重述理解+列出澄清问题+获用户确认后才进入CODE。
 allowed-tools: Read, Search, Grep, Glob, WebSearch, WebFetch
 model: haiku
-version: 2.12
+version: 3.0
 capability:
   id: read-requirements
   display_name: 需求理解

@@ -10,7 +10,7 @@ description: >
   MySQL 5.7 兼容方案（无 CTE/无窗口函数）。
 allowed-tools: Read, Write, Bash, Grep, Glob, WebSearch, WebFetch
 model: sonnet
-version: 1.0
+version: 3.0
 capability:
   id: api-test
   display_name: 接口联调测试

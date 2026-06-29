@@ -7,7 +7,7 @@ description: >
   用户的每项确认都是对上线风险的知情签字。
 allowed-tools: Read, Search
 model: sonnet
-version: 2.12
+version: 3.0
 capability:
   id: ask-change-questions
   display_name: 人工确认问询

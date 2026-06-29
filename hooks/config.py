@@ -52,15 +52,18 @@ def load_config(force: bool = False) -> dict:
 
 
 def _default_config() -> dict:
-    """Built-in defaults matching old v2.x behavior (integration/development/quarterly-o)."""
+    """Built-in defaults matching v3.0 multi-role domains."""
     return {
         "version": 1,
         "knowledge": {
             "enabled": True,
             "domains": [
-                {"id": "integration", "name": "联调需求", "emoji": "🔌", "description": "单个API/接口的联调、测试、验证", "keywords": ["api", "test", "curl", "endpoint", "接口", "联调", "mock", "integration", "e2e", "契约"], "ttl_days": 7},
-                {"id": "development", "name": "开发需求", "emoji": "🚀", "description": "Feature开发、模块重构、技术改进", "keywords": [], "ttl_days": 90},
-                {"id": "quarterly-o", "name": "季度O", "emoji": "🎯", "description": "跨Sprint战略目标", "keywords": ["okr", "quarterly", "季度", "roadmap", "战略", "目标", "planning", "规划", "里程碑"], "ttl_days": 365},
+                {"id": "backend", "name": "后端开发", "emoji": "💻", "description": "API/服务端/数据库相关开发", "keywords": ["api", "接口", "数据库", "server", "后端", "服务", "rpc", "rest", "sql", "并发", "缓存", "队列", "docker", "k8s", "微服务"], "ttl_days": 30},
+                {"id": "frontend", "name": "前端开发", "emoji": "🎨", "description": "UI/交互/客户端渲染", "keywords": ["组件", "css", "react", "vue", "组件", "页面", "ui", "样式", "渲染", "前端", "浏览器", "响应式", "web", "html", "animation"], "ttl_days": 30},
+                {"id": "data", "name": "数据工程", "emoji": "📊", "description": "数据处理/ETL/分析", "keywords": ["数据", "etl", "pipeline", "spark", "sql", "数据仓库", "分析", "报表", "清洗", "flink"], "ttl_days": 60},
+                {"id": "devops", "name": "DevOps", "emoji": "🔧", "description": "CI/CD/部署/基础设施", "keywords": ["部署", "ci", "cd", "docker", "k8s", "kubernetes", "jenkins", "基础设施", "监控", "运维", "terraform"], "ttl_days": 30},
+                {"id": "mobile", "name": "移动开发", "emoji": "📱", "description": "iOS/Android/跨端移动开发", "keywords": ["ios", "android", "flutter", "react native", "移动端", "app", "小程序", "swift", "kotlin"], "ttl_days": 30},
+                {"id": "design", "name": "设计", "emoji": "🎯", "description": "UI/UX设计/产品设计", "keywords": ["设计", "design", "figma", "ux", "原型", "交互设计", "视觉", "设计系统", "组件库", "design system"], "ttl_days": 90},
             ],
             "data_dir": "knowledge",
         },

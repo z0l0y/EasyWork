@@ -11,7 +11,7 @@ description: >
   →数据库操作汇总→RPC/外部调用汇总→错误处理路径→关键决策点与分支逻辑→修改影响分析。
 allowed-tools: Read, Bash, Grep, Glob, Write
 model: sonnet
-version: 1.0
+version: 3.0
 capability:
   id: trace-code
   display_name: 代码追踪器

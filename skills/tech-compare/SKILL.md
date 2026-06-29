@@ -8,7 +8,7 @@ description: >
   Implementation Options Framework 的业界最佳实践。
 allowed-tools: Read, Write, Bash, Grep, Glob, WebSearch, WebFetch
 model: sonnet
-version: 1.0
+version: 3.0
 capability:
   id: tech-compare
   display_name: 技术方案选型对比

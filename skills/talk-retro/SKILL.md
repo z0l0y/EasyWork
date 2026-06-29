@@ -7,7 +7,7 @@ description: >
 allowed-tools: Read, Search
 model: opus
 model_fallback: sonnet
-version: 2.12
+version: 3.0
 capability:
   id: talk-retro
   display_name: 深度复盘

@@ -12,7 +12,7 @@ description: >
   改动热力图(常见需求→改动文件路径)。
 allowed-tools: Read, Bash, Grep, Glob, Write, WebFetch, WebSearch
 model: sonnet
-version: 1.0
+version: 3.0
 capability:
   id: read-project
   display_name: 项目阅读助手

@@ -135,15 +135,6 @@ def strip_ansi(text: str) -> str:
     return ANSI_ESCAPE_RE.sub("", text)
 
 
-def classify_domain(file_paths: list[str]) -> str:
-    """Classify domain from file paths touched."""
-    combined = " ".join(file_paths).lower()
-    if INTEGRATION_PATTERNS.search(combined):
-        return "integration"
-    if QUARTERLY_PATTERNS.search(combined):
-        return "quarterly-o"
-    return "development"
-
 
 def should_skip_dedup(session_id: str) -> bool:
     """Check if this session was already flushed recently (dedup)."""

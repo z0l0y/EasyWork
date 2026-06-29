@@ -10,7 +10,7 @@ capabilities: [create_doc, append_blocks, share_link, full_detail_restore]
 requires_mcp: []
 requires_network: false
 streaming: false
-version: 1.6
+version: 3.0
 ---
 
 # Local HTML Backend（本地 HTML 产物后端）

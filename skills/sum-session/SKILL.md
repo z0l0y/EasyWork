@@ -18,7 +18,7 @@ description: >
   流式增量写入保障。
 allowed-tools: Read, Search, Bash
 model: sonnet
-version: 2.12
+version: 3.0
 capability:
   id: sum-session
   display_name: 汇总总结

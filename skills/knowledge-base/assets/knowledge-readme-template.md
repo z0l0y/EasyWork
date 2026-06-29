@@ -5,11 +5,11 @@
 
 ## 领域目录
 
+> 领域由 `.easywork/config.json` → `knowledge.domains` 动态定义。以下为初始化时的占位表——实际内容由 config 驱动。
+
 | 领域 | 路径 | 条目数 | 说明 |
 |------|------|--------|------|
-| 🔌 联调需求 | [domain/integration/](domain/integration/_index.md) | {{N}} | 单个 API/接口的联调、测试、验证 |
-| 🚀 开发需求 | [domain/development/](domain/development/_index.md) | {{N}} | Feature 开发、模块重构、技术改进 |
-| 🎯 季度 O | [domain/quarterly-o/](domain/quarterly-o/_index.md) | {{N}} | 跨 Sprint 战略目标，需长期跟进 |
+{{DOMAIN_TABLE_ROWS}}
 
 ## 来源目录
 
@@ -43,7 +43,7 @@
 
 ## 快速检索
 
-- 查联调接口：搜索 `domain/integration/` 下的 `_index.md`
+- 查领域知识：搜索 `domain/{domain-id}/` 下的 `_index.md`（domain 由 config 定义）
 - 查模块分析：搜索 `code/` 下的模块名
 - 查技术决策：搜索 `decisions/DEC-*.md`
 - 查历史提问：搜索 `conversation/prompts/` 下的日期或标签

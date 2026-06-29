@@ -8,7 +8,7 @@ description: >
   v2.8: 交互式应用真实体验验证(铁律#26)——CLI/TUI/GUI/Web前端/游戏额外覆盖首屏/输入反馈/退出路径/stdin边界/ANSI兼容/渲染频率。
 allowed-tools: Bash, Read, Write, Search, Grep, Glob
 model: sonnet
-version: 2.12
+version: 3.0
 capability:
   id: examine-quality
   display_name: 测试执行与质量验证

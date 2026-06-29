@@ -25,13 +25,8 @@ knowledge-template/
 │   └── _index.md
 ├── decisions/             ← 架构决策 (ADR)
 │   └── _index.md
-├── domain/                ← 按领域分类
-│   ├── integration/       ← 联调需求
-│   │   └── _index.md
-│   ├── development/       ← 开发需求
-│   │   └── _index.md
-│   └── quarterly-o/       ← 季度OKR
-│       └── _index.md
+├── domain/                ← 按领域分类（领域由 .easywork/config.json 动态定义，不再硬编码）
+│   └── _index.md          ← 领域索引（各领域子目录由 init 时按 config 动态创建）
 ├── source/                ← 按来源分类
 │   ├── inner/             ← 用户提供的资料
 │   │   └── _index.md

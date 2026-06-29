@@ -13,7 +13,7 @@ description: >
 allowed-tools: Read, Search
 model: opus
 model_fallback: sonnet
-version: 2.12
+version: 3.0
 capability:
   id: self-check
   display_name: CTO拷打

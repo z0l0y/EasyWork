@@ -9,7 +9,7 @@ description: >
   参考《清单革命》（Gawande）、GitHub PR Template 系统、Google PRR 标准。
 allowed-tools: Read, Search, Grep, Glob
 model: sonnet
-version: 1.0
+version: 3.0
 capability:
   id: checklist
   display_name: 清单审计与就绪检查

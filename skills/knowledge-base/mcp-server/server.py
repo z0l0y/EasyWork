@@ -33,12 +33,18 @@ def _get_domain_config():
         return get_domains()
     except Exception:
         return [
-            {"id": "integration", "name": "联调需求", "description": "API联调",
-             "keywords": ["api", "test", "curl", "endpoint"]},
-            {"id": "development", "name": "开发需求", "description": "Feature开发",
-             "keywords": []},
-            {"id": "quarterly-o", "name": "季度O", "description": "战略目标",
-             "keywords": ["okr", "quarterly", "季度"]},
+            {"id": "backend", "name": "后端开发", "description": "API/服务端/数据库",
+             "keywords": ["api", "接口", "数据库", "server", "后端"]},
+            {"id": "frontend", "name": "前端开发", "description": "UI/交互/客户端渲染",
+             "keywords": ["组件", "css", "react", "vue", "页面"]},
+            {"id": "data", "name": "数据工程", "description": "数据处理/ETL/分析",
+             "keywords": ["数据", "etl", "pipeline", "spark", "sql"]},
+            {"id": "devops", "name": "DevOps", "description": "CI/CD/部署/基础设施",
+             "keywords": ["部署", "ci", "cd", "docker", "k8s"]},
+            {"id": "mobile", "name": "移动开发", "description": "iOS/Android/跨端",
+             "keywords": ["ios", "android", "flutter", "app"]},
+            {"id": "design", "name": "设计", "description": "UI/UX设计",
+             "keywords": ["设计", "figma", "ux", "组件库"]},
         ]
 
 
@@ -342,10 +348,12 @@ class KnowledgeIndexer:
                             "title": entry.get("title", ""),
                             "days_since_update": days_since,
                         })
-                    elif entry.get("domain") == "integration" and days_since > 7:
-                        stale_entries.append({
-                            "id": eid,
-                            "title": entry.get("title", ""),
+                    else:
+                        domain_ttl = next((d.get("ttl_days", 90) for d in _get_domain_config() if d["id"] == entry.get("domain")), None)
+                        if domain_ttl and days_since > domain_ttl:
+                            stale_entries.append({
+                                "id": eid,
+                                "title": entry.get("title", ""),
                             "days_since_update": days_since,
                         })
                 except ValueError:
@@ -677,7 +685,7 @@ class KnowledgeMCPServer:
         elif dimension in ("output",):
             target_dir = "conversation/outputs"
         else:
-            target_dir = dir_map.get(domain, "domain/development")
+            target_dir = dir_map.get(domain, f"domain/{_get_domain_config()[0]['id']}" if _get_domain_config() else "domain/backend")
 
         # Build frontmatter
         fm = f"""---
@@ -811,7 +819,7 @@ updated: {timestamp}
                 "action": "find_stale",
                 "stale_count": stats["stale_count"],
                 "stale_entries": stats["stale_entries"],
-                "suggestion": "建议归档 >90天未更新的条目，复查 >7天的 integration 条目",
+                "suggestion": "建议归档 >90天未更新的条目，根据各领域 TTL 复查过期条目",
             }, ensure_ascii=False, indent=2)
 
         elif action == "suggest_consolidation":

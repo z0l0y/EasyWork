@@ -9,7 +9,7 @@ description: >
   覆盖 5 个领域×20+ 数据源。支持单次扫描和定期保鲜两种模式。
 allowed-tools: Read, WebFetch, WebSearch, Write, Bash, Grep, Glob
 model: sonnet
-version: 2.0
+version: 3.0
 capability:
   id: tech-radar
   display_name: 技术前沿雷达

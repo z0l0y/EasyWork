@@ -12,7 +12,7 @@ description: >
   （READ-DO），时间顺序和用途完全不同。
 allowed-tools: Read, Write, Bash, Grep, Glob, WebSearch, WebFetch
 model: sonnet
-version: 1.0
+version: 3.0
 capability:
   id: requirement-decompose
   display_name: 需求拆解

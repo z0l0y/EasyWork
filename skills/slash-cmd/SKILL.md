@@ -6,7 +6,7 @@ description: >
   生成技能使用文档。用户输入 /easywork: 后 Tab 即可发现所有可用技能命令。
 allowed-tools: Read, Write, Bash, Grep, Glob
 model: sonnet
-version: 1.0
+version: 3.0
 capability:
   id: slash-cmd
   display_name: 命令调度

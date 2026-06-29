@@ -10,13 +10,12 @@
 ```
 knowledge/
 ├── README.md                    ← L1 总索引
-├── domain/
-│   ├── integration/
+├── domain/                      ← 子目录按 .easywork/config.json → knowledge.domains 动态创建
+│   ├── {domain-1}/
 │   │   └── _index.md
-│   ├── development/
+│   ├── {domain-2}/
 │   │   └── _index.md
-│   └── quarterly-o/
-│       └── _index.md
+│   └── ...
 ├── source/
 │   ├── inner/
 │   │   └── _index.md
@@ -84,9 +83,7 @@ knowledge/
 
 ## 项目知识
 - [知识库总索引](knowledge/README.md) — 领域/来源/会话三维索引
-- [联调需求](knowledge/domain/integration/_index.md) — API 联调知识
-- [开发需求](knowledge/domain/development/_index.md) — Feature 开发知识
-- [季度 OKR](knowledge/domain/quarterly-o/_index.md) — 战略目标跟进
+- 领域链接由 `.easywork/config.json` → `knowledge.domains` 动态生成
 
 ## 代码分析
 - [代码分析索引](knowledge/code/_index.md) — 模块分析记录

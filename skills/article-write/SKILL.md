@@ -7,7 +7,7 @@ description: >
   自动检测输出长度并建议写入文件，YAML frontmatter + 可折叠目录 + 写后验证。
 allowed-tools: Read, Write, Bash
 model: sonnet
-version: 1.0
+version: 3.0
 capability:
   id: article-write
   display_name: 文档编写
