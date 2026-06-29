@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-EasyWork Knowledge Base Hooks — v2.0
+EasyWork Knowledge Base Hooks -- v2.0
 
 Handles Claude Code lifecycle events for automatic knowledge capture.
 
@@ -34,7 +34,7 @@ import time
 from datetime import datetime, timezone
 from pathlib import Path
 
-# Fix Windows I/O encoding — stdin/stdout default to GBK on Windows
+# Fix Windows I/O encoding -- stdin/stdout default to GBK on Windows
 if sys.platform == "win32":
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     sys.stdin.reconfigure(encoding="utf-8")
@@ -54,39 +54,60 @@ FLUSH_SCRIPT = PROJECT_ROOT / "hooks" / "knowledge-flush.py"
 STORE_SCRIPT = PROJECT_ROOT / "hooks" / "knowledge-store.py"
 STATE_DIR = BUFFER_DIR  # reuse buffer dir for state files
 KNOWLEDGE_INDEX = KNOWLEDGE_DIR / "README.md"
-MEMORY_FILE = PROJECT_ROOT / "MEMORY.md"
-
-# Topic classification: keyword-based auto-categorization of user questions.
-# Rules are evaluated in order; first match wins. Default: "📖-其他"
-TOPIC_RULES = [
-    ("🧠-概念解释", ["是什么", "什么意思", "区别", "对比", "定义", "概念", "解释", "理解",
-                     "介绍", "diff", "compare", "what is", "概述", "简介", "有啥区别",
-                     "有什么不同", "区别是", "不同点"]),
-    ("🐛-问题排查", ["bug", "error", "报错", "不工作", "失败", "出问题", "修复", "fix",
-                     "排查", "debug", "坏了", "不对", "错误", "异常", "怎么没", "不更新",
-                     "没反应", "不行", "有问题", "出不来"]),
-    ("💻-代码实现", ["实现", "开发", "写代码", "添加功能", "创建", "生成", "implement",
-                     "create", "build", "coding", "编写", "写一个", "帮我写", "代码"]),
-    ("🔧-工具配置", ["安装", "配置", "setup", "install", "config", "部署", "deploy",
-                     "环境", "插件", "plugin", "hook", "hooks", "mcp", "skill"]),
-    ("📊-架构设计", ["设计", "架构", "重构", "architecture", "design", "refactor",
-                     "结构", "模式", "pattern", "方案", "选型", "技术栈", "框架"]),
-    ("🚀-性能优化", ["性能", "优化", "慢", "加速", "perf", "卡顿", "memory", "内存",
-                     "CPU", "提速", "瓶颈", "吞吐"]),
-]
-TOPIC_DEFAULT = "📖-其他"
 
 # Max age for a user message timestamp before it's considered stale (hours).
-# Stop hook fires in real-time; user→reply rarely exceeds 2 hours.
 MAX_EVENT_AGE_HOURS = 2
 
-# Capture pause flag file — when present, Stop hook skips ALL capture
+# ─── Config-driven helpers (v3.0: user-configurable via .easywork/config.json) ───
+# Import config module lazily to avoid circular import issues at module load time.
+_TOPIC_RULES_CACHE = None
+
+
+def _get_topic_rules():
+    """Return topic rules from config, with module-level caching."""
+    global _TOPIC_RULES_CACHE
+    if _TOPIC_RULES_CACHE is not None:
+        return _TOPIC_RULES_CACHE
+    try:
+        from hooks.config import get_topic_rules as cfg_rules
+        _TOPIC_RULES_CACHE = cfg_rules()
+    except Exception:
+        # Fallback to built-in defaults if config module fails
+        _TOPIC_RULES_CACHE = [
+            ("🧠-概念解释", ["是什么", "什么意思", "区别", "对比", "定义", "概念", "解释", "理解", "介绍", "diff", "compare", "what is", "概述", "简介", "有啥区别"]),
+            ("🐛-问题排查", ["bug", "error", "报错", "不工作", "失败", "出问题", "修复", "fix", "排查", "debug", "错误", "异常"]),
+            ("💻-代码实现", ["实现", "开发", "写代码", "添加功能", "创建", "生成", "implement", "create", "build", "编写", "代码"]),
+            ("🔧-工具配置", ["安装", "配置", "setup", "install", "config", "部署", "deploy", "环境", "插件", "plugin", "hook", "mcp", "skill"]),
+            ("📊-架构设计", ["设计", "架构", "重构", "architecture", "design", "refactor", "结构", "模式", "pattern", "方案", "选型", "技术栈", "框架"]),
+            ("🚀-性能优化", ["性能", "优化", "慢", "加速", "perf", "卡顿", "memory", "内存", "CPU", "提速", "瓶颈", "吞吐"]),
+        ]
+    return _TOPIC_RULES_CACHE
+
+
+def _get_topic_default():
+    """Return default topic from config."""
+    try:
+        from hooks.config import get_topic_default
+        return get_topic_default()
+    except Exception:
+        return "📖-其他"
+
+
+def _is_kb_enabled():
+    """Check if knowledge capture is enabled in config."""
+    try:
+        from hooks.config import is_knowledge_enabled
+        return is_knowledge_enabled()
+    except Exception:
+        return True  # If config fails, default to enabled
+
+# Capture pause flag file -- when present, Stop hook skips ALL capture
 CAPTURE_PAUSE_FLAG = BUFFER_DIR / "capture-paused"
 
-# No-capture marker — include this anywhere in a message to skip that turn
+# No-capture marker -- include this anywhere in a message to skip that turn
 NO_CAPTURE_MARKER = "[nc]"
 
-# Capture control phrases — toggle session-wide pause/resume
+# Capture control phrases -- toggle session-wide pause/resume
 CAPTURE_PAUSE_PHRASES = ["暂停捕获", "暂停记录", "停止捕获", "停止记录", "pause capture"]
 CAPTURE_RESUME_PHRASES = ["恢复捕获", "继续捕获", "恢复记录", "继续记录", "resume capture"]
 
@@ -223,10 +244,12 @@ def handle_session_start():
     Injects knowledge context into each new session.
     Reads knowledge/README.md (index) + most recent daily log.
     Outputs JSON with `additionalContext` on stdout.
-
-    Also auto-initializes knowledge/ from template if it doesn't exist.
-    Pattern: claude-memory-compiler's session-start.py
     """
+    if not _is_kb_enabled():
+        print(json.dumps({"additionalContext": ""}), flush=True)
+        return
+
+    # Auto-initialize knowledge/ from template if it doesn't exist.
     if is_recursive():
         return
 
@@ -272,7 +295,7 @@ def handle_session_start():
         }
         print(json.dumps(output, ensure_ascii=False))
     else:
-        # Minimal output — knowledge base is empty
+        # Minimal output -- knowledge base is empty
         output = {
             "hookSpecificOutput": {
                 "hookEventName": "SessionStart",
@@ -287,12 +310,13 @@ def handle_session_start():
 def handle_post_tool_use():
     """
     Called after every tool use. Appends event to per-session buffer.
-
-    Key fix: uses session_id from hook event JSON (not os.getpid()),
-    so all events from the same Claude Code session go to ONE buffer file.
+    Uses session_id from hook event JSON (not os.getpid()) so all events
+    from the same Claude Code session go to ONE buffer file.
 
     Input: stdin JSON from Claude Code hook
     """
+    if not _is_kb_enabled():
+        return
     if is_recursive():
         return
 
@@ -343,12 +367,15 @@ def handle_post_tool_use():
 def handle_pre_compact():
     """
     Safety net: captures context before Claude Code auto-compacts the context window.
-    Long sessions may trigger multiple compactions before SessionEnd — without this,
+    Long sessions may trigger multiple compactions before SessionEnd -- without this,
     intermediate context is lost.
-
-    Pattern: claude-memory-compiler's pre-compact.py
-    Guard: skips if transcript_path is empty (known Claude Code bug)
     """
+    if not _is_kb_enabled():
+        print(json.dumps({"action": "noop", "reason": "knowledge disabled"}), flush=True)
+        return
+
+    # Pattern: claude-memory-compiler's pre-compact.py
+    # Guard: skips if transcript_path is empty (known Claude Code bug)
     if is_recursive():
         return
 
@@ -399,13 +426,13 @@ def handle_pre_compact():
 def handle_stop():
     """
     Called when Claude finishes responding at the end of EACH turn.
-    This is the per-turn capture mechanism — writes Q&A to SQLite IMMEDIATELY.
-
-    Reads the transcript tail, extracts the latest user prompt + assistant response
-    WITH their original event timestamps, and stores them as turns in SQLite.
-
-    Pattern: claude-mem's Stop hook → SQLite per-turn insert
+    This is the per-turn capture mechanism -- writes Q&A to SQLite IMMEDIATELY.
     """
+    if not _is_kb_enabled():
+        return
+
+    # Reads the transcript tail, extracts the latest user prompt + assistant response
+    # WITH their original event timestamps, and stores them as turns in SQLite.
     if is_recursive():
         return
 
@@ -464,7 +491,7 @@ def handle_stop():
         # CRITICAL: if file_size < last_pos, the transcript was truncated (e.g. after /compact).
         # Reset cursor to 0 so we don't skip new content.
         if file_size < last_pos:
-            _log_stop(f"RESET cursor: file_size({file_size}) < last_pos({last_pos}) — /compact detected")
+            _log_stop(f"RESET cursor: file_size({file_size}) < last_pos({last_pos}) -- /compact detected")
             last_pos = 0
         if file_size <= last_pos:
             _log_stop(f"SKIP: no new content (file={file_size}, cursor={last_pos})")
@@ -683,7 +710,7 @@ def _write_qa_pair(session_id: str, user_content: str, user_ts: str,
         day_dir.mkdir(parents=True, exist_ok=True)
 
         file_path = day_dir / filename
-        # Skip if already exists (idempotent — may have been written by flush)
+        # Skip if already exists (idempotent -- may have been written by flush)
         if file_path.exists():
             return
 
@@ -695,7 +722,7 @@ def _write_qa_pair(session_id: str, user_content: str, user_ts: str,
         else:
             dur_str = "N/A"
 
-        # Write complete markdown file — FULL content, zero truncation
+        # Write complete markdown file -- FULL content, zero truncation
         content = f"""# {user_content[:200]}
 
 > ⏱ 提问: {local_user_ts or user_ts or 'N/A'} | 回答: {local_asst_ts or assistant_ts or 'N/A'} | 耗时: {dur_str}
@@ -706,7 +733,7 @@ def _write_qa_pair(session_id: str, user_content: str, user_ts: str,
         file_path.write_text(content, encoding="utf-8")
         _log_stop(f"QA-PAIR: wrote {topic}/{filename}")
 
-        # Rebuild daily log (topic-grouped structure — cannot simple-append)
+        # Rebuild daily log (topic-grouped structure -- cannot simple-append)
         _rebuild_daily_log(date_str)
 
     except Exception as e:
@@ -761,11 +788,11 @@ def _classify_topic(user_content: str) -> str:
     Returns the topic directory name (e.g. '🧠-概念解释'), or '📖-其他' as default.
     """
     text = user_content.lower()
-    for topic_dir, keywords in TOPIC_RULES:
+    for topic_dir, keywords in _get_topic_rules():
         for kw in keywords:
             if kw.lower() in text:
                 return topic_dir
-    return TOPIC_DEFAULT
+    return _get_topic_default()
 
 
 def _is_stale_timestamp(ts: str, max_age_hours: int = MAX_EVENT_AGE_HOURS) -> bool:
@@ -795,9 +822,9 @@ def _rebuild_daily_log(date_str: str) -> None:
         daily_dir.mkdir(parents=True, exist_ok=True)
 
         if not qa_dir.exists():
-            # No qa-pairs yet — write minimal daily log
+            # No qa-pairs yet -- write minimal daily log
             daily_path = daily_dir / f"{date_str}.md"
-            daily_path.write_text(f"# 📝 {date_str} — 对话记录\n\n尚无非系统噪声的问答记录。\n", encoding="utf-8")
+            daily_path.write_text(f"# 📝 {date_str} -- 对话记录\n\n尚无非系统噪声的问答记录。\n", encoding="utf-8")
             return
 
         # Collect all qa-pair entries from topic subdirectories
@@ -845,7 +872,7 @@ def _rebuild_daily_log(date_str: str) -> None:
 
         if not entries:
             daily_path = daily_dir / f"{date_str}.md"
-            daily_path.write_text(f"# 📝 {date_str} — 对话记录\n\n尚无非系统噪声的问答记录。\n", encoding="utf-8")
+            daily_path.write_text(f"# 📝 {date_str} -- 对话记录\n\n尚无非系统噪声的问答记录。\n", encoding="utf-8")
             return
 
         # Sort entries by time
@@ -857,7 +884,7 @@ def _rebuild_daily_log(date_str: str) -> None:
             grouped.setdefault(e["topic"], []).append(e)
 
         # Build overview row
-        topic_order = [t[0] for t in TOPIC_RULES] + [TOPIC_DEFAULT]
+        topic_order = [t[0] for t in _get_topic_rules()] + [_get_topic_default()]
         counts = {}
         for t in topic_order:
             counts[t] = len(grouped.get(t, []))
@@ -868,7 +895,7 @@ def _rebuild_daily_log(date_str: str) -> None:
         overview_row = "| " + " | ".join(str(counts[t]) for t in topic_order) + f" | **{total}** |"
 
         # Build markdown
-        md = f"""# 📝 {date_str} — 对话记录
+        md = f"""# 📝 {date_str} -- 对话记录
 
 ## 📊 概览
 {overview_header}
@@ -936,9 +963,11 @@ def handle_session_end():
     """
     Called at session termination. Spawns detached knowledge-flush.py to do the
     heavy lifting (read buffer + transcript → raw dump + daily log + handoff).
-
-    Returns immediately — the flush runs in background.
     """
+    if not _is_kb_enabled():
+        return
+
+    # Returns immediately -- the flush runs in background.
     if is_recursive():
         return
 
@@ -1021,7 +1050,7 @@ if __name__ == "__main__":
         print(f"Knowledge dir {'initialized' if ok else 'already exists'}")
     elif command == "capture-pause":
         _set_capture_paused(True)
-        print("📚 知识捕获已暂停 — 后续对话不写入知识库")
+        print("📚 知识捕获已暂停 -- 后续对话不写入知识库")
     elif command == "capture-resume":
         _set_capture_paused(False)
         print("📚 知识捕获已恢复")

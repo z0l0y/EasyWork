@@ -25,7 +25,6 @@ Usage (internal — called by knowledge-hooks.py):
   python hooks/knowledge-flush.py <session_id> <transcript_path> <buffer_path>
 """
 
-import hashlib
 import json
 import os
 import re
@@ -45,24 +44,6 @@ SESSIONS_DIR = PROJECT_ROOT / "knowledge" / "sessions"
 STATE_FILE = PROJECT_ROOT / "knowledge" / ".buffer" / "state.json"
 MCP_SERVER_SCRIPT = PROJECT_ROOT / "skills" / "knowledge-base" / "mcp-server" / "server.py"
 
-# Topic classification: keyword-based auto-categorization (synced with knowledge-hooks.py)
-TOPIC_RULES = [
-    ("🧠-概念解释", ["是什么", "什么意思", "区别", "对比", "定义", "概念", "解释", "理解",
-                     "介绍", "diff", "compare", "what is", "概述", "简介", "有啥区别",
-                     "有什么不同", "区别是", "不同点"]),
-    ("🐛-问题排查", ["bug", "error", "报错", "不工作", "失败", "出问题", "修复", "fix",
-                     "排查", "debug", "坏了", "不对", "错误", "异常", "怎么没", "不更新",
-                     "没反应", "不行", "有问题", "出不来"]),
-    ("💻-代码实现", ["实现", "开发", "写代码", "添加功能", "创建", "生成", "implement",
-                     "create", "build", "coding", "编写", "写一个", "帮我写", "代码"]),
-    ("🔧-工具配置", ["安装", "配置", "setup", "install", "config", "部署", "deploy",
-                     "环境", "插件", "plugin", "hook", "hooks", "mcp", "skill"]),
-    ("📊-架构设计", ["设计", "架构", "重构", "architecture", "design", "refactor",
-                     "结构", "模式", "pattern", "方案", "选型", "技术栈", "框架"]),
-    ("🚀-性能优化", ["性能", "优化", "慢", "加速", "perf", "卡顿", "memory", "内存",
-                     "CPU", "提速", "瓶颈", "吞吐"]),
-]
-TOPIC_DEFAULT = "📖-其他"
 MAX_EVENT_AGE_HOURS = 2
 
 # No-capture marker — skip messages containing this (synced with knowledge-hooks.py)
@@ -75,20 +56,59 @@ MIN_FILES_FOR_STORE = 3
 DEDUP_WINDOW_SECONDS = 60
 # Max transcript lines to read (avoid OOM on huge sessions)
 MAX_TRANSCRIPT_LINES = 10000
-# Max content length for raw dump (generous — qa-pairs/ has complete full text)
+# Max content length for raw dump (generous -- qa-pairs/ has complete full text)
 MAX_CONTENT_LENGTH = 100000
 # Raw dump TTL: delete JSON files older than this many days
 RAW_TTL_DAYS = 7
 
-# File patterns for domain classification
-INTEGRATION_PATTERNS = re.compile(
-    r"(api|test|curl|endpoint|接口|联调|mock|integration|e2e|契约)",
-    re.IGNORECASE,
-)
-QUARTERLY_PATTERNS = re.compile(
-    r"(okr|quarterly|季度|roadmap|战略|目标|planning|规划|里程碑)",
-    re.IGNORECASE,
-)
+# ─── Config-driven helpers (v3.0: user-configurable via .easywork/config.json) ───
+
+
+def _get_topic_rules():
+    """Return topic rules from config, cached."""
+    try:
+        from hooks.config import get_topic_rules as cfg_rules
+        return cfg_rules()
+    except Exception:
+        return [
+            ("🧠-概念解释", ["是什么", "什么意思", "区别", "对比", "定义", "概念", "解释", "理解", "介绍", "diff", "compare", "what is", "概述", "简介", "有啥区别"]),
+            ("🐛-问题排查", ["bug", "error", "报错", "不工作", "失败", "出问题", "修复", "fix", "排查", "debug", "错误", "异常"]),
+            ("💻-代码实现", ["实现", "开发", "写代码", "添加功能", "创建", "生成", "implement", "create", "build", "编写", "代码"]),
+            ("🔧-工具配置", ["安装", "配置", "setup", "install", "config", "部署", "deploy", "环境", "插件", "plugin", "hook", "mcp", "skill"]),
+            ("📊-架构设计", ["设计", "架构", "重构", "architecture", "design", "refactor", "结构", "模式", "pattern", "方案", "选型", "技术栈", "框架"]),
+            ("🚀-性能优化", ["性能", "优化", "慢", "加速", "perf", "卡顿", "memory", "内存", "CPU", "提速", "瓶颈", "吞吐"]),
+        ]
+
+
+def _get_topic_default():
+    try:
+        from hooks.config import get_topic_default
+        return get_topic_default()
+    except Exception:
+        return "📖-其他"
+
+
+def _is_kb_enabled():
+    try:
+        from hooks.config import is_knowledge_enabled
+        return is_knowledge_enabled()
+    except Exception:
+        return True
+
+
+def classify_domain(file_paths: list[str]) -> str:
+    """Classify domain from file paths touched, using config-driven keyword matching."""
+    try:
+        from hooks.config import get_domains
+        domains = get_domains()
+    except Exception:
+        return "development"
+    combined = " ".join(file_paths).lower()
+    for domain in domains:
+        for kw in domain.get("keywords", []):
+            if kw.lower() in combined:
+                return domain["id"]
+    return domains[0]["id"] if domains else "development"
 
 # ANSI escape sequence regex (strips terminal control characters from transcript)
 # Covers: CSI sequences (\x1b[...m), OSC sequences, cursor movements, etc.
@@ -270,11 +290,11 @@ def _sanitize_filename(text: str, max_len: int = 60) -> str:
 def _classify_topic(user_content: str) -> str:
     """Classify a user question into a topic category based on keyword matching."""
     text = user_content.lower()
-    for topic_dir, keywords in TOPIC_RULES:
+    for topic_dir, keywords in _get_topic_rules():
         for kw in keywords:
             if kw.lower() in text:
                 return topic_dir
-    return TOPIC_DEFAULT
+    return _get_topic_default()
 
 
 def _is_stale_timestamp(ts: str, max_age_hours: int = MAX_EVENT_AGE_HOURS) -> bool:
@@ -346,7 +366,7 @@ def _rebuild_daily_log(date_str: str) -> None:
         for e in entries:
             grouped.setdefault(e["topic"], []).append(e)
 
-        topic_order = [t[0] for t in TOPIC_RULES] + [TOPIC_DEFAULT]
+        topic_order = [t[0] for t in _get_topic_rules()] + [_get_topic_default()]
         counts = {}
         for t in topic_order:
             counts[t] = len(grouped.get(t, []))
@@ -577,6 +597,9 @@ def flush(session_id: str, transcript_path: str, buffer_path: str):
     6. Try MCP store (if activity warrants)
     7. Clean buffer
     """
+    if not _is_kb_enabled():
+        Path(buffer_path).unlink(missing_ok=True)
+        return
 
     # ── 0. Dedup check ──────────────────────────────────────────
     if should_skip_dedup(session_id):

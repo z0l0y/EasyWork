@@ -5,9 +5,7 @@
 ## 项目知识
 
 - [知识库总索引](knowledge/README.md) — 领域/来源/会话三维索引
-- [联调需求](knowledge/domain/integration/_index.md) — API 联调知识（短期，1-7 天）
-- [开发需求](knowledge/domain/development/_index.md) — Feature 开发知识（中期，1-4 周）
-- [季度 OKR](knowledge/domain/quarterly-o/_index.md) — 战略目标跟进（长期，季度）
+- 领域定义见 `.easywork/config.json` → `knowledge.domains`（用户自定义，不再硬编码）
 
 ## 代码分析
 

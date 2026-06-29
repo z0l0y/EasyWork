@@ -20,6 +20,37 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
+# ─── Config integration (v3.0) ────────────────────────────────────
+_HOOKS_PATH = Path(__file__).resolve().parent.parent.parent.parent / "hooks"
+if str(_HOOKS_PATH) not in sys.path:
+    sys.path.insert(0, str(_HOOKS_PATH))
+
+
+def _get_domain_config():
+    """Load domain configuration from .easywork/config.json."""
+    try:
+        from config import get_domains
+        return get_domains()
+    except Exception:
+        return [
+            {"id": "integration", "name": "联调需求", "description": "API联调",
+             "keywords": ["api", "test", "curl", "endpoint"]},
+            {"id": "development", "name": "开发需求", "description": "Feature开发",
+             "keywords": []},
+            {"id": "quarterly-o", "name": "季度O", "description": "战略目标",
+             "keywords": ["okr", "quarterly", "季度"]},
+        ]
+
+
+def _build_dir_map() -> dict:
+    """Build dir_map dynamically from config domains."""
+    return {d["id"]: f"domain/{d['id']}" for d in _get_domain_config()}
+
+
+def _build_domain_enum() -> list:
+    """Build domain enum list for MCP tool schemas."""
+    return [d["id"] for d in _get_domain_config()] + [""]
+
 # MCP SDK availability flag
 HAS_MCP = False
 try:
@@ -388,8 +419,8 @@ class KnowledgeMCPServer:
                         },
                         "domain": {
                             "type": "string",
-                            "enum": ["integration", "development", "quarterly-o", ""],
-                            "description": "领域过滤：integration(联调) / development(开发) / quarterly-o(季度O)",
+                            "enum": _build_domain_enum(),
+                            "description": "领域过滤。可用领域见 .easywork/config.json",
                         },
                         "source": {
                             "type": "string",
@@ -446,8 +477,8 @@ class KnowledgeMCPServer:
                     "properties": {
                         "domain": {
                             "type": "string",
-                            "enum": ["integration", "development", "quarterly-o"],
-                            "description": "领域（必填）",
+                            "enum": [d["id"] for d in _get_domain_config()],
+                            "description": "领域（必填）。可用领域见 .easywork/config.json",
                         },
                         "source": {
                             "type": "string",
@@ -633,12 +664,8 @@ class KnowledgeMCPServer:
                 seq += 1
             entry_id = f"kb-{date_str}-{seq:03d}"
 
-        # Determine target directory
-        dir_map = {
-            "integration": "domain/integration",
-            "development": "domain/development",
-            "quarterly-o": "domain/quarterly-o",
-        }
+        # Determine target directory (v3.0: config-driven, not hardcoded)
+        dir_map = _build_dir_map()
         if dimension == "decision":
             target_dir = "decisions"
         elif source == "inner":

@@ -1,6 +1,6 @@
 # EasyWork 技能目录总览
 
-> 25 个技能 · 6 个类别 · 23 条斜杠命令。输入 `/easywork:` 后按 **Tab** 自动补全。
+> 25 个技能 · 6 个类别 · 26 条斜杠命令（fullchain-dev-workflow 同时有 meta 和 pipeline）。输入 `/easywork:` 后按 **Tab** 自动补全。
 
 ## 🧠 学习类（Learning）
 
@@ -26,6 +26,7 @@
 | `/easywork:graph` | graph-fullchain | Mermaid 架构图+节点对照表 | `/easywork:graph 支付系统` |
 | `/easywork:sum` | sum-session | 六要素总结（背景→发现→问题→解决→效果→展望） | `/easywork:sum 本次迭代` |
 | `/easywork:compare` | tech-compare | 技术方案选型对比（多维度+评分矩阵+推荐） | `/easywork:compare React vs Vue` |
+| `/easywork:git` | git-split-commit | 智能提交拆分（语义分组+Conventional Commits） | `/easywork:git 拆分最近的改动` |
 
 ## ✅ 质量类（Quality）
 
@@ -33,6 +34,8 @@
 |------|---------|--------|--------|
 | `/easywork:checklist` | checklist | 开发清单审计（Pre-flight 就绪+Audit 交付） | `/easywork:checklist 开发前检查` |
 | `/easywork:test` | api-test | 接口联调测试（curl/契约/自动化验证） | `/easywork:test POST /api/users` |
+| `/easywork:examine` | examine-quality | 测试执行+质量验证（自动跑测试+覆盖检查） | `/easywork:examine 验证改动` |
+| `/easywork:ask` | ask-change-questions | 六维度人工确认（HITL 终极闸门） | `/easywork:ask 确认上线变更` |
 
 ## 📝 内容类（Content）
 

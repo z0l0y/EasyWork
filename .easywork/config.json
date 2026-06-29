@@ -1,0 +1,112 @@
+{
+  "version": 1,
+  "knowledge": {
+    "enabled": true,
+    "domains": [
+      {
+        "id": "backend",
+        "name": "后端开发",
+        "emoji": "💻",
+        "description": "API、数据库、服务端逻辑、微服务",
+        "keywords": ["api", "接口", "数据库", "服务端", "后端", "微服务", "sql", "postgres", "mysql", "redis", "spring", "gin", "fastapi", "grpc"],
+        "ttl_days": 30
+      },
+      {
+        "id": "frontend",
+        "name": "前端开发",
+        "emoji": "🎨",
+        "description": "UI 组件、状态管理、样式、浏览器兼容",
+        "keywords": ["组件", "页面", "样式", "css", "scss", "ui", "前端", "react", "vue", "angular", "状态管理", "redux", "browser", "响应式", "next.js", "nuxt"],
+        "ttl_days": 30
+      },
+      {
+        "id": "data",
+        "name": "数据工程",
+        "emoji": "📊",
+        "description": "数据管道、ETL、分析、机器学习",
+        "keywords": ["数据", "etl", "pipeline", "模型", "特征", "训练", "sql", "spark", "flink", "ml", "ai", "jupyter", "pandas", "dataframe"],
+        "ttl_days": 60
+      },
+      {
+        "id": "devops",
+        "name": "DevOps/基础设施",
+        "emoji": "🔧",
+        "description": "CI/CD、部署、监控、容器化",
+        "keywords": ["部署", "ci", "cd", "k8s", "kubernetes", "docker", "监控", "告警", "infra", "terraform", "ansible", "jenkins", "github actions"],
+        "ttl_days": 30
+      },
+      {
+        "id": "mobile",
+        "name": "移动端开发",
+        "emoji": "📱",
+        "description": "iOS、Android、React Native、Flutter",
+        "keywords": ["ios", "android", "移动端", "app", "flutter", "react native", "swift", "kotlin", "小程序"],
+        "ttl_days": 30
+      },
+      {
+        "id": "design",
+        "name": "设计/产品",
+        "emoji": "🎯",
+        "description": "交互设计、视觉规范、产品需求",
+        "keywords": ["设计", "交互", "视觉", "产品", "需求", "原型", "figma", "sketch", "ux", "ui-design"],
+        "ttl_days": 90
+      }
+    ],
+    "data_dir": "knowledge"
+  },
+  "topic_rules": {
+    "rules": [
+      {
+        "category": "概念解释",
+        "emoji": "🧠",
+        "keywords": ["是什么", "什么意思", "区别", "对比", "定义", "概念", "解释", "理解", "介绍", "diff", "compare", "what is", "概述", "简介", "有啥区别", "有什么不同", "区别是", "不同点"]
+      },
+      {
+        "category": "问题排查",
+        "emoji": "🐛",
+        "keywords": ["bug", "error", "报错", "不工作", "失败", "出问题", "修复", "fix", "排查", "debug", "坏了", "不对", "错误", "异常", "怎么没", "不更新", "没反应", "不行", "有问题", "出不来"]
+      },
+      {
+        "category": "代码实现",
+        "emoji": "💻",
+        "keywords": ["实现", "开发", "写代码", "添加功能", "创建", "生成", "implement", "create", "build", "coding", "编写", "写一个", "帮我写", "代码"]
+      },
+      {
+        "category": "工具配置",
+        "emoji": "🔧",
+        "keywords": ["安装", "配置", "setup", "install", "config", "部署", "deploy", "环境", "插件", "plugin", "hook", "mcp", "skill"]
+      },
+      {
+        "category": "架构设计",
+        "emoji": "📊",
+        "keywords": ["设计", "架构", "重构", "architecture", "design", "refactor", "结构", "模式", "pattern", "方案", "选型", "技术栈", "框架"]
+      },
+      {
+        "category": "性能优化",
+        "emoji": "🚀",
+        "keywords": ["性能", "优化", "慢", "加速", "perf", "卡顿", "memory", "内存", "CPU", "提速", "瓶颈", "吞吐"]
+      }
+    ],
+    "default_category": "其他",
+    "default_emoji": "📖"
+  },
+  "paths": {
+    "skills": "skills/",
+    "tools": "tools/"
+  },
+  "workflow": {
+    "comment_language": "chinese",
+    "report_type": "engineering_record",
+    "output_backend": "local_html"
+  },
+  "risk": {
+    "high_risk_patterns": [
+      "auth change", "permission change", "deployment script", "data deletion",
+      "schema migration", "api contract change", "payment flow",
+      "shared component api change", "global style refactor", "state management restructure", "route redesign",
+      "pipeline schema change", "model serving endpoint change", "feature store update",
+      "infrastructure provisioning", "terraform state change", "secret rotation",
+      "navigation restructure", "platform-specific api change", "app store submission"
+    ]
+  }
+}
