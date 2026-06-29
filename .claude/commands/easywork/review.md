@@ -1,7 +1,7 @@
 ---
 description: "🔍 代码审查——七维度代码审查（反合理化+供应链检查）"
 argument-hint: "[文件路径或 PR 描述]"
-disable-model-invocation: true
+disable-model-invocation: false
 allowed-tools: Read, Write, Bash, Grep, Glob, WebSearch, WebFetch
 ---
 

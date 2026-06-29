@@ -1,7 +1,7 @@
 ---
 description: "🧪 测试验证——自动跑测试+覆盖率检查+质量验证"
 argument-hint: "[测试范围或文件路径]"
-disable-model-invocation: true
+disable-model-invocation: false
 allowed-tools: Read, Write, Bash, Grep, Glob, WebSearch, WebFetch
 ---
 

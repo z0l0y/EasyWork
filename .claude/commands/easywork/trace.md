@@ -1,7 +1,7 @@
 ---
 description: "🔬 代码追踪——函数调用链追踪（入口→路径→分支→数据流）"
 argument-hint: "[入口函数名或文件路径]"
-disable-model-invocation: true
+disable-model-invocation: false
 allowed-tools: Read, Write, Bash, Grep, Glob, WebSearch, WebFetch
 ---
 

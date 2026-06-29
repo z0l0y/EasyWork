@@ -1,7 +1,7 @@
 ---
 description: "🥊 CTO 拷打——四阶段 CTO 盘问+认知缺口+汇报就绪"
 argument-hint: "[审查主题或代码改动]"
-disable-model-invocation: true
+disable-model-invocation: false
 allowed-tools: Read, Write, Bash, Grep, Glob, WebSearch, WebFetch
 ---
 

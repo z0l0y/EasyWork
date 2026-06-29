@@ -48,7 +48,7 @@ EasyWork/
 - **Emoji** 作为技能唯一视觉标识符（不可重复使用）
 - **铁律系统**：40 条全局铁律（编排中枢 §2-3），风险 L0-L4 五级分类
 - **ETR 证据标准**：所有关键结论必须含 Evidence/Thinking/Risk 三元组
-- **命令文件**：`disable-model-invocation: true`，仅做路由不做业务逻辑
+- **命令文件**：`disable-model-invocation: false`，让模型能看到并执行路由指令（加载 SKILL.md + 传递 $ARGUMENTS）
 
 ## 技能调用方式
 

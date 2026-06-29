@@ -1,7 +1,7 @@
 ---
 description: "✏️ 代码实现——需求文档→代码变更（文件清单+改动原因+影响面）"
 argument-hint: "[需求说明或变更描述]"
-disable-model-invocation: true
+disable-model-invocation: false
 allowed-tools: Read, Write, Bash, Grep, Glob, WebSearch, WebFetch
 ---
 

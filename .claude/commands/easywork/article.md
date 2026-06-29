@@ -1,7 +1,7 @@
 ---
 description: "📝 文档编写——Agent 输出→格式化 Markdown 文档（6 种模板）"
 argument-hint: "[文档内容或主题]"
-disable-model-invocation: true
+disable-model-invocation: false
 allowed-tools: Read, Write, Bash, Grep, Glob, WebSearch, WebFetch
 ---
 

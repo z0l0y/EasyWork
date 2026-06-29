@@ -1,7 +1,7 @@
 ---
 description: "💻 命令管理——斜杠命令的创建/更新/删除/同步/索引"
 argument-hint: "[list|create|update|delete|sync|docs]"
-disable-model-invocation: true
+disable-model-invocation: false
 allowed-tools: Read, Write, Bash, Grep, Glob
 ---
 

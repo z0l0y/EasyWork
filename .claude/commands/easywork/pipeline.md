@@ -1,7 +1,7 @@
 ---
 description: "🔗 流水线——7 条内置流水线+动态 DAG 编排"
 argument-hint: "[流水线描述，如：先理解项目，再追踪支付模块]"
-disable-model-invocation: true
+disable-model-invocation: false
 allowed-tools: Read, Write, Bash, Grep, Glob, WebSearch, WebFetch
 ---
 

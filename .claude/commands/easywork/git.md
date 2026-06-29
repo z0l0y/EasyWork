@@ -1,7 +1,7 @@
 ---
 description: "📦 智能提交拆分——语义分组+Conventional Commits+风险分级"
 argument-hint: "[提交范围或变更描述]"
-disable-model-invocation: true
+disable-model-invocation: false
 allowed-tools: Read, Write, Bash, Grep, Glob
 ---
 

@@ -1,7 +1,7 @@
 ---
 description: "📋 总结报告——六要素总结（背景→发现→问题→解决→效果→展望）"
 argument-hint: "[总结主题]"
-disable-model-invocation: true
+disable-model-invocation: false
 allowed-tools: Read, Write, Bash, Grep, Glob, WebSearch, WebFetch
 ---
 

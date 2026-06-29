@@ -1,7 +1,7 @@
 ---
 description: "👁️ 需求理解——五要素需求说明+完成定义+可追溯矩阵"
 argument-hint: "[需求描述或用户故事]"
-disable-model-invocation: true
+disable-model-invocation: false
 allowed-tools: Read, Write, Bash, Grep, Glob, WebSearch, WebFetch
 ---
 

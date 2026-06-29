@@ -1,7 +1,7 @@
 ---
 description: "🛰️ 技术雷达——技术动态扫描（点/面/体三级粒度）"
 argument-hint: "[技术领域名 / 深扫 / 全面深扫]"
-disable-model-invocation: true
+disable-model-invocation: false
 allowed-tools: Read, Write, Bash, Grep, Glob, WebSearch, WebFetch
 ---
 

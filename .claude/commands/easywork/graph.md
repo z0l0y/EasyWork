@@ -1,7 +1,7 @@
 ---
 description: "📊 架构可视化——Mermaid 架构图+节点对照表"
 argument-hint: "[架构主题或模块名]"
-disable-model-invocation: true
+disable-model-invocation: false
 allowed-tools: Read, Write, Bash, Grep, Glob, WebSearch, WebFetch
 ---
 

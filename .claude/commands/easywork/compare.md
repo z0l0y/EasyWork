@@ -1,7 +1,7 @@
 ---
 description: "⚖️ 技术方案选型对比——六阶段战略决策框架"
 argument-hint: "[技术领域 / 候选方案 / 评估优先级]"
-disable-model-invocation: true
+disable-model-invocation: false
 allowed-tools: Read, Write, Bash, Grep, Glob, WebSearch, WebFetch
 ---
 

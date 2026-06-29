@@ -1,7 +1,7 @@
 ---
 description: "📐 项目理解——项目架构理解（结构→模块→依赖→技术栈）"
 argument-hint: "[项目路径或模块名]"
-disable-model-invocation: true
+disable-model-invocation: false
 allowed-tools: Read, Write, Bash, Grep, Glob, WebSearch, WebFetch
 ---
 

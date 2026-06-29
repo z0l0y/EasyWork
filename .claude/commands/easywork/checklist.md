@@ -1,7 +1,7 @@
 ---
 description: "✅ 清单审计——开发清单审计（Pre-flight 就绪+Audit 交付）"
 argument-hint: "[开发前检查 / 交付检查]"
-disable-model-invocation: true
+disable-model-invocation: false
 allowed-tools: Read, Write, Bash, Grep, Glob, WebSearch, WebFetch
 ---
 

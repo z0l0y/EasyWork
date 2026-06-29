@@ -1,7 +1,7 @@
 ---
 description: "📚 知识库管理——沉淀/检索/维护/交接，跨上下文复用知识"
 argument-hint: "[操作：查/存/整理/交接 或 自然语言描述]"
-disable-model-invocation: true
+disable-model-invocation: false
 allowed-tools: Read, Write, Bash, Grep, Glob, WebSearch, WebFetch
 ---
 

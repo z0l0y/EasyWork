@@ -1,7 +1,7 @@
 ---
 description: "🧪 接口联调测试——全量测试用例生成/预期结果预计算/错误码映射/MySQL5.7兼容SQL/Redis/MQ验证"
 argument-hint: "[接口定义 / URL / OpenAPI / curl]"
-disable-model-invocation: true
+disable-model-invocation: false
 allowed-tools: Read, Write, Bash, Grep, Glob, WebSearch, WebFetch
 ---
 

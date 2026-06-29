@@ -1,7 +1,7 @@
 ---
 description: "❓ 变更确认——六维度人工确认（HITL 终极闸门）"
 argument-hint: "[变更描述或上线检查范围]"
-disable-model-invocation: true
+disable-model-invocation: false
 allowed-tools: Read, Write, Bash, Grep, Glob, WebSearch, WebFetch
 ---
 

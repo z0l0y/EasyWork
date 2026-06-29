@@ -1,7 +1,7 @@
 ---
 description: "⚡ 快问快答——答案先行，要点为辅，直击核心问题"
 argument-hint: "[你的问题]"
-disable-model-invocation: true
+disable-model-invocation: false
 allowed-tools: Read, Write, Bash, Grep, Glob, WebSearch, WebFetch
 ---
 

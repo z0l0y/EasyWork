@@ -1,7 +1,7 @@
 ---
 description: "🌐 网状分析——Meta-Orchestrator 自治扩散+深度分析"
 argument-hint: "[复杂问题描述]"
-disable-model-invocation: true
+disable-model-invocation: false
 allowed-tools: Read, Write, Bash, Grep, Glob, WebSearch, WebFetch
 ---
 

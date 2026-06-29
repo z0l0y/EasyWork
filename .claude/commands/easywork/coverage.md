@@ -1,7 +1,7 @@
 ---
 description: "🧪 测试覆盖——测试覆盖率分析（五维覆盖+盲区检测）"
 argument-hint: "[项目路径或模块名]"
-disable-model-invocation: true
+disable-model-invocation: false
 allowed-tools: Read, Write, Bash, Grep, Glob, WebSearch, WebFetch
 ---
 

@@ -1,7 +1,7 @@
 ---
 description: "📖 论文阅读——十段论文阅读报告（速览→方法→实验→局限→分享）"
 argument-hint: "[论文 URL 或粘贴论文内容]"
-disable-model-invocation: true
+disable-model-invocation: false
 allowed-tools: Read, Write, Bash, Grep, Glob, WebSearch, WebFetch
 ---
 

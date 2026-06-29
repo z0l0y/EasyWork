@@ -1,7 +1,7 @@
 ---
 description: "🧠 复盘分析——5-Whys 根因分析+Trade-offs+工程规范"
 argument-hint: "[问题描述或复盘主题]"
-disable-model-invocation: true
+disable-model-invocation: false
 allowed-tools: Read, Write, Bash, Grep, Glob, WebSearch, WebFetch
 ---
 
