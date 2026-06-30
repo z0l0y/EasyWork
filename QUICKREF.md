@@ -34,6 +34,7 @@
 | "知识库 / knowledge base / 查知识库 / 沉淀知识 / 整理知识库 / 我的知识库 / 知识管理" | → 📚 仅 KNOWLEDGE-BASE（其余全跳，跳过全部闸门） |
 | "我不懂 / 零基础 / 举例子 / 通俗解释 / 大白话 / 说人话 / ELI5 / 画个图 / 什么是什么意思 / 完全不懂 / 新手 / 需要先懂什么" | → 🧠 仅 LEARN-FROM-ZERO（其余全跳，跳过全部闸门） |
 | "需求拆解 / 拆分需求 / 任务拆分 / 帮我拆解 / 分解需求 / decompose / task breakdown / 需求太大 / 拆成小任务 / 分步做 / WBS / 第一步做什么" | → 🧩 仅 REQUIREMENT-DECOMPOSE（其余全跳，跳过全部闸门） |
+| "帮我画架构图 / 画流程图 / 画序列图 / 画ER图 / 画思维导图 / generate diagram" | → 🎨 仅 DIAGRAM-GENERATOR（多引擎图表生成，其余全跳，跳过全部闸门） |
 | "场景画板 / scenario / 执行场景 / 场景列表 / 场景编排" | → 🎨 仅 SCENARIO-RUNNER（其余全跳，跳过全部闸门） |
 | "打开画布 / canvas / 可视化编排 / 拖拽编排" | → 🖼 仅 SCENARIO-CANVAS（打开浏览器可视化编辑器） |
 

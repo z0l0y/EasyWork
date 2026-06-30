@@ -1,0 +1,10 @@
+{
+  "_comment": "Draw.io MCP — 多格式导出 · 企业主流 · 可编辑 XML",
+  "_setup": "npx -y mcp-diagram-generator（自动安装）  将本文件内容合并到项目 .mcp.json",
+  "mcpServers": {
+    "drawio": {
+      "command": "npx",
+      "args": ["-y", "mcp-diagram-generator"]
+    }
+  }
+}

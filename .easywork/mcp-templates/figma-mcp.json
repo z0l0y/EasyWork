@@ -1,0 +1,10 @@
+{
+  "_comment": "Figma/FigJam MCP — 专业团队协作 · 双向交互 · 需 Figma 账号",
+  "_setup": "1. Claude Code: claude plugin install figma@claude-plugins-official  2. 或手动配置 Figma Desktop MCP  3. 首次使用会弹出 OAuth 授权页面  4. 将本文件内容合并到项目 .mcp.json",
+  "mcpServers": {
+    "figma": {
+      "type": "remote",
+      "url": "https://mcp.figma.com/mcp"
+    }
+  }
+}

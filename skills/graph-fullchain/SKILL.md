@@ -4,6 +4,8 @@ description: >
   架构可视化。GIT 之后、SUM 之前执行。将代码结构和调用关系转成
   Mermaid 图表（流程图/时序图/架构图）。图中的每个节点必须在实际代码中有对应实体。
   人脑处理图像比文字快 10 倍——好的图表让审查者瞬间理解你在做什么。
+
+  > 🆕 v3.3：如需更专业的图表（Figma/Excalidraw/D2/Draw.io），使用 [diagram-generator](../diagram-generator/SKILL.md) 技能。graph-fullchain 的 Mermaid 引擎作为兜底保留。
 allowed-tools: Read, Search
 model: haiku
 version: 3.0

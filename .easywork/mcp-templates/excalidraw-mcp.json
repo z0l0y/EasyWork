@@ -1,0 +1,14 @@
+{
+  "_comment": "Excalidraw MCP — 手绘风格图表 · 实时预览 · 26 个工具 · 推荐首选",
+  "_setup": "1. git clone https://github.com/yctimlin/mcp_excalidraw && cd mcp_excalidraw && npm ci && npm run build  2. PORT=3000 npm run canvas  3. 将本文件内容合并到项目 .mcp.json",
+  "mcpServers": {
+    "excalidraw": {
+      "command": "node",
+      "args": ["/absolute/path/to/mcp_excalidraw/dist/index.js"],
+      "env": {
+        "EXPRESS_SERVER_URL": "http://127.0.0.1:3000",
+        "ENABLE_CANVAS_SYNC": "true"
+      }
+    }
+  }
+}

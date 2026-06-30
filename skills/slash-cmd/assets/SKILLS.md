@@ -1,6 +1,6 @@
 # EasyWork 技能目录总览
 
-> 27 个技能 · 7 个类别 · 28 条斜杠命令。输入 `/easywork:` 后按 **Tab** 自动补全。
+> 28 个技能 · 7 个类别 · 29 条斜杠命令。输入 `/easywork:` 后按 **Tab** 自动补全。
 
 ## 🧠 学习类（Learning）
 
@@ -24,6 +24,7 @@
 | `/easywork:retro` | talk-retro | 5-Whys 根因分析+Trade-offs | `/easywork:retro 为什么支付模块反复出bug` |
 | `/easywork:selfcheck` | self-check | 四阶段 CTO 盘问+认知缺口 | `/easywork:selfcheck 我刚改的登录逻辑` |
 | `/easywork:graph` | graph-fullchain | Mermaid 架构图+节点对照表 | `/easywork:graph 支付系统` |
+| `/easywork:diagram` | diagram-generator | 🆕 多引擎图表生成（Figma/Excalidraw/D2/Draw.io/Mermaid） | `/easywork:diagram 架构图 微服务系统` |
 | `/easywork:sum` | sum-session | 六要素总结（背景→发现→问题→解决→效果→展望） | `/easywork:sum 本次迭代` |
 | `/easywork:compare` | tech-compare | 技术方案选型对比（多维度+评分矩阵+推荐） | `/easywork:compare React vs Vue` |
 | `/easywork:git` | git-split-commit | 智能提交拆分（语义分组+Conventional Commits） | `/easywork:git 拆分最近的改动` |

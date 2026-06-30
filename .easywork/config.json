@@ -112,6 +112,15 @@
       "warn_on_risk_escalation": true
     }
   },
+  "diagram": {
+    "enabled": true,
+    "default_engine": "auto",
+    "engines": ["excalidraw", "figma", "d2", "drawio", "mermaid"],
+    "fallback": "mermaid",
+    "excalidraw": {
+      "canvas_url": "http://127.0.0.1:3000"
+    }
+  },
   "risk": {
     "high_risk_patterns": [
       "auth change", "permission change", "deployment script", "data deletion",

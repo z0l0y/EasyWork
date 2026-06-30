@@ -1,7 +1,7 @@
 ---
 name: slash-cmd
 description: >
-  Claude Code 斜杠命令调度与技能管理。将 27 个技能映射为 /easywork:<name> 命名空间子命令，
+  Claude Code 斜杠命令调度与技能管理。将 28 个技能映射为 /easywork:<name> 命名空间子命令，
   支持 Tab 自动补全、参数透传、git 上下文注入。维护命令索引表、创建/更新/删除命令文件、
   生成技能使用文档。用户输入 /easywork: 后 Tab 即可发现所有可用技能命令。
 allowed-tools: Read, Write, Bash, Grep, Glob
@@ -21,7 +21,7 @@ capability:
   triggers: ["斜杠命令","slash command","命令管理","/easywork","更新命令","重建命令",
              "slash-cmd","command list","命令列表"]
   related_skills:
-    - { skill: all, relationship: outbound, desc: "为所有 27 个技能生成 /easywork:<name> 子命令入口" }
+    - { skill: all, relationship: outbound, desc: "为所有 28 个技能生成 /easywork:<name> 子命令入口" }
   suggested_when:
     - "新增了一个 skill 需要注册斜杠命令"
     - "skill 的触发词/描述有变更需要同步到命令文件"
@@ -39,7 +39,7 @@ capability:
 
 # 💻 Slash Cmd（斜杠命令调度）
 
-> 命令入口层 · v3.0 · 将 27 个技能映射为 `/easywork:<name>` 命名空间子命令
+> 命令入口层 · v3.0 · 将 28 个技能映射为 `/easywork:<name>` 命名空间子命令
 
 ## 1. 定位
 

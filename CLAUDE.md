@@ -32,7 +32,9 @@ EasyWork 是一个 Claude Code 技能生态系统，提供 27 个专业技能 + 
 - 斜杠命令位于 `.claude/commands/easywork/`（28 条命令）
 - 编排中枢：`skills/fullchain-dev-workflow/SKILL.md`
 - 快速参考：`QUICKREF.md`
+- 图表引擎：`skills/diagram-generator/`（Figma/Excalidraw/D2/Draw.io/Mermaid 多引擎）
 - MCP Server：`skills/knowledge-base/mcp-server/`（知识库自动索引）
+- MCP 模板：`.easywork/mcp-templates/`（Excalidraw/Figma/Draw.io 一键配置）
 - 知识存储：SQLite + FTS5（`knowledge/conversation.db`，Stop hook 每轮实时写入）
 - Hook 管线：SessionStart → PostToolUse → Stop → PreCompact → SessionEnd
 
@@ -53,8 +55,9 @@ EasyWork/
 ├── CLAUDE.md                 ← 本文件（L1 路由，始终加载）
 ├── MEMORY.md                 ← 知识库索引（指针列表）
 ├── QUICKREF.md               ← 30 秒快速参考
-├── skills/                   ← 27 个技能定义（核心流程）
+├── skills/                   ← 28 个技能定义（核心流程）
 │   ├── fullchain-dev-workflow/  ← 编排中枢（点线网三级）
+│   ├── diagram-generator/       ← 🆕 多引擎图表生成（Figma/Excalidraw/D2/Draw.io/Mermaid）
 │   ├── scenario-runner/         ← 场景执行引擎（🆕 v3.1）
 │   ├── scenario-builder/        ← 场景构建器（🆕 v3.1）
 │   ├── knowledge-base/          ← 知识库管理（跨切面能力 + MCP Server）
@@ -64,7 +67,8 @@ EasyWork/
 ├── scenarios/                ← 🆕 场景定义存储（YAML）
 │   ├── library/              ← 7 个预置场景模板
 │   └── user/                 ← 用户自定义场景
-├── .claude/commands/easywork/ ← 28 条斜杠命令入口
+├── .easywork/mcp-templates/  ← 🆕 MCP 配置模板（Excalidraw/Figma/Draw.io 一键配置）
+├── .claude/commands/easywork/ ← 29 条斜杠命令入口
 └── knowledge/                 ← 知识库内容层（L2）
 ```
 
