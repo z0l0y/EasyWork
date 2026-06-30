@@ -1,0 +1,63 @@
+# ⚡ 性能瓶颈排查 — 定位并优化
+scenario:
+  id: "performance-tuning"
+  name: "性能瓶颈排查"
+  emoji: "⚡"
+  version: "1.0"
+  category: "troubleshooting"
+  difficulty: "advanced"
+  estimated_time: "20-40 min"
+
+  situation:
+    background: >
+      系统出现了性能问题——可能是接口响应慢、CPU 飙升、内存泄漏、
+      或吞吐量下降。你需要用数据定位瓶颈，而不是凭直觉猜测。
+    persona: "性能优化工程师 / 有经验的开发者"
+    trigger_examples:
+      - "这个接口好慢，帮我看看哪里耗时间"
+      - "CPU 突然飙到 90%，帮我分析一下"
+      - "QPS 上不去，帮我找瓶颈"
+    desired_outcome: >
+      找到性能瓶颈的根本原因，有数据支撑的优化建议，
+      复盘结论已沉淀为长期知识。
+
+  canvas:
+    strategy: "quality-first"
+    nodes:
+      - id: "n1"
+        skill: "trace-code"
+        label: "追踪热点路径"
+        phase: "deep-dive"
+        config: { trace_depth: "detailed", focus: "performance, io, locks" }
+
+      - id: "n2"
+        skill: "test-coverage"
+        label: "检查测试覆盖"
+        phase: "verify"
+        depends_on: ["n1"]
+
+      - id: "n3"
+        skill: "talk-retro"
+        label: "5-Whys 根因分析"
+        phase: "summarize"
+        depends_on: ["n1", "n2"]
+
+      - id: "n4"
+        skill: "self-check"
+        label: "CTO拷打验证"
+        phase: "summarize"
+        depends_on: ["n3"]
+
+    edges:
+      - { from: "n1", to: "n2" }
+      - { from: "n1", to: "n3" }
+      - { from: "n2", to: "n3" }
+      - { from: "n3", to: "n4" }
+
+  meta:
+    tags: ["performance", "optimization", "profiling"]
+    skills_used: ["trace-code", "test-coverage", "talk-retro", "self-check"]
+    outcomes:
+      - "热点路径火焰图/调用链分析"
+      - "瓶颈根因报告（5-Whys）"
+      - "优化建议 + 风险评估"

@@ -1,6 +1,6 @@
 # EasyWork 技能目录总览
 
-> 25 个技能 · 6 个类别 · 26 条斜杠命令（fullchain-dev-workflow 同时有 meta 和 pipeline）。输入 `/easywork:` 后按 **Tab** 自动补全。
+> 27 个技能 · 7 个类别 · 28 条斜杠命令。输入 `/easywork:` 后按 **Tab** 自动补全。
 
 ## 🧠 学习类（Learning）
 
@@ -50,6 +50,8 @@
 |------|------|--------|--------|
 | `/easywork:pipeline` | 🔗 线模式 | 7 条内置流水线+动态 DAG 编排 | `/easywork:pipeline 先理解项目，再追踪支付` |
 | `/easywork:meta` | 🌐 网模式 | Meta-Orchestrator 自治扩散+深度分析 | `/easywork:meta 支付模块能不能扛住双11` |
+| `/easywork:scenario` | 🎨 场景模式 | 场景画板——list/view/run/create/edit 场景 | `/easywork:scenario run new-project-handover` |
+| `/easywork:canvas` | 🖼 可视化 | 打开拖拽式场景编辑器（浏览器） | `/easywork:canvas` |
 | `/easywork:slash-cmd` | 💻 命令管理 | 创建/更新/删除斜杠命令+技能索引 | `/easywork:slash-cmd sync` |
 
 ## 🔧 基础设施（Infrastructure）

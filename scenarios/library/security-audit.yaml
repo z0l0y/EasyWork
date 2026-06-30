@@ -1,0 +1,72 @@
+# 🔒 安全审计 — 代码安全审查
+scenario:
+  id: "security-audit"
+  name: "安全审计"
+  emoji: "🔒"
+  version: "1.0"
+  category: "audit"
+  difficulty: "advanced"
+  estimated_time: "30-60 min"
+
+  situation:
+    background: >
+      需要对代码进行安全审计——可能是有合规要求、上线前检查、
+      或发现了可疑的依赖。需要系统化扫描常见漏洞类型。
+    persona: "安全工程师 / 有安全意识的开发者"
+    trigger_examples:
+      - "帮我做一次安全审计"
+      - "上线前做安全检查"
+      - "检查一下有没有 SQL 注入和 XSS"
+    desired_outcome: >
+      完整的安全漏洞清单（含位置、严重程度、修复建议），
+      安全最佳实践建议 + 供应链风险评估。
+
+  canvas:
+    strategy: "quality-first"
+    nodes:
+      - id: "n1"
+        skill: "read-project"
+        label: "理解项目攻击面"
+        phase: "understand"
+        config: { focus: "security, auth, data-flow, external-apis" }
+
+      - id: "n2"
+        skill: "trace-code"
+        label: "追踪敏感数据流"
+        phase: "deep-dive"
+        depends_on: ["n1"]
+        config: { trace_depth: "detailed", focus: "auth, input-validation, data-sanitization" }
+
+      - id: "n3"
+        skill: "code-review"
+        label: "安全审查"
+        phase: "verify"
+        depends_on: ["n2"]
+        config: { focus: "security, injection, xss, auth, supply-chain" }
+
+      - id: "n4"
+        skill: "self-check"
+        label: "CTO拷打验证"
+        phase: "summarize"
+        depends_on: ["n3"]
+
+      - id: "n5"
+        skill: "talk-retro"
+        label: "根因分析 + 规范"
+        phase: "summarize"
+        depends_on: ["n3", "n4"]
+
+    edges:
+      - { from: "n1", to: "n2" }
+      - { from: "n2", to: "n3" }
+      - { from: "n3", to: "n4" }
+      - { from: "n3", to: "n5" }
+      - { from: "n4", to: "n5" }
+
+  meta:
+    tags: ["security", "audit", "vulnerability"]
+    skills_used: ["read-project", "trace-code", "code-review", "self-check", "talk-retro"]
+    outcomes:
+      - "安全漏洞清单（含 CVSS 评估）"
+      - "攻击面分析报告"
+      - "安全最佳实践建议"

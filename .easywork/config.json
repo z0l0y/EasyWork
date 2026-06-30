@@ -99,6 +99,19 @@
     "report_type": "engineering_record",
     "output_backend": "local_html"
   },
+  "scenarios": {
+    "enabled": true,
+    "library_path": "scenarios/library",
+    "user_path": "scenarios/user",
+    "auto_suggest": true,
+    "max_dag_depth": 5,
+    "default_strategy": "quality-first",
+    "validation": {
+      "strict_mode": false,
+      "allow_uncovered_inputs": false,
+      "warn_on_risk_escalation": true
+    }
+  },
   "risk": {
     "high_risk_patterns": [
       "auth change", "permission change", "deployment script", "data deletion",

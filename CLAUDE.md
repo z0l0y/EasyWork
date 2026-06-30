@@ -34,11 +34,18 @@ EasyWork/
 ├── CLAUDE.md                 ← 本文件（L1 路由，始终加载）
 ├── MEMORY.md                 ← 知识库索引（指针列表）
 ├── QUICKREF.md               ← 30 秒快速参考
-├── skills/                   ← 25 个技能定义
-│   ├── fullchain-dev-workflow/  ← 编排中枢
+├── skills/                   ← 27 个技能定义（核心流程）
+│   ├── fullchain-dev-workflow/  ← 编排中枢（点线网三级）
+│   ├── scenario-runner/         ← 场景执行引擎（🆕 v3.1）
+│   ├── scenario-builder/        ← 场景构建器（🆕 v3.1）
 │   ├── knowledge-base/          ← 知识库管理（跨切面能力 + MCP Server）
 │   └── ...
-├── .claude/commands/easywork/ ← 26 条斜杠命令入口
+├── tools/                    ← 工具层（非核心，手动调用）
+│   └── scenario-canvas/      ← 🆕 可视化拖拽场景编辑器（浏览器打开）
+├── scenarios/                ← 🆕 场景定义存储（YAML）
+│   ├── library/              ← 7 个预置场景模板
+│   └── user/                 ← 用户自定义场景
+├── .claude/commands/easywork/ ← 28 条斜杠命令入口
 └── knowledge/                 ← 知识库内容层（L2）
 ```
 
@@ -58,7 +65,8 @@ EasyWork/
 1. **自然语言**：说触发词（如"技术选型"、"帮我测接口"）→ Agent 自动 Read 对应 SKILL.md
 2. **斜杠命令**：`/easywork:<name>`（如 `/easywork:radar`）→ 命令文件路由 → Agent Read 对应 SKILL.md
 3. **编排中枢**：说"用 EasyWork" 走完整 10 步流程
-4. **禁止行为**：❌ 不要对 EasyWork 技能调用 `Skill` 工具（会报 `Unknown skill`）
+4. **场景画板**（🆕 v3.1）：`/easywork:canvas` 打开可视化拖拽编辑器 → `/easywork:scenario run <id>` 执行
+5. **禁止行为**：❌ 不要对 EasyWork 技能调用 `Skill` 工具（会报 `Unknown skill`）
 
 ---
 

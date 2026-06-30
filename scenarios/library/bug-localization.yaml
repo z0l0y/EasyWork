@@ -1,0 +1,71 @@
+# 🐛 线上故障定位 — 快速排查并修复
+scenario:
+  id: "bug-localization"
+  name: "线上故障定位"
+  emoji: "🐛"
+  version: "1.0"
+  category: "troubleshooting"
+  difficulty: "beginner"
+  estimated_time: "10-20 min"
+
+  situation:
+    background: >
+      线上报了一个 bug，可能是用户反馈的、监控告警的、或者日志里发现的。
+      你需要快速理解问题 → 定位根因 → 实现修复 → 验证效果 → 安全提交。
+    persona: "值班/on-call 工程师"
+    trigger_examples:
+      - "线上报错了，帮我排查"
+      - "用户反馈支付失败，帮我看看"
+      - "监控告警了，有个接口超时"
+    desired_outcome: >
+      Bug 已定位根因，修复代码已实现并验证，按 Conventional Commits 规范拆分提交。
+
+  canvas:
+    strategy: "simplicity-first"
+    nodes:
+      - id: "n1"
+        skill: "read-requirements"
+        label: "理解问题"
+        phase: "understand"
+        interaction_point:
+          prompt: "描述一下问题：什么现象？什么时候开始的？影响范围？"
+          type: "input"
+
+      - id: "n2"
+        skill: "trace-code"
+        label: "追踪根因"
+        phase: "deep-dive"
+        depends_on: ["n1"]
+
+      - id: "n3"
+        skill: "code-implement"
+        label: "实现修复"
+        phase: "fix"
+        depends_on: ["n2"]
+
+      - id: "n4"
+        skill: "examine-quality"
+        label: "验证修复"
+        phase: "verify"
+        depends_on: ["n3"]
+
+      - id: "n5"
+        skill: "git-split-commit"
+        label: "安全提交"
+        phase: "deliver"
+        depends_on: ["n4"]
+
+    edges:
+      - { from: "n1", to: "n2" }
+      - { from: "n2", to: "n3" }
+      - { from: "n3", to: "n4" }
+      - { from: "n4", to: "n5" }
+
+  meta:
+    tags: ["bugfix", "troubleshooting", "on-call"]
+    skills_used: ["read-requirements", "trace-code", "code-implement", "examine-quality", "git-split-commit"]
+    outcomes:
+      - "根因分析报告"
+      - "修复代码变更"
+      - "测试验证通过记录"
+      - "Conventional Commits 提交"

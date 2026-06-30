@@ -1,0 +1,80 @@
+# 🧠 进入新领域学习 — 从零建立知识体系
+scenario:
+  id: "learning-new-domain"
+  name: "进入新领域学习"
+  emoji: "🧠"
+  version: "1.0"
+  category: "learning"
+  difficulty: "beginner"
+  estimated_time: "15-30 min"
+
+  situation:
+    background: >
+      你需要进入一个全新的技术领域——可能是一个新框架、新语言特性、
+      或新概念。需要系统化学习路径，从概览到深入，从理论到实践。
+    persona: "对目标领域不熟悉的开发者"
+    trigger_examples:
+      - "帮我学习一下 Docker"
+      - "我想搞懂 Event Loop"
+      - "从零学习 Kubernetes"
+    desired_outcome: >
+      对目标领域有结构化的理解，了解核心概念、常见误区、
+      最佳实践，能开始动手实践。
+
+  canvas:
+    strategy: "efficiency-first"
+    nodes:
+      - id: "n1"
+        skill: "tech-radar"
+        label: "扫描领域概况"
+        phase: "understand"
+        config: { scope: "overview", topic: "{user_input}" }
+
+      - id: "n2"
+        skill: "read-paper"
+        label: "深读权威资料"
+        phase: "deep-dive"
+        depends_on: ["n1"]
+
+      - id: "n3"
+        skill: "learn-from-zero"
+        label: "四级阶梯学习"
+        phase: "deep-dive"
+        depends_on: ["n1"]
+        config: { depth: "eli5-to-expert" }
+
+      - id: "n4"
+        skill: "graph-fullchain"
+        label: "画知识图谱"
+        phase: "summarize"
+        depends_on: ["n2", "n3"]
+
+      - id: "n5"
+        skill: "article-write"
+        label: "输出学习笔记"
+        phase: "deliver"
+        depends_on: ["n3", "n4"]
+
+      - id: "n6"
+        skill: "knowledge-base"
+        label: "沉淀到知识库"
+        phase: "deliver"
+        depends_on: ["n5"]
+
+    edges:
+      - { from: "n1", to: "n2" }
+      - { from: "n1", to: "n3" }
+      - { from: "n2", to: "n4" }
+      - { from: "n3", to: "n4" }
+      - { from: "n3", to: "n5" }
+      - { from: "n4", to: "n5" }
+      - { from: "n5", to: "n6" }
+
+  meta:
+    tags: ["learning", "onboarding", "knowledge-building"]
+    skills_used: ["tech-radar", "read-paper", "learn-from-zero", "graph-fullchain", "article-write", "knowledge-base"]
+    outcomes:
+      - "领域知识扫描报告"
+      - "四级阶梯学习笔记"
+      - "知识图谱（Mermaid）"
+      - "知识库沉淀"

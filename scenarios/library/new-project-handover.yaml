@@ -1,0 +1,83 @@
+# 🧭 接手遗留项目 — 全面理解并建立心智模型
+scenario:
+  id: "new-project-handover"
+  name: "接手遗留项目"
+  emoji: "🧭"
+  version: "1.0"
+  category: "onboarding"
+  difficulty: "intermediate"
+  estimated_time: "15-30 min"
+
+  situation:
+    background: >
+      你刚接手一个遗留项目——可能是同事离职交接、跨团队支援、
+      或被分配到一个已经在线上运行但你不熟悉的服务。项目文档可能缺失或过时，
+      你需要快速建立对项目架构、核心模块、关键风险点的心智模型。
+    persona: "新接手的开发工程师（对项目不熟悉）"
+    trigger_examples:
+      - "我刚接手这个项目，帮我全面了解一下"
+      - "同事离职了，我接手了他的服务，不知道从哪下手"
+      - "老板让我负责这个老系统，我要先搞清楚它"
+    desired_outcome: >
+      对项目有清晰的架构理解，知道核心模块和关键调用路径，
+      了解测试覆盖情况和已知风险点，能自信地回答"这个项目是干什么的、怎么干的"。
+
+  canvas:
+    strategy: "quality-first"
+    nodes:
+      - id: "n1"
+        skill: "read-project"
+        label: "理解项目架构"
+        phase: "understand"
+        config: { focus: "architecture, core modules, external services", depth: "detailed" }
+
+      - id: "n2"
+        skill: "trace-code"
+        label: "追踪核心调用链"
+        phase: "deep-dive"
+        depends_on: ["n1"]
+        interaction_point:
+          prompt: "从 n1 的架构报告中，你想追踪哪个核心接口/函数的调用链？"
+          type: "selection"
+
+      - id: "n3"
+        skill: "test-coverage"
+        label: "检查测试覆盖"
+        phase: "verify"
+        depends_on: ["n2"]
+
+      - id: "n4"
+        skill: "graph-fullchain"
+        label: "画架构图"
+        phase: "summarize"
+        depends_on: ["n1", "n2"]
+
+      - id: "n5"
+        skill: "sum-session"
+        label: "生成综合报告"
+        phase: "summarize"
+        depends_on: ["n3", "n4"]
+
+      - id: "n6"
+        skill: "self-check"
+        label: "CTO拷打验证"
+        phase: "summarize"
+        depends_on: ["n5"]
+
+    edges:
+      - { from: "n1", to: "n2" }
+      - { from: "n1", to: "n4" }
+      - { from: "n2", to: "n3" }
+      - { from: "n2", to: "n4" }
+      - { from: "n3", to: "n5" }
+      - { from: "n4", to: "n5" }
+      - { from: "n5", to: "n6" }
+
+  meta:
+    tags: ["onboarding", "legacy-code", "project-understanding"]
+    skills_used: ["read-project", "trace-code", "test-coverage", "graph-fullchain", "sum-session", "self-check"]
+    outcomes:
+      - "项目架构 Mermaid 图"
+      - "核心调用链追踪报告"
+      - "测试覆盖盲区清单"
+      - "综合接手指南"

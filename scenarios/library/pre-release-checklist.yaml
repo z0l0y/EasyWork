@@ -1,0 +1,69 @@
+# ✅ 发布前检查 — 上线质量闸门
+scenario:
+  id: "pre-release-checklist"
+  name: "发布前检查"
+  emoji: "✅"
+  version: "1.0"
+  category: "delivery"
+  difficulty: "intermediate"
+  estimated_time: "10-20 min"
+
+  situation:
+    background: >
+      准备上线/发版。需要系统化检查所有质量闸门是否通过，
+      确保不会带着已知问题上线。
+    persona: "发布负责人 / 模块 Owner"
+    trigger_examples:
+      - "准备上线了，帮我做发布前检查"
+      - "发版前 checklist"
+      - "检查一下能不能上生产"
+    desired_outcome: >
+      所有质量闸门通过，已知风险有应对方案，上线确认签字。
+
+  canvas:
+    strategy: "quality-first"
+    nodes:
+      - id: "n1"
+        skill: "checklist"
+        label: "Pre-flight 清单审计"
+        phase: "understand"
+        config: { mode: "pre-flight" }
+
+      - id: "n2"
+        skill: "examine-quality"
+        label: "测试验证"
+        phase: "verify"
+        depends_on: ["n1"]
+
+      - id: "n3"
+        skill: "code-review"
+        label: "变更审查"
+        phase: "verify"
+        depends_on: ["n1"]
+
+      - id: "n4"
+        skill: "self-check"
+        label: "CTO拷打验证"
+        phase: "summarize"
+        depends_on: ["n2", "n3"]
+
+      - id: "n5"
+        skill: "ask-change-questions"
+        label: "六维度上线确认"
+        phase: "deliver"
+        depends_on: ["n4"]
+
+    edges:
+      - { from: "n1", to: "n2" }
+      - { from: "n1", to: "n3" }
+      - { from: "n2", to: "n4" }
+      - { from: "n3", to: "n4" }
+      - { from: "n4", to: "n5" }
+
+  meta:
+    tags: ["release", "checklist", "quality-gate", "deployment"]
+    skills_used: ["checklist", "examine-quality", "code-review", "self-check", "ask-change-questions"]
+    outcomes:
+      - "Pre-flight 清单报告"
+      - "测试覆盖 + 验证结果"
+      - "上线确认签字"

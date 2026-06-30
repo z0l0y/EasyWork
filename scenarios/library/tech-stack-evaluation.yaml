@@ -1,0 +1,70 @@
+# ⚖️ 技术栈评估选型 — 多维度对比决策
+scenario:
+  id: "tech-stack-evaluation"
+  name: "技术栈评估选型"
+  emoji: "⚖️"
+  version: "1.0"
+  category: "evaluation"
+  difficulty: "advanced"
+  estimated_time: "30-60 min"
+
+  situation:
+    background: >
+      团队面临技术选型决策——换框架、引入新工具、选择第三方服务。
+      需要系统化评估而不是凭感觉选，要有数据支撑的对比矩阵。
+    persona: "技术负责人 / 架构师"
+    trigger_examples:
+      - "帮我对比一下 React 和 Vue，我们新项目用哪个"
+      - "消息队列选 Kafka 还是 Pulsar"
+      - "要不要从 REST 迁移到 GraphQL"
+    desired_outcome: >
+      多维度对比矩阵（≥6 个维度），每个方案的优劣清晰，
+      有推荐方案 + 理由 + 风险评估。
+
+  canvas:
+    strategy: "quality-first"
+    nodes:
+      - id: "n1"
+        skill: "tech-radar"
+        label: "扫描技术动态"
+        phase: "understand"
+        config: { scope: "deep", topic: "{user_input}" }
+
+      - id: "n2"
+        skill: "read-paper"
+        label: "深读关键资料"
+        phase: "deep-dive"
+        depends_on: ["n1"]
+
+      - id: "n3"
+        skill: "tech-compare"
+        label: "多维度对比"
+        phase: "verify"
+        depends_on: ["n1", "n2"]
+
+      - id: "n4"
+        skill: "self-check"
+        label: "CTO拷打验证"
+        phase: "summarize"
+        depends_on: ["n3"]
+
+      - id: "n5"
+        skill: "article-write"
+        label: "输出决策文档"
+        phase: "deliver"
+        depends_on: ["n4"]
+
+    edges:
+      - { from: "n1", to: "n2" }
+      - { from: "n1", to: "n3" }
+      - { from: "n2", to: "n3" }
+      - { from: "n3", to: "n4" }
+      - { from: "n4", to: "n5" }
+
+  meta:
+    tags: ["tech-selection", "comparison", "architecture-decision"]
+    skills_used: ["tech-radar", "read-paper", "tech-compare", "self-check", "article-write"]
+    outcomes:
+      - "技术趋势扫描报告"
+      - "多维度对比矩阵（≥6 维度）"
+      - "推荐方案 + ADR"
