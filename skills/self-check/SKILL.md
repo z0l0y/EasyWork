@@ -10,7 +10,7 @@ description: >
   禁止用摘要表替代问答。
   v2.8: SELFCHECK发现方案层面缺陷时可回退CODE调整设计(铁律#23，最多2轮)。
   v2.9: MCR+质量升级——≥8个CTO追问/≥2反事实问题/≥2替代方案质询/≥1防复发追问/≥1认知缺口+补救动作。禁止模糊回答放水。
-allowed-tools: Read, Search
+allowed-tools: Read, Grep, Glob
 model: opus
 model_fallback: sonnet
 version: 3.0

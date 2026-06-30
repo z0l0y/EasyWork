@@ -3,7 +3,7 @@ name: your-skill-name
 description: >
   简要描述这个技能做什么（一句话）。Agent 会根据这个描述判断何时加载。
   写描述时站在 Agent 的角度："我有什么问题时应该加载这个 skill？"
-allowed-tools: Read, Write, Bash, Search, Grep, Glob  # 根据实际需要删减
+allowed-tools: Read, Write, Bash, Grep, Glob, WebSearch, WebFetch  # 根据实际需要删减
 model: sonnet  # haiku / sonnet / opus — 该技能推荐的模型 tier
 version: 1.0
 ---

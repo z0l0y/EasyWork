@@ -7,7 +7,7 @@ description: >
   10 大检查类别（需求完整性/安全/性能/测试/文档/部署/回滚/可访问性/代码质量/合规），
   按任务类型和风险等级自动裁剪。每条清单项标注来源闸门、证据位置、严重程度（阻塞/警告/提示）和修复建议。
   参考《清单革命》（Gawande）、GitHub PR Template 系统、Google PRR 标准。
-allowed-tools: Read, Search, Grep, Glob
+allowed-tools: Read, Grep, Glob, WebSearch
 model: sonnet
 version: 3.0
 capability:

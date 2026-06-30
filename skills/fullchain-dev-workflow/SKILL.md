@@ -32,7 +32,7 @@ description: >
   Gotchas候选-确认机制、文件系统写保护。
   v2.3: 并行审查、反合理化防御、团队策略覆盖、自定义步骤注入、逐步骤预览、
   Gotchas知识库、交互式新手引导、可访问性审查、供应链检查、Conventional Commits。
-allowed-tools: Read, Write, Bash, Search, Grep, Glob
+allowed-tools: Read, Write, Bash, Grep, Glob, WebSearch, WebFetch
 model: sonnet
 version: 3.0
 capability:
@@ -47,7 +47,7 @@ capability:
     - { name: orchestrated_execution, type: multi_skill_pipeline, description: "按需裁剪的 10 步执行流程或点线网编排结果" }
   triggers: ["用 EasyWork", "走 EasyWork 流程", "EasyWork"]
   related_skills:
-    - { skill: all, relationship: orchestrator, desc: "编排中枢可调度所有 27 个技能点、7 条内置流水线、网模式自治扩散" }
+    - { skill: all, relationship: orchestrator, desc: "编排中枢可调度所有 28 个技能点、7 条内置流水线、网模式自治扩散" }
   suggested_when:
     - "用户需要完整的开发流程管理"
     - "任务复杂度超过单个技能能处理的范围"

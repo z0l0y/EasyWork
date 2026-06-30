@@ -29,7 +29,7 @@ EasyWork/
     │   ├── SKILL.md             #   核心指令（Agent 执行入口）
     │   ├── assets/              #   模板与示例（Agent 复制后填空）
     │   └── references/          #   深度参考（Agent 按需查阅）
-    └── {skill-name}/             # 25 个子技能（结构同上）
+    └── {skill-name}/             # 28 个子技能（结构同上）
 ```
 
 ## 如何贡献

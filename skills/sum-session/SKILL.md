@@ -16,7 +16,7 @@ description: >
   v2.8: 文档迭代增量更新(铁律#25)→v2.10已升级为节点内版本合并,Mode B下禁止文档级更新记录块。
   v2.7: 报告深度感知(brief/standard/detailed)、MCR自检闸门(HARD/SOFT GATE)、
   流式增量写入保障。
-allowed-tools: Read, Search, Bash
+allowed-tools: Read, Grep, Glob, Bash, Write
 model: sonnet
 version: 3.0
 capability:

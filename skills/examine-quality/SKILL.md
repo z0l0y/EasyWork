@@ -6,7 +6,7 @@ description: >
   v2.12: 测试充分性闸门(铁律#34)+环境保真闸门(铁律#32)——五维覆盖检查、Bug修复回归测试强制、交互式应用近真实环境冒烟测试。
   v2.9: MCR+质量升级——测试命令+目的/失败前修复后对比/覆盖矩阵标注新增/关键输出摘录凭据。禁止"go test 通过"式水文。
   v2.8: 交互式应用真实体验验证(铁律#26)——CLI/TUI/GUI/Web前端/游戏额外覆盖首屏/输入反馈/退出路径/stdin边界/ANSI兼容/渲染频率。
-allowed-tools: Bash, Read, Write, Search, Grep, Glob
+allowed-tools: Bash, Read, Write, Grep, Glob
 model: sonnet
 version: 3.0
 capability:

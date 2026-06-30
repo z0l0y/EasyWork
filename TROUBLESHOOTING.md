@@ -28,7 +28,7 @@ EasyWork 的 skill 文件没有被正确加载，或者 Agent 的上下文中 Ea
 
 **即时纠正**（在当前对话中）：
 ```
-"请重新加载 .claude/skills/easywork/fullchain-dev-workflow/SKILL.md，
+"请重新加载 skills/fullchain-dev-workflow/SKILL.md，
 然后遵守其反模式清单继续执行。"
 ```
 
@@ -205,11 +205,11 @@ Mermaid 代码在渲染时显示空白或语法错误。
 ### 检查清单
 
 - [ ] `CLAUDE.md` 中的路径是否写成了绝对路径（如 `C:\Users\xxx\EasyWork\`）但项目在别的机器上？
-  - **修复**：改用相对路径 `.claude/skills/easywork/`（先运行安装脚本）
-- [ ] 技能目录是否确实在 `.claude/skills/easywork/` 下？
-  - **验证**：`ls .claude/skills/easywork/` 应看到 10 个子目录
+  - **修复**：改用相对路径 `skills/`（先运行安装脚本）
+- [ ] 技能目录是否确实在 `skills/` 下？
+  - **验证**：`ls skills/` 应看到 28 个子目录
 - [ ] `SKILL.md` 文件是否存在且非空？
-  - **验证**：`wc -l .claude/skills/easywork/fullchain-dev-workflow/SKILL.md`
+  - **验证**：`wc -l skills/fullchain-dev-workflow/SKILL.md`
 - [ ] Claude Code 版本是否支持 skills？
   - **检查**：Claude Code v1.0+ 支持项目级 skills
 

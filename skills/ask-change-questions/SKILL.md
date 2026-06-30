@@ -5,7 +5,7 @@ description: >
   Agent 反转立场，以审查者视角从六个维度向用户提问：
   需求验收、行为变化、数据影响、安全权限、测试覆盖、上线监控。
   用户的每项确认都是对上线风险的知情签字。
-allowed-tools: Read, Search
+allowed-tools: Read, Grep, Glob, WebSearch
 model: sonnet
 version: 3.0
 capability:

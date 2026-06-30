@@ -7,7 +7,7 @@ description: >
   v2.12: 完成定义闸门(铁律#30)+需求可追溯矩阵(铁律#31)+参考基线闸门(铁律#33)——六维完成定义、五列追溯矩阵、成熟领域搜索外部参考实现。
   v2.9: MCR+质量升级——需求来源/用户真实目标/影响量化/可验证验收/不做事项含原因。禁止复述用户原话不结构化。
   v2.8: 需求理解显式确认(铁律#24)——必须用自己的话重述理解+列出澄清问题+获用户确认后才进入CODE。
-allowed-tools: Read, Search, Grep, Glob, WebSearch, WebFetch
+allowed-tools: Read, Grep, Glob, WebSearch, WebFetch
 model: haiku
 version: 3.0
 capability:

@@ -6,7 +6,7 @@ description: >
   发现阻断性问题回退到 CODE 修复，循环上限 3 次，全部清零才放行。
   v2.8: 质量门禁强化(不通过不可进入EXAMINE，铁律#23)、七维度交叉分析(5组跨维度关联检查)、回退历史追踪。
   v2.9: MCR+质量升级——检查点绑定代码位置/"通过"必须写依据/发现问题写全位置+触发+影响+修复+回归。禁止"正确性：通过"式水文。
-allowed-tools: Read, Search, Grep, Glob
+allowed-tools: Read, Grep, Glob, WebSearch
 model: opus
 model_fallback: sonnet
 version: 3.0

@@ -4,8 +4,8 @@
 >
 > 把 AI 从"散漫的代码生成器"变成"严格按流程走的虚拟结对程序员"。
 
-[![Version](https://img.shields.io/badge/version-3.1-blue)](CHANGELOG.md)
-[![Skills](https://img.shields.io/badge/skills-27-green)](skills/)
+[![Version](https://img.shields.io/badge/version-3.3-blue)](CHANGELOG.md)
+[![Skills](https://img.shields.io/badge/skills-28-green)](skills/)
 [![License](https://img.shields.io/badge/license-MIT-yellow)](LICENSE)
 
 ---
@@ -55,12 +55,22 @@
 
 ---
 
-## 🆕 v3.1 亮点
+## 🆕 最新亮点
 
-- **🎨 场景画布**：基于 LiteGraph.js（ComfyUI 同款引擎）的可视化拖拽编辑器，自由编排 28 个技能
-- **▶️ 场景执行引擎**：DAG 拓扑排序 + 并行执行 + HITL 交互暂停，7 个预置场景开箱即用
+### v3.3 — 多引擎图表生成
+- **🎨 5 引擎链**：Figma(P0) > Excalidraw(P1) > D2(P2) > Draw.io(P3) > Mermaid(P4)，自动检测最优引擎
+- **🔌 MCP 驱动**：Excalidraw（26 个工具）、Figma 官方 MCP、Draw.io MCP 一键配置
+- **📊 8 种图表**：架构图、流程图、序列图、ER 图、C4 模型、状态图、思维导图、甘特图
+
+### v3.2 — 入口简化
+- **🚪 智能入口**：你不需要记住 28 个技能名。直接描述你想做什么，Agent 自动匹配
+- **📖 文档瘦身**：README 463→112 行，新增 GETTING_STARTED.md（5 分钟上手）、DEVLOG.md（版本演进）
+- **🗂️ 渐进式披露**：仅加载当前技能，上下文占用降至原先 1/28
+
+### v3.1 — 场景画布
+- **🎨 可视化编排**：LiteGraph.js（ComfyUI 同款引擎）拖拽编辑器，自由编排 28 个技能
+- **▶️ 场景执行引擎**：DAG 拓扑排序 + 并行执行 + HITL 交互暂停，7 个预置场景
 - **🔗 三层集成**：场景 DAG → Pipeline 执行，场景 → Meta 自治扩散种子
-- **配置驱动**：6 大领域（后端/前端/数据/DevOps/移动端/设计）自由定制，知识库可选开关
 
 > 📝 完整版本演进历史 → [DEVLOG.md](DEVLOG.md)
 > 📋 正式 Changelog → [CHANGELOG.md](CHANGELOG.md)
