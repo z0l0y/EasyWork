@@ -1,7 +1,7 @@
 ---
 name: fullchain-skill-index
 description: >
-  EasyWork 全链路 AI 辅助开发工作流技能包索引。27 个技能 · 28 条命令 · 点线网三级编排。
+  EasyWork 全链路 AI 辅助开发工作流技能包索引。28 个技能 · 29 条命令 · 点线网三级编排。
   入口技能：fullchain-dev-workflow（含任务分类器，自动判断需要哪些步骤）。
   v3.1: 场景画布（可视化拖拽编辑器+LiteGraph.js）、场景执行引擎（DAG拓扑+并行+HITL）、
   7 个预置场景模板、2 条新斜杠命令（scenario/canvas，28条总计）、场景↔Pipeline/Meta三层集成。

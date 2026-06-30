@@ -6,7 +6,7 @@
 
 ## 第 1 分钟：忘掉命令名
 
-EasyWork 有 28 条命令，但**你不需要记住任何一条**。
+EasyWork 有 29 条命令，但**你不需要记住任何一条**。
 
 Agent 会根据你说的话自动匹配最合适的技能。你只需要描述你想做什么。
 
@@ -38,7 +38,7 @@ Agent：我来从零解释...
 
 ### ⌨️ 斜杠命令
 
-如果你更喜欢精确控制：输入 `/easywork:` 然后按 **Tab** 键 → 自动补全全部 28 条命令。
+如果你更喜欢精确控制：输入 `/easywork:` 然后按 **Tab** 键 → 自动补全全部 29 条命令。
 
 ```
 /easywork:radar       → 技术动态扫描
@@ -87,7 +87,7 @@ Agent：我来从零解释...
 
 | 想了解 | 去看 |
 |--------|------|
-| 全部 28 条命令速查 | [QUICKREF.md](QUICKREF.md) |
+| 全部 29 条命令速查 | [QUICKREF.md](QUICKREF.md) |
 | 版本演进历史 | [DEVLOG.md](DEVLOG.md) |
 | 正式 Changelog | [CHANGELOG.md](CHANGELOG.md) |
 | 遇到问题怎么办 | [TROUBLESHOOTING.md](TROUBLESHOOTING.md) |
