@@ -7,6 +7,29 @@ EasyWork 的所有重要变更记录。
 
 ---
 
+## [3.1.0] — 2026-07-01
+
+### 🎨 场景画布（Scenario Canvas）— 可视化节点编排
+
+- **可视化拖拽编辑器**：`tools/scenario-canvas/canvas.html`，基于 LiteGraph.js（ComfyUI 同款引擎），零依赖单文件，三面板布局（技能面板 → 画布中央 → 属性面板）
+- **场景执行引擎**：`skills/scenario-runner/SKILL.md`，DAG 拓扑排序 + 并行执行 + HITL 交互暂停
+- **对话式场景构建器**：`skills/scenario-builder/SKILL.md`，6 步对话引导（上下文捕获 → 技能推荐 → 编排 → 校验 → 策略 → 发布）
+- **7 个预置场景模板**：`scenarios/library/`（接手遗留项目 / 线上故障定位 / 性能排查 / 技术选型 / 安全审计 / 发布检查 / 新领域学习）
+- **场景 YAML 格式**：`scenario.situation`（上下文锚定）+ `scenario.canvas`（节点 + 边 + 策略）+ HITL 交互点
+- **场景 ↔ Pipeline 集成**：场景 DAG 可作为 Pipeline 输入直接执行
+- **场景 → Meta 集成**：场景作为种子图驱动自治扩散
+- **2 条新斜杠命令**：`/easywork:scenario`（list/view/run/create/edit/delete）、`/easywork:canvas`（打开可视化编辑器）
+- 命令总数：26 → **28 条**
+- 技能总数：25 → **27 个**
+
+### 🔧 修复
+
+- 修正 `skills/fullchain-dev-workflow/SKILL.md`、`skills/slash-cmd/SKILL.md`、`skills/scenario-builder/SKILL.md` 中过时的技能数量引用
+- `CLAUDE.md`、`QUICKREF.md` 命令数更新为 28 条
+- `QUICKREF.md` 新增 scenario/canvas 触发词
+
+---
+
 ## [3.0.0] — 2026-06-29
 
 ### 架构重构：通用化 + 可配置化

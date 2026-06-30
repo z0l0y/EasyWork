@@ -1,11 +1,14 @@
 ---
 name: fullchain-skill-index
 description: >
-  EasyWork 全链路 AI 辅助开发工作流技能包索引。10 步流程按需裁剪：
-  READ → CODE → REVIEW → EXAMINE → GIT → GRAPH → SUM → TALK → SELFCHECK → ASK。
+  EasyWork 全链路 AI 辅助开发工作流技能包索引。27 个技能 · 28 条命令 · 点线网三级编排。
   入口技能：fullchain-dev-workflow（含任务分类器，自动判断需要哪些步骤）。
-	  v2.11: 文档保真闸门(7项检查→HARD GATE,铁律#29)、禁止无基准覆写(6条Anti-Overwrite规则)、
-	  写入模式三级分类(Quick Fix/Normal/Full Archive)、文档作用域(round_report/engineering_active)。
+  v3.1: 场景画布（可视化拖拽编辑器+LiteGraph.js）、场景执行引擎（DAG拓扑+并行+HITL）、
+  7 个预置场景模板、2 条新斜杠命令（scenario/canvas，28条总计）、场景↔Pipeline/Meta三层集成。
+  v3.0: 配置驱动（6领域动态定义+topic_rules自定义）、知识库可选（enabled flag）、
+  MCP Server直连+节点重连、全文件版本统一（28个SKILL.md→3.0）、消除所有硬编码领域引用。
+  v2.11: 文档保真闸门(7项检查→HARD GATE,铁律#29)、禁止无基准覆写(6条Anti-Overwrite规则)、
+  写入模式三级分类(Quick Fix/Normal/Full Archive)、文档作用域(round_report/engineering_active)。
   v2.10: 文档拓扑闸门(7项检查→HARD GATE,铁律#28)、双模文档结构(Mode A审计日志/Mode B持续维护默认)、
   结构化合并(Fetch→Parse→Pre-check→Distribute→Index→Mark,取代尾部追加更新记录)。
   v2.9: 反水文闸门(6类水文信号→HARD GATE)、MCR→MCR+质量升级(每步增加反例+合格例)、
@@ -26,7 +29,7 @@ description: >
   Gotchas候选-确认制、文件系统写保护。
   v2.3: 并行审查、反合理化防御、Gotchas知识库、团队策略覆盖、自定义步骤注入、
   可访问性审查、供应链检查、Conventional Commits、交互式入门、故障Runbook。
-version: 3.0
+version: 3.1
 model: sonnet
 ---
 

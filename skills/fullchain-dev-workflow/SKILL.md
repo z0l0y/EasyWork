@@ -47,7 +47,7 @@ capability:
     - { name: orchestrated_execution, type: multi_skill_pipeline, description: "按需裁剪的 10 步执行流程或点线网编排结果" }
   triggers: ["用 EasyWork", "走 EasyWork 流程", "EasyWork"]
   related_skills:
-    - { skill: all, relationship: orchestrator, desc: "编排中枢可调度所有 25 个技能点、7 条内置流水线、网模式自治扩散" }
+    - { skill: all, relationship: orchestrator, desc: "编排中枢可调度所有 27 个技能点、7 条内置流水线、网模式自治扩散" }
   suggested_when:
     - "用户需要完整的开发流程管理"
     - "任务复杂度超过单个技能能处理的范围"
@@ -231,7 +231,7 @@ EasyWork 全链路 10 步涉及大量 skill 指令和产出物，在长对话中
   4. 进入下一步骤 → 读取下一个 SKILL.md
 ```
 
-**编排中枢本身**保持在上下文中（它很轻量），但 9 个子技能的 SKILL.md **按需加载，用完即弃**。
+**编排中枢本身**保持在上下文中（它很轻量），但 27 个子技能的 SKILL.md **按需加载，用完即弃**。
 
 ### 策略一：分步执行 + 状态快照（推荐）
 
