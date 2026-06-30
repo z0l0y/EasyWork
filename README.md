@@ -1,463 +1,112 @@
-# EasyWork — AI 全链路开发工作流技能包
+# EasyWork — AI 全链路开发工作流技能包 🛠️
 
-## 这是什么？
+> **27 个专业技能 · 28 条命令 · 点线网三级编排**
+>
+> 把 AI 从"散漫的代码生成器"变成"严格按流程走的虚拟结对程序员"。
 
-EasyWork 是一套为 AI 编码助手（Claude Code、Cursor、GitHub Copilot）设计的标准化开发工作流。
-它解决的核心问题是：**AI 写代码太快、太不可控**——它们跳过理解直接改代码、顺手重构无关模块、
-不跑测试直接交付。EasyWork 通过**按需裁剪的 10 步工作流 + 全局异常 SOP + CTO 拷打层 + 人工确认闸门**，
-让 AI 从"散漫的代码生成器"变成"严格按流程走的虚拟结对程序员"。
-
-### v3.1 核心改进：场景画布 + 可视化拖拽编排 🎨
-
-- **🎨 场景画布（Scenario Canvas）**：基于 LiteGraph.js（ComfyUI 同款引擎）的可视化拖拽编辑器，`/easywork:canvas` 在浏览器中打开，自由拖拽 27 个技能节点、连线编排、保存/加载场景
-- **▶️ 场景执行引擎**：`/easywork:scenario run <id>` 按 DAG 拓扑排序执行技能，支持并行执行 + HITL 交互暂停点 + 三种执行策略
-- **📋 7 个预置场景模板**：接手遗留项目 / 线上故障定位 / 性能排查 / 技术选型 / 安全审计 / 发布检查 / 新领域学习
-- **🔗 场景→Pipeline→Meta 三层集成**：场景 DAG 可作为 Pipeline 输入执行，也可作为 Meta 自治扩散的种子图
-- **28 条斜杠命令**（+2）：`/easywork:scenario`、`/easywork:canvas`
-- **27 个技能**（+2）：scenario-runner（场景执行引擎）、scenario-builder（对话式场景构建器）
-
-### v3.0 核心改进：配置驱动 + 多角色通用 + 知识库可选
-- **完成定义闸门（铁律#30）**：READ 阶段强制输出六维结构化完成定义，SUM 阶段自动生成交付验证清单逐项回溯
-- **需求可追溯矩阵（铁律#31）**：五列强制表（用户需求→验收标准→自动测试→手动验证→状态），杜绝测试不覆盖痛点
-- **环境保真闸门（铁律#32）**：L3+交互式应用强制近真实环境冒烟测试+环境矩阵
-- **参考基线闸门（铁律#33）**：成熟领域强制搜索外部实现模型（≥3种），产出对比表，禁止闭门造车
-- **测试充分性闸门（铁律#34）**：五维覆盖检查。Bug修复强制回归测试（老FAIL→新PASS，缺一不可）
-- **重复失败触发器（铁律#35）**：同问题第2次失败→BLOCK，强制输出根因分析+正确模型+需确认假设
-- **历史版本覆盖 + 来源出处 + 证据账本（铁律#36-#38）**：版本→节点覆盖矩阵、每版本来源标注（摘要恢复须声明"非逐字"）、每轮证据账本（最低样本数按风险等级）
-- **上下文丢失防护（铁律#40）**：机器可读状态文件 `.claude/easywork/state-v{N}.json` 每步写入，跨 `/clear` 存活
-
-### v2.11 核心改进：文档保真闸门 + 禁止无基准覆写 + 写入模式三级分类
-
-- **文档保真闸门（铁律#29）**：7项内容保真检查——字数退化/证据密度下降/历史版本丢失/流程节点缩减/无基准覆写/round_report冒充engineering_active/写入模式错配。detailed 模式命中→阻断+修复
-- **禁止无基准覆写（6条Anti-Overwrite规则）**：已有文档默认局部更新 / Overwrite必须带Preservation Checklist / Quick Fix禁止覆写 / round_report不得覆盖engineering_active / Overwrite仅三场景 / 覆写后必须fetch-compare
-- **写入模式三级分类**：quick_fix（仅追加，绝不覆写）/ normal（DEFAULT, structured merge）/ full_archive（三合法场景+checklist）
-- **文档作用域物理隔离**：round_report（轮次摘要，可短，聊天用）vs engineering_active（工程档案，保留全部历史）。两种作用域不得互混
-
-### v2.10 核心改进：文档拓扑闸门 + 双模文档结构 + 结构化合并
-
-- **文档拓扑闸门（铁律#28）**：7项拓扑检查——重复顶层流程节点/模式混用/版本索引缺失/本轮内容未入节点/孤儿更新记录块/历史与当前混淆/索引与实际不一致。detailed 模式命中→阻断写入+自动structured merge repair
-- **双模文档结构**：Mode A（审计日志——用户显式选择）vs Mode B（持续维护——**默认**）。Mode B 下每个流程节点只出现一次，节点内按版本分层（`### v{N}`），杜绝流水账
-- **结构化合并**：Fetch→Parse→Pre-check→Distribute→Index→Mark 六步流程替代 v2.8 的"文档末尾追加更新记录"。内容分配入对应流程节点而非尾部堆叠
-- **版本索引**：Mode B 顶部版本索引表——版本号/日期/变更摘要/影响节点。可追溯每个版本影响了哪些流程节点
-- **3 种拓扑修复算法**：孤儿更新记录→节点迁移 / 重复节点合并 / 版本索引重建。自动修复，不阻塞流程
-
-### v2.9 核心改进：反水文闸门 + MCR+ 质量升级 + ETR 证据链标准
-
-- **反水文闸门（铁律#27）**：6类水文信号检测——空泛结论（"功能正常""提升用户体验"）/无证据通过（"测试通过"无命令输出）/无位置描述/无取舍/无风险/SelfCheck放水。detailed 模式命中任一即阻断写入→回退补充。standard 模式警告+确认。brief 模式标注免责声明
-- **MCR→MCR+ 质量升级**：每个步骤从"最少有什么"升级为"质量有多好"——增加反例表和合格例。禁止"正确性：通过""测试通过""因为这样更合理"等水文。SELFCHECK 硬性要求 ≥8问/≥2反事实/≥2替代方案质询/≥1防复发/≥1认知缺口
-- **ETR 证据链标准**：每个关键结论必须有 Evidence（测试输出/代码位置/数据对比）+ Thinking（推理链条，非跳跃式结论）+ Risk（未覆盖场景/副作用/假设前提）。任何没有 E/T/R 的结论视为不合格
-- **同行审查就绪六问**：写入前自问——另一个工程师能否仅凭报告：复现问题/定位代码/理解原因/知道测试覆盖/知道未覆盖/判断合并？任一否→阻断
-- **写后 Fetch 验证**：写入文档后必须回读验证——内容未截断/代码块正确/表格完整/字符无乱码。最多3轮修复循环
-- **质量评分（100分制）**：需求与背景15 / 根因方案推理20 / 代码位置摘录15 / 测试证据20 / 风险取舍15 / SelfCheck拷打质量15。detailed<80分禁止写入。扣分规则明确（空泛结论-5/关键证据缺失-10/无未覆盖风险-15/无替代方案-10/SelfCheck<8问-15）
-- **禁止凭记忆写报告**：SUM 必须基于 step_output 拼装，不得凭上下文自由发挥。某步骤不满足 MCR+ → 回退补充
-
-### v2.8 核心改进：质量门禁 + 需求确认 + 交互式应用增强
-
-- **CODE↔REVIEW 质量门禁**：REVIEW 发现阻断问题→必须回退 CODE 修复→重新 REVIEW 通过后才放行到 EXAMINE。不可带着已知问题前进（铁律#23）。循环上限 3 轮，3 轮后挂起用户
-- **多路径回退机制**：REVIEW→CODE（3轮）/ EXAMINE→CODE（3轮）/ SELFCHECK→CODE（2轮）/ ASK→CODE（1轮），各有独立触发条件和上限
-- **READ 需求理解显式确认**：READ 完成后 Agent 必须用自己的话重述对需求的理解（含业务目标、技术方案假设、不确定点），列出澄清问题，获用户确认后才进入 CODE（铁律#24）。从根源消除理解偏差
-- **文档迭代增量更新（v2.8→v2.10→v2.11）**：从文档级追加→节点内版本合并+写入模式三级分类。Mode B 默认 structured merge。Quick Fix 仅追加版本记录。过时信息标注 `[已过时 — v{N} 起]` 而非直接删除（铁律#25）。确保文档可追溯完整演进历史
-- **交互式应用 EXAMINE 增强**：CLI/TUI/GUI/Web前端/游戏/交互式IO任务必须在 EXAMINE 额外验证真实使用体验——首屏稳定性、输入反馈、退出路径、stdin边界、ANSI兼容性、渲染频率（铁律#26）。纯后端/库/脚本自动跳过
-- **七维度交叉分析**：REVIEW 新增 5 组跨维度关联检查（安全性×性能、正确性×兼容性、可维护性×可观测性等），捕捉单维度审查遗漏的交叉风险
-- **回退历史追踪**：每次回退记录路径/轮次/原因/修复/重新审查结论，完整可追溯的质量演进历史
-
-### v2.7 核心改进：报告深度分层 + MCR 自检闸门
-
-- **报告深度分层**：brief / standard / detailed 三级深度——任务类型自动决定默认值。功能开发/重构/Bug修复→detailed（完整代码摘录+设计决策+边界处理），微调→brief（1-2页概要），纯理解/审查→standard
-- **最小内容要求(MCR)+自检闸门**：detailed 模式每步骤有硬性最低产出——READ需5项（需求背景/用户目标/MVP边界/验收标准/不做事项）、CODE需5项（文件变更表/设计说明/关键函数/边界处理/代码摘录含路径行号）、REVIEW需3项（每维度≥2条检查点/阻断问题详情/issue含代码位置）等。写入前强制执行自检，不通过=拒绝写入→回退补充
-- **流式增量写入保障**：每步骤完成后立即追加到文档；不支持流式的后端在最终报告中恢复完整步骤详情。明确禁止"浓缩版"替代逐步骤产出
-- **报告类型**：executive_summary（领导层摘要，1-2页） vs engineering_record（工程记录，供研发复盘）。功能开发/重构自动选后者，选前者时 Agent 强烈警告
-- **深度自动升级**：发现安全问题/测试根因复杂/改动超预估2倍/用户补充重要信息 → standard 自动升级为 detailed
-- **代码摘录位置标注**：所有代码引用必须含文件路径和行号（auth.service.ts:88-95），确保可追溯。detailed 报告满足"同行审查就绪"——另一个工程师不读源码也能理解完整上下文
-
-### v2.6 核心改进：SelfCheck CTO 拷打层
-
-- **CTO 拷打层**：新增第 10 步 SelfCheck，Agent 切换为 CTO 角色对开发者进行四阶段深度盘问——业务背景（为什么做）→ 问题发现（怎么发现的，有证据吗）→ 解决方案（为什么在这里改，考虑过什么替代方案）→ 实现过程（遇到什么困难，之前为什么没这样改）
-- **汇报就绪检查**：让领导放心——在汇报前就把该清楚的都搞明白。3句话说清楚、领导可能问的5个问题、同事可能质疑的3个点、排查思路，缺一不可
-- **四种拷打模式**：完整（功能开发/重构/Bug修复）、标准（纯文档）、快速（微调）、轻量（纯理解/纯审查），按任务类型自动匹配，不可跳过
-- **认知缺口记录**：答不上来的问题系统化记录，有后续计划才放行——AI 不拷打你，同事和领导就要拷打你
-
-### v2.5 核心改进：飞书原生沉淀 + 可插拔产物后端
-
-- **可插拔产物后端**：产物输出从硬编码 HTML 升级为适配器模式。内置 local_html / markdown / lark_doc 三个后端，支持未来扩展
-- **飞书文档原生沉淀**：通过 lark-cli MCP 直接将工作流产物写入飞书文档，发送一个链接即可分享。支持流式追加、飞书画板集成
-- **Git 链路追踪**：任务→提交分组→开发者 Check→commit hash→测试结果→飞书记录，完整可追踪链路。数据持久化在飞书文档中
-- **Git 提交粒度增强**：每个 commit unit 新增业务上下文说明、引入风险详细分析、验证证据、开发者逐项 Check 清单
-- **文档写作规范**：中文业务复盘口吻、禁止模板套话、正文不用反引号、段落自然、表格仅结构化——读起来像人写的，不像 AI 填模板
-- **适配层解耦**：飞书逻辑完全封装在 lark-doc 后端适配器中，EasyWork 核心保持轻量，后续扩展 Notion/Confluence 无需改动核心
-
-### v2.4 核心改进：安全加固
-
-- **Git 安全管控**：所有 git 写操作必须用户确认，拆分命令写入脚本文件供手动审查
-- **敏感信息脱敏**：HTML 报告和日志自动脱敏 Token/密钥/内部URL/大段源码/手机号/邮箱
-- **自定义步骤预确认**：发现的 custom skill 列出清单，用户确认后才执行
-- **供应链外部搜索防护**：禁止将私有包名/内部 registry 发到公网搜索
-- **Gotchas 候选-确认制**：Agent 生成候选条目，用户确认后才写入 knowledge base
-- **文件系统写保护**：所有写操作限定在当前项目根目录内
-
-### v2.3 核心改进：生产级 Skill 工程实践
-
-- **Gotchas 知识库**：Agent 踩坑后自动追加项目特定陷阱，后续执行前主动扫描预警
-- **并行审查**：高风险任务启用 3 个并行子 Agent（安全/性能/兼容性）+ 主审查同步
-- **反合理化防御**：9 条 Agent 自我欺骗话术及反驳表，每次审查前先过目
-- **团队策略覆盖**：团队在 `team-policy.md` 中声明规则，无需修改核心文件。支持注释语言配置
-- **自定义步骤注入**：自动发现 `.claude/skills/easywork/custom/` 的技能并注入流程
-- **逐步骤预览**：每步执行前可选微型预览（预计操作/耗时/Token）
-- **交互式新手引导**：5 阶段对话脚本——需求了解→级别推荐→最小演示→首任务→学习总结
-- **可访问性审查**：第 7 维度（语义化HTML/ARIA/键盘导航/色彩对比/屏幕阅读器）
-- **供应链安全检查**：新增依赖自动检查许可证/CVE/维护状态
-- **Conventional Commits**：提交消息强制规范化（feat/fix/refactor/test/docs/style/chore/perf/ci）
-- **JSON Schema 数据契约**：`data-contract.schema.json` 提供机器可读验证
-- **故障 Runbook**：5 种重复故障的预置诊断与修复方案
-- **条件分支扩展**：17 条条件分支（步骤间 + 上下文自适应），覆盖更多实战场景
-- **Skill 自测提示词集**：16 个测试场景，修改 Skill 后验证未退化
-- **增强技能模板**：`skill-template/` 新增 Gotchas/反合理化/测试提示词/Before-After 对比
-- **日志分析脚本**：`analyze-logs.sh` 一键分析（总览/步骤/瓶颈/趋势）
-
-v1.0 强制所有任务走完 9 步，这很安全但也很烦——改一个文案不需要画架构图。
-**v2.0 内置了任务分类器**：启动时先判断任务类型（纯理解/微调/Bug修复/功能开发等），
-然后自动建议要执行和跳过的步骤。**v2.2 新增干跑预览**：执行前先展示每步会做什么，用户确认后再开始。
-**v2.3 对准业界标准**：补齐并行审查、反合理化防御、Gotchas、供应链检查等生产级能力。修复 17 项真实 Skill 层差距。
-
-## 工作流：10 步 → 按需裁剪
-
-```mermaid
-flowchart TD
-    START[👤 用户输入] --> CLASSIFY{🔍 任务分类器<br/>意图路由 + 7种任务类型}
-    CLASSIFY -->|纯理解| R1[1.READ]
-    CLASSIFY -->|纯审查| R2[1.READ]
-    CLASSIFY -->|微调| R3[1.READ]
-    CLASSIFY -->|Bug修复| R4[1.READ]
-    CLASSIFY -->|重构| R5[1.READ]
-    CLASSIFY -->|功能开发| R6[1.READ]
-    CLASSIFY -->|纯文档| R7[1.READ]
-
-    R7 --> C7[2.CODE] --> RV7[3.REVIEW] --> G7[5.GIT] --> S7[7.SUM] --> SC7[9.SELFCHECK] --> A7[10.ASK]
-    R3 --> C3[2.CODE] --> RV3[3.REVIEW] --> G3[5.GIT] --> SC3[9.SELFCHECK] --> A3[10.ASK]
-    R1 --> G1[6.GRAPH] --> S1[7.SUM] --> SC1[9.SELFCHECK]
-    R2 --> RV2[3.REVIEW] --> SC2[9.SELFCHECK]
-
-    R4 --> C4[2.CODE] --> RV4[3.REVIEW] --> E4[4.EXAMINE] --> G4[5.GIT] --> S4[7.SUM] --> T4[8.TALK] --> SC4[9.SELFCHECK] --> A4[10.ASK]
-    R5 --> C5[2.CODE] --> RV5[3.REVIEW] --> E5[4.EXAMINE] --> G5[5.GIT] --> GR5[6.GRAPH] --> S5[7.SUM] --> T5[8.TALK] --> SC5[9.SELFCHECK] --> A5[10.ASK]
-    R6 --> C6[2.CODE] --> RV6[3.REVIEW] --> E6[4.EXAMINE] --> G6[5.GIT] --> GR6[6.GRAPH] --> S6[7.SUM] --> SC6[9.SELFCHECK] --> A6[10.ASK]
-
-    style CLASSIFY fill:#e8f0fe,stroke:#1a73e8
-    style R4 fill:#fef7e0,stroke:#f9ab00
-    style R5 fill:#fef7e0,stroke:#f9ab00
-    style R6 fill:#fef7e0,stroke:#f9ab00
-    style R1 fill:#fce8e6,stroke:#ea4335
-```
-
-| 步骤 | 技能 | 核心职责 | Bug修复 | 功能开发 | 重构 | 微调 | 纯审查 | 纯文档 | 纯理解 |
-|------|------|---------|--------|---------|------|------|--------|--------|--------|
-| 1 | READ | 理解需求（文档/图片/日志/代码） | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| 2 | CODE | 克制编码（中文注释/复用模式） | ✅ | ✅ | ✅ | ✅ | ⏭️ | ✅ | ⏭️ |
-| 3 | REVIEW | 七维度自审查 | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ⏭️ |
-| 4 | EXAMINE | 跑测试/补测试 | ✅ | ✅ | ✅ | ⏭️ | ⏭️ | ⏭️ | ⏭️ |
-| 5 | GIT | 拆分提交（按维度） | ✅ | ✅ | ✅ | ✅ | ⏭️ | ✅ | ⏭️ |
-| 6 | GRAPH | Mermaid 图表 | ⏭️ | ✅ | ✅ | ⏭️ | ⏭️ | ⏭️ | ✅ |
-| 7 | SUM | 六要素总结 | ✅ | ✅ | ✅ | ⏭️ | ⏭️ | ✅ | ✅ |
-| 8 | TALK | 5-Whys 复盘 | ✅ | ⏭️ | ✅ | ⏭️ | ⏭️ | ⏭️ | ⏭️ |
-| 9 | SELFCHECK | 🆕 CTO拷打（四阶段盘问） | ✅(完整) | ✅(完整) | ✅(完整) | ✅(快速) | ✅(轻量) | ✅(标准) | ✅(轻量) |
-| 10 | ASK | 人工确认 | ✅ | ✅ | ✅ | ✅ | ⏭️ | ✅ | ⏭️ |
-
-> 上表是**默认建议**。用户可以随时追加或跳过步骤，Agent 不会强制执行不必要的流程。
-
-## 核心设计原则
-
-### 1. 任务分类前置（v2.0）
-启动时先判断"这到底是个什么任务"（纯理解/纯审查/微调/Bug修复/重构/功能开发），再决定走哪些步骤。
-改文案不需要架构图，看代码不需要写测试。**流程服务于任务，而非任务迁就流程。**
-新增了回退循环限制（最多 3 轮）和步骤间数据传递契约，防止 Agent 在某个环节无限循环。
-
-### 2. HITL（Human In The Loop）
-三个强制人类确认点：READ（需求不确定时）、GIT（拆分方案确认）、ASK（最终上线确认）。
-其他步骤遇到异常时挂起询问。Agent 的决策权和技术能力被尊重，但**否决权和最终判断权始终在人类手中**。
-
-### 3. 异常处理 SOP
-每个步骤都有标准异常处理流程：停止 → 描述问题 → 提供选项 → 等待人类指示 → 继续。
-**严格禁止 Agent 在不确定时自行猜测。**
-
-### 4. Checklist 打卡
-每个步骤都有结构化 Checklist，Agent 逐项确认后打钩。长流程任务中有效防止遗漏。
-
-### 5. 反模式显式化
-每个技能不仅有"应该做什么"，更有"禁止做什么"。研究表明，AI 对"不要做 X"的遵循度高于"要做 Y"。
-
-## 安装方式
-
-### 方式 A：一键安装脚本（推荐）
-
-**Windows**：
-```cmd
-.\install.bat  [目标项目路径]
-:: 不传参数则安装到当前目录
-```
-
-**macOS / Linux**：
-```bash
-chmod +x ./install.sh
-./install.sh  [目标项目路径]
-# 不传参数则安装到当前目录
-```
-
-脚本会自动完成：复制技能文件 → 创建 `.claude/skills/easywork/` → 追加配置到 `CLAUDE.md`。
-
-**卸载**：
-```bash
-./install.sh --uninstall /path/to/project   # Unix
-install.bat 然后手动删除                      # Windows
-```
-
-### 方式 B：手动安装
-
-#### 1. 复制技能文件
-
-将 `skills/` 目录复制到目标项目的 `.claude/skills/easywork/` 下：
-
-```
-目标项目/
-├── .claude/
-│   └── skills/
-│       └── easywork/
-│           ├── SKILL.md                           # 索引入口
-│           ├── README.md
-│           ├── QUICKREF.md
-│           ├── fullchain-dev-workflow/   # 编排中枢
-│           ├── read-requirements/        # 步骤1
-│           ├── code-implement/           # 步骤2
-│           ├── code-review/              # 步骤3
-│           ├── examine-quality/          # 步骤4
-│           ├── git-split-commit/         # 步骤5
-│           ├── graph-fullchain/          # 步骤6
-│           ├── sum-session/              # 步骤7
-│           ├── talk-retro/               # 步骤8
-│           └── ask-change-questions/     # 步骤9
-├── CLAUDE.md   ← 下面要编辑这个文件
-└── ...
-```
-
-#### 2. 配置到各平台的入口文件
-
-**平台一：Claude Code（VS Code / JetBrains / CLI）**
-
-编辑目标项目的 `CLAUDE.md`（如不存在则新建），添加：
-
-```markdown
-# EasyWork 全链路工作流
-当用户需要进行代码开发、Bug 修复、代码审查或需求分析时，
-加载 .claude/skills/easywork/fullchain-dev-workflow/SKILL.md
-并严格遵循其任务分类与流程编排规则。
-
-## 可单独调用的子技能
-- 需求理解: .claude/skills/easywork/read-requirements/SKILL.md
-- 代码实现: .claude/skills/easywork/code-implement/SKILL.md
-- 代码审查: .claude/skills/easywork/code-review/SKILL.md
-- 质量验证: .claude/skills/easywork/examine-quality/SKILL.md
-- 提交拆分: .claude/skills/easywork/git-split-commit/SKILL.md
-- 图表绘制: .claude/skills/easywork/graph-fullchain/SKILL.md
-- 总结报告: .claude/skills/easywork/sum-session/SKILL.md
-- 深度复盘: .claude/skills/easywork/talk-retro/SKILL.md
-- 人工确认: .claude/skills/easywork/ask-change-questions/SKILL.md
-```
-
-✅ Claude Code 支持所有 EasyWork 特性：子 Agent 隔离、多技能加载、Bash 测试执行。
+[![Version](https://img.shields.io/badge/version-3.1-blue)](CHANGELOG.md)
+[![Skills](https://img.shields.io/badge/skills-27-green)](skills/)
+[![License](https://img.shields.io/badge/license-MIT-yellow)](LICENSE)
 
 ---
 
-**平台二：GitHub Copilot（VS Code / CLI）**
+## 🚀 快速开始
 
-在项目根目录新建 `.github/copilot-instructions.md`：
+**你不需要记住 28 个命令名。** 直接描述你想做什么，Agent 自动匹配最合适的技能。
 
-```markdown
-# EasyWork 全链路工作流规则
+### 方式 1：自然语言（推荐 ✨）
 
-当用户明确说"用 EasyWork"时，遵守以下 EasyWork 工作流规则（普通任务不自动套用）：
+| 你说的话 | Agent 自动做什么 |
+|---------|-----------------|
+| "帮我理解这个项目" | 📐 项目结构分析 → 模块依赖 → 技术栈梳理 |
+| "帮我修复 XX bug" | 👁️ 理解需求 → ✏️ 写代码 → 🔍 审查 → 🧪 测试 → 📦 提交 |
+| "帮我 review 这段代码" | 🔍 七维度审查 + 安全/性能/兼容性 |
+| "帮我做技术选型" | ⚖️ 多维度对比 + 评分矩阵 + 推荐方案 |
+| "我不懂 Docker" | 🧠 四级解释（ELI5 → 专家）+ 知识树 + 图解 |
+| "帮我画架构图" | 📊 Mermaid 图 + 节点对照表 |
 
-## 任务分类
-在动手之前先判断任务类型：
-- 纯理解（只看不改）→ 需求分析 + 总结 + CTO拷打(轻量)
-- 纯审查 → 需求分析 + 七维度审查 + CTO拷打(轻量)
-- 微调 → 需求分析 + 实现 + 审查 + 提交拆分 + CTO拷打(快速) + 人工确认
-- Bug修复 → 需求分析 + 实现 + 审查 + 测试 + 提交拆分 + 总结 + 复盘 + CTO拷打(完整) + 人工确认
-- 重构 → READ + CODE + REVIEW + EXAMINE + GIT + GRAPH + SUM + TALK + SELFCHECK + ASK（10步）
-- 功能开发 → READ + CODE + REVIEW + EXAMINE + GIT + GRAPH + SUM + SELFCHECK + ASK（9步，跳过TALK）
+### 方式 2：斜杠命令
 
-## 全局铁律
-1. 注释必须用中文
-2. 复用项目现有代码模式，不引入新的设计模式
-3. 不确定时必须询问用户，禁止猜测
-4. 修改必须严格限定在需求范围内，不顺手重构无关代码
-5. CODE→REVIEW 回退循环最多3轮
+输入 `/easywork:` 然后按 **Tab** → 自动补全全部 28 条命令。
 
-## 七维度审查
-每次写代码后自审查：正确性、安全性、兼容性、可维护性、性能、可观测性、可访问性
+### 方式 3：场景画板（可视化编排）
 
-## 提交拆分
-改动 ≥3 个文件时按维度拆分：配置/核心逻辑/UI/测试，每个单元附风险分析和验证方式
-
-## 异常处理
-遇到不确定的决策 → 停止 → 描述问题 → 提供选项 → 等用户指示
-
-## 产物输出
-默认输出为自包含 HTML 文件到 .claude/easywork/。也可配置 markdown 或飞书文档（需 lark-cli MCP）
+```
+/easywork:canvas
 ```
 
-⚠️ Copilot 的功能限制：
-- 不支持子 Agent 隔离（上下文管理策略中的"子Agent隔离"不可用）
-- 不支持文件名 `SKILL.md` 的技能发现机制（需要手动在 `copilot-instructions.md` 中内嵌规则）
-- 建议将 EasyWork 的核心约束（如上）直接嵌入 `.github/copilot-instructions.md`
+在浏览器中打开拖拽式节点编辑器，自由组合技能，保存为场景模板，一键执行。
 
 ---
 
-**平台三：Cursor / Windsurf**
+## 🧭 四大工作流
 
-在项目根目录的 `.cursorrules` 或 `.windsurfrules` 中添加：
+不用记命令名，记住你要做什么就行：
 
-```
-# EasyWork AI 工作流规则
+| 你想做什么 | 场景 | 对应技能（自然语言触发） |
+|-----------|------|------------------------|
+| 🔍 **理解** | 读代码、学技术、追踪调用链、画架构图 | "帮我理解" "追踪这个函数" "XX 是什么" |
+| ✏️ **构建与修复** | 写代码、修 Bug、测试接口、提交代码 | "帮我修复" "实现 XX 功能" "测试接口" |
+| 🧠 **思考与决策** | 审查代码、技术选型、复盘、CTO 拷打 | "帮我 review" "对比 A 和 B" "复盘" |
+| 🎨 **编排** | 组合多个技能走流水线、可视化编排 | "用 EasyWork" `/easywork:canvas` |
 
-当用户明确说"用 EasyWork"时遵守以下流程（普通任务不自动套用）：
-
-1. 先分类任务：纯理解/纯审查/微调/Bug修复/重构/功能开发
-2. 根据任务类型执行对应步骤（见 QUICKREF.md 速查表）
-3. 写代码时：中文注释、复用模式、不过度设计、不碰范围外代码
-4. 写完后：七维度自审查（正确性/安全性/兼容性/可维护性/性能/可观测性/可访问性）
-5. 不确定时：停止 → 描述问题 → 给选项 → 等用户指示
-6. 改动 ≥3 文件：输出按维度拆分的提交方案（含业务上下文+风险+Check清单）
-7. 可插拔产物输出（默认 HTML，可选 markdown / 飞书文档）
-
-完整规则文件位于：.claude/skills/easywork/
-```
-
-⚠️ Cursor 的能力与 Claude Code 接近，支持自定义规则文件。建议将 `SKILL.md` 的核心约束精简后嵌入 `.cursorrules`。
+> 📖 完整 28 条命令速查 → [QUICKREF.md](QUICKREF.md)
 
 ---
 
-#### 3. 验证安装
+## 🆕 v3.1 亮点
 
-在项目目录中发起新对话，输入：
-```
-"帮我 review 下这段代码"
-```
+- **🎨 场景画布**：基于 LiteGraph.js（ComfyUI 同款引擎）的可视化拖拽编辑器，自由编排 27 个技能
+- **▶️ 场景执行引擎**：DAG 拓扑排序 + 并行执行 + HITL 交互暂停，7 个预置场景开箱即用
+- **🔗 三层集成**：场景 DAG → Pipeline 执行，场景 → Meta 自治扩散种子
+- **配置驱动**：6 大领域（后端/前端/数据/DevOps/移动端/设计）自由定制，知识库可选开关
 
-如果 Agent 加载了 code-review 技能（输出七维度审查结果），则安装成功。
-
-**自检命令**（在新对话中输入）：
-```
-"你现在加载了哪些 EasyWork 技能？"
-```
-
-Agent 应列出 `fullchain-dev-workflow` 及其子技能。
+> 📝 完整版本演进历史 → [DEVLOG.md](DEVLOG.md)
+> 📋 正式 Changelog → [CHANGELOG.md](CHANGELOG.md)
 
 ---
 
-## 各平台功能对比
+## 🏗️ 架构
 
-| 功能 | Claude Code | Copilot | Cursor |
-|------|------------|---------|--------|
-| 全 10 步工作流 | ✅ 完整支持 | ⚠️ 需内嵌规则 | ✅ 部分支持 |
-| 子 Agent 隔离 | ✅ | ❌ 不支持 | ⚠️ 取决于版本 |
-| Bash 测试执行 | ✅ | ✅ | ✅ |
-| Skill 自动发现 | ✅ | ❌ | ❌ |
-| 单步触发 | ✅ | ⚠️ | ⚠️ |
-| HTML 报告生成 | ✅ | ✅ | ✅ |
-| 状态快照恢复 | ✅ | ⚠️ 手动 | ⚠️ 手动 |
-
-**总结建议**：
-- **Claude Code** — 最佳体验，所有特性可用
-- **Copilot / Cursor** — 核心规则可移植，但部分高级特性（子Agent、Skill自动发现）不可用。建议将核心约束内嵌到对应配置文件中
-
-## 使用方式
-
-**全链路**：触发 fullchain-dev-workflow → Agent 输出任务分类和裁剪方案 → 你确认 → Agent 按裁剪后的流程执行。
-
-**单步**：直接说"帮我 review 下这段代码" → Agent 加载 code-review 技能。
-
-**半链路**："代码已写好，从 REVIEW 开始走后续" → Agent 从步骤 3 开始。
-
-## 项目结构
+```
+你说话 → Agent 理解意图 → 自动匹配技能 → 执行 → 产出
+         │                              │
+         ├─ 🎯 点模式：单技能直达         ├─ 📐 项目理解
+         ├─ 🔗 线模式：多技能流水线       ├─ 📝 代码实现
+         └─ 🌐 网模式：自治技能扩散       ├─ 🔍 七维审查
+                                        ├─ 🧪 质量验证
+                                        ├─ 📦 提交拆分
+                                        ├─ 📊 架构图
+                                        ├─ 📋 总结报告
+                                        ├─ 🧠 复盘分析
+                                        ├─ 🥊 CTO 拷打
+                                        └─ ✅ 人工确认
+```
 
 ```
 EasyWork/
-├── README.md                          # 项目说明（你正在读的）
-├── SKILL.md                           # 技能索引入口（Agent 读的）
-├── QUICKREF.md                        # 30秒速查卡片
-├── CHANGELOG.md                       # 版本更新记录
-├── TROUBLESHOOTING.md                 # 故障排查与自救指南
-├── CONTRIBUTING.md                    # 贡献指南
-├── LICENSE                            # MIT
-├── install.bat                        # Windows 一键安装
-├── install.sh                         # Unix 一键安装
-├── skill-template/                    # 🆕 自定义技能模板
-│   ├── SKILL.md                       #   技能骨架
-│   ├── assets/template.md             #   输出模板骨架
-│   └── references/guide.md            #   参考指南骨架
-└── skills/
-    ├── fullchain-dev-workflow/        # 🔗 编排中枢（任务分类 + 步骤裁剪 + 流程编排）
-    │   ├── SKILL.md                   #   核心行为指令
-    │   ├── assets/
-    │   │   ├── output-template.md     #   全链路输出模板
-    │   │   ├── html-output-template.md#   HTML 报告规范
-    │   │   ├── html-skeleton.html     #   🆕 HTML 报告骨架（直接复制填充）
-    │   │   └── walkthrough-example.md #   🆕 3个端到端完整示例
-    │   └── references/
-    │       ├── acceptance-gates.md    #   每步验收关卡
-    │       ├── data-contract.md       #   步骤间数据传递契约（含版本迁移）
-    │       ├── data-contract.schema.json  #   🆕 JSON Schema 机器可读验证
-    │       ├── orchestration-engine.md    #   编排引擎（DAG/并行/条件分支/自定义步骤）
-    │       ├── language-matrix.md     #   🆕 语言/技术栈适配速查
-    │       ├── maturity-levels.md     #   🆕 渐进式成熟度 L1/L2/L3
-    │       ├── gotchas.md             #   🆕 项目踩坑知识库
-    │       ├── team-policy.md         #   🆕 团队策略覆盖
-    │       ├── failure-runbooks.md    #   🆕 故障模式诊断
-    │       ├── self-test-prompts.md   #   🆕 Skill 自测提示词集
-    │       └── log-analysis-guide.md  #   🆕 JSONL 日志分析指南
-    ├── read-requirements/             # 📖 步骤1：多态输入 → 结构化需求
-    ├── code-implement/                # ⌨️ 步骤2：克制编码（中文注释/复用/反炫技）
-    ├── code-review/                   # 🔍 步骤3：七维度自审查 + 反合理化防御
-    ├── examine-quality/               # 🧪 步骤4：测试执行与质量验证
-    ├── git-split-commit/              # 📦 步骤5：多维提交拆分（HITL 关键环节）
-    ├── graph-fullchain/               # 📊 步骤6：Mermaid/飞书 可视化图表
-    ├── sum-session/                   # 📝 步骤7：六要素结构化总结
-    ├── talk-retro/                    # 🔬 步骤8：5-Whys 根因分析 + Trade-offs
-    └── ask-change-questions/          # ✅ 步骤9：人工确认问询（HITL 终极闸门）
+├── skills/                   ← 27 个技能定义
+│   ├── fullchain-dev-workflow/  ← 编排中枢（点线网）
+│   ├── scenario-runner/         ← 场景执行引擎
+│   ├── scenario-builder/        ← 场景构建器
+│   └── ...
+├── scenarios/                ← 场景定义存储
+│   ├── library/              ← 7 个预置场景模板
+│   └── user/                 ← 用户自定义场景
+├── tools/scenario-canvas/    ← 可视化拖拽编辑器
+├── .claude/commands/easywork/ ← 28 条斜杠命令
+└── knowledge/                ← 知识库（运行时）
 ```
 
-每个 skill 目录包含：
-- `SKILL.md` — 核心行为指令（前置条件 + 执行流程 + 反模式 + 异常SOP）
-- `assets/` — 标准化输出模板
-- `references/` — 深度参考指南（Agent 按需查阅，不占常驻上下文）
+---
 
-## 常见问题
+## 📚 文档索引
 
-**Q: 必须走 10 步吗？**
-A: 不。v2.0 的任务分类器会根据任务类型自动建议裁剪方案。改一个文案可能只需要 READ + CODE + REVIEW。
-但涉及核心逻辑的 Bug 修复和功能开发，强烈建议走完整流程。**SELFCHECK（CTO 拷打）不可跳过**——任何任务类型都必须执行，仅模式不同。
-
-**Q: 我的团队刚起步，不想一下用全部——有渐进式方案吗？**
-A: 🆕 v2.2 提供 L1/L2/L3 三级成熟度配置：
-- **L1（入门）**：4 个核心技能（READ + CODE + REVIEW + ASK），适合个人和原型阶段
-- **L2（标准）**：7 个技能（+EXAMINE + GIT + SUM），适合有 CI/CD 的正式团队
-- **L3（完整）**：全部 10 个技能，适合企业级/合规场景
-详见 `skills/fullchain-dev-workflow/references/maturity-levels.md`，升级时只需复制新技能目录即可。
-
-**Q: AI 不遵守规则怎么办？**
-A: 每个技能都有反模式清单（Never Do This），这些"禁止"指令对 AI 的约束力比"应该"更强。
-如果 AI 偏离，可以直接说"遵守当前 skill 的反模式清单"来纠正。
-
-**Q: 第一次使用，从哪里开始？**
-A: 先看 `skills/fullchain-dev-workflow/assets/walkthrough-example.md`，里面有"修 Bug"、"纯理解代码"和"功能开发"三个完整的端到端示例，展示了从任务分类到最终确认的全过程。看完就能上手。
-
-**Q: 上下文满了怎么办？**
-A: EasyWork 内置了四级上下文管理策略（🟢正常→🟡预警→🟠警戒→🔴危急）。
-默认采用**单技能加载模式**——只加载当前步骤的 SKILL.md，而非一次性加载全部 10 个。
-每一步完成后自动保存 JSON 状态快照，你可以随时 `/clear` 再粘贴快照从中断处继续。
-如果某步骤特别重（大量测试、大量文件搜索），Agent 会主动建议拆分到子 Agent 执行。
-
-**Q: 可以和现有项目规则共存吗？**
-A: 可以。EasyWork 是叠加在现有规则（CLAUDE.md、ESLint 等）之上的工作流层，不会冲突。
-相反，EasyWork 会在 READ 阶段主动读取这些规则作为约束条件。
-
-**Q: 如何自定义某个步骤？**
-A: 直接编辑对应 skill 的 SKILL.md。每个 skill 是独立文件，修改一个不影响其他。
+| 文档 | 适合 |
+|------|------|
+| [🚀 5 分钟上手](GETTING_STARTED.md) | 第一次使用 |
+| [📖 快速参考](QUICKREF.md) | 全部 28 条命令速查 |
+| [📝 开发日志](DEVLOG.md) | 版本演进历史 |
+| [📋 更新日志](CHANGELOG.md) | 正式 Changelog |
+| [🔧 故障排查](TROUBLESHOOTING.md) | 遇到问题 |
+| [💬 贡献指南](CONTRIBUTING.md) | 参与开发 |
