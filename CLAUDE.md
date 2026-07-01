@@ -20,9 +20,11 @@ EasyWork 是一个 Claude Code 技能生态系统，提供 28 个专业技能 + 
 | 🎨 画图/可视化 | "帮我画架构图" / "画个流程图" / "画 ER 图" |
 | 🔗 编排流程 | "用 EasyWork" 走完整流程 |
 | 🖼 可视化编排 | `/easywork:canvas` 打开画布 |
+| 🧭 思维方式 | "使用 EasyWork 前我应该先想清楚什么" |
 
 > 📖 5 分钟入门 → [GETTING_STARTED.md](GETTING_STARTED.md)
 > 📖 全部命令速查 → [QUICKREF.md](QUICKREF.md)
+> 🧭 AI 时代思维建议 → [suggest/](suggest/README.md)
 
 ---
 
@@ -70,6 +72,7 @@ EasyWork/
 │   └── user/                 ← 用户自定义场景
 ├── .easywork/mcp-templates/  ← 🆕 MCP 配置模板（Excalidraw/Figma/Draw.io 一键配置）
 ├── .claude/commands/easywork/ ← 29 条斜杠命令入口
+├── suggest/                   ← 🧭 AI 时代思维建议（动手前先想清楚）
 └── knowledge/                 ← 知识库内容层（L2）
 ```
 

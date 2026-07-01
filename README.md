@@ -121,3 +121,4 @@ EasyWork/
 | [📋 更新日志](CHANGELOG.md) | 正式 Changelog |
 | [🔧 故障排查](TROUBLESHOOTING.md) | 遇到问题 |
 | [💬 贡献指南](CONTRIBUTING.md) | 参与开发 |
+| [🧭 思维建议](suggest/README.md) | AI 时代的思维习惯——动手前先想清楚 |
