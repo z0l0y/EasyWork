@@ -1,17 +1,16 @@
-// DAG validation utilities
+// DAG validation — checks execution order validity
 
 /**
- * Validate a directed graph for common issues
- * @param {Array} nodes - Node objects with { id, data: { skill, label } }
- * @param {Array} edges - Edge objects with { source, target }
- * @param {Function} getSkillDef - (skillId) => skill definition with { inputs }
- * @returns {Array} Array of issue strings
+ * Validate a directed graph for common issues.
+ * @param {Array} nodes - Node objects from React Flow
+ * @param {Array} edges - Edge objects from React Flow
+ * @returns {Array} Array of issue strings (empty = valid)
  */
-export function validateDAG(nodes, edges, getSkillDef) {
+export function validateDAG(nodes, edges) {
   const issues = [];
 
   if (nodes.length === 0) {
-    issues.push('⚠️ 画布为空，请添加节点');
+    issues.push('⚠️ 画布为空，请从左侧面板添加技能节点');
     return issues;
   }
 
@@ -25,22 +24,10 @@ export function validateDAG(nodes, edges, getSkillDef) {
   if (nodes.length > 1) {
     nodes.forEach(n => {
       if (!connectedNodes.has(n.id)) {
-        issues.push(`⚠️ 节点 "${n.data?.label || n.id}" 没有连线`);
+        issues.push(`⚠️ "${n.data?.label || n.id}" 没有连线，可能被遗漏`);
       }
     });
   }
-
-  // Check for nodes with required inputs but no incoming edges
-  nodes.forEach(n => {
-    const skillId = n.data?.skill;
-    const skillDef = getSkillDef ? getSkillDef(skillId) : null;
-    if (skillDef?.inputs?.length > 0 && nodes.length > 1) {
-      const hasIncoming = edges.some(e => e.target === n.id);
-      if (!hasIncoming) {
-        issues.push(`⚠️ 节点 "${n.data?.label || n.id}" 有必填输入但无上游节点`);
-      }
-    }
-  });
 
   // Cycle detection (DFS)
   const adj = {};
@@ -67,7 +54,7 @@ export function validateDAG(nodes, edges, getSkillDef) {
   for (const n of nodes) {
     if (!visited.has(n.id)) {
       if (hasCycle(n.id, visited, new Set())) {
-        issues.push(`🔴 检测到循环依赖 (涉及节点 "${n.data?.label || n.id}")`);
+        issues.push(`🔴 检测到循环依赖 (涉及 "${n.data?.label || n.id}")`);
         break;
       }
     }

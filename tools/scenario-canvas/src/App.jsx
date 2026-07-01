@@ -97,19 +97,6 @@ export default function App() {
     [addSkillToCanvas]
   );
 
-  // Update node data
-  const onUpdateNode = useCallback(
-    (nodeId, newData) => {
-      setNodes((nds) =>
-        nds.map((n) => {
-          if (n.id !== nodeId) return n;
-          return { ...n, data: { ...n.data, ...newData } };
-        })
-      );
-    },
-    [setNodes]
-  );
-
   // Delete node
   const onDeleteNode = useCallback(
     (nodeId) => {
@@ -276,7 +263,7 @@ export default function App() {
 
   // Validate scenario
   const validateScenario = useCallback(() => {
-    const issues = validateDAG(nodes, edges, (skillId) => SKILLS[skillId]);
+    const issues = validateDAG(nodes, edges);
 
     if (issues.length === 0) {
       addToast(`✅ 校验通过 — ${nodes.length} 节点, ${edges.length} 连线, 无环`, 'success');
@@ -357,7 +344,6 @@ export default function App() {
 
         <PropertiesPanel
           selectedNode={selectedNode}
-          onUpdateNode={onUpdateNode}
           onDeleteNode={onDeleteNode}
         />
       </div>

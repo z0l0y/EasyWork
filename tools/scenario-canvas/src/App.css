@@ -475,6 +475,76 @@ body {
   font-weight: 600;
 }
 
+/* Skill hero card */
+.prop-skill-hero {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 14px;
+  margin: 8px 14px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 10px;
+  border-left: 3px solid var(--accent);
+}
+
+.prop-skill-emoji {
+  font-size: 32px;
+  flex-shrink: 0;
+}
+
+.prop-skill-name {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--panel-text);
+}
+
+.prop-skill-id {
+  font-size: 11px;
+  color: #666;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  margin-top: 2px;
+}
+
+.prop-desc {
+  font-size: 13px;
+  color: #ccc;
+  line-height: 1.7;
+  margin: 0;
+}
+
+.prop-flow-hint {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.flow-hint-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: #999;
+  padding: 4px 0;
+}
+
+.flow-hint-row .flow-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.flow-hint-row .flow-icon {
+  width: 20px;
+  text-align: center;
+  flex-shrink: 0;
+  font-size: 14px;
+}
+
+.flow-hint-row.hitl {
+  color: var(--warn);
+}
+
 .btn-delete {
   width: calc(100% - 28px);
   margin: 12px 14px;
