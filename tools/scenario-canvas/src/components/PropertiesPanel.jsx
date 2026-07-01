@@ -114,29 +114,9 @@ export default function PropertiesPanel({ selectedNode, onUpdateNode, onDeleteNo
         <textarea
           value={data.interaction_prompt || ''}
           onChange={(e) => handleInteractionChange(e.target.value)}
-          placeholder="需要用户输入时显示的提示..."
+          placeholder="输入提示文本，执行到此节点时会暂停等待用户确认..."
           rows={2}
         />
-      </div>
-
-      <div className="prop-group">
-        <label>输入端口 ({skillDef.inputs?.length || 0})</label>
-        <div className="port-list">
-          {(skillDef.inputs || []).map((p, i) => (
-            <span key={`in-${i}`} className="port-tag input-tag">← {p.name} <em>{p.type}</em></span>
-          ))}
-          {(!skillDef.inputs || skillDef.inputs.length === 0) && <span className="port-none">无</span>}
-        </div>
-      </div>
-
-      <div className="prop-group">
-        <label>输出端口 ({skillDef.outputs?.length || 0})</label>
-        <div className="port-list">
-          {(skillDef.outputs || []).map((p, i) => (
-            <span key={`out-${i}`} className="port-tag output-tag">→ {p.name} <em>{p.type}</em></span>
-          ))}
-          {(!skillDef.outputs || skillDef.outputs.length === 0) && <span className="port-none">无</span>}
-        </div>
       </div>
 
       <button className="btn-delete" onClick={() => onDeleteNode(selectedNode.id)}>

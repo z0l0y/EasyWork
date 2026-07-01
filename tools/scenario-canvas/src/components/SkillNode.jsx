@@ -9,71 +9,41 @@ export default memo(function SkillNode({ data, selected }) {
   const phaseColor = PHASE_COLORS[phase] || '#6366f1';
   const emoji = data?.emoji || skillDef.emoji || '📦';
   const label = data?.label || skillDef.label || skillId;
-  const inputs = data?.inputs || skillDef.inputs || [];
-  const outputs = data?.outputs || skillDef.outputs || [];
 
   return (
     <div
       className={`skill-node${selected ? ' selected' : ''}`}
       style={{ '--phase-color': phaseColor }}
     >
-      {/* Input handles - left side */}
-      {inputs.map((port, i) => (
-        <Handle
-          key={`in-${i}`}
-          type="target"
-          position={Position.Left}
-          id={port.name}
-          style={{ top: `${28 + i * 24}px`, background: phaseColor }}
-          title={`${port.name} (${port.type})`}
-        />
-      ))}
+      {/* Single input — left side, vertically centered */}
+      <Handle
+        type="target"
+        position={Position.Left}
+        id="in"
+        style={{ background: phaseColor }}
+      />
 
-      {/* Node body */}
+      {/* Header */}
       <div className="skill-node-header" style={{ background: phaseColor }}>
         <span className="skill-node-emoji">{emoji}</span>
         <span className="skill-node-title">{label}</span>
       </div>
+
+      {/* Body — minimal: phase badge + optional HITL */}
       <div className="skill-node-body">
-        {inputs.length > 0 && (
-          <div className="skill-node-ports inputs">
-            {inputs.map((p, i) => (
-              <div key={`in-label-${i}`} className="port-label input-label">
-                ← {p.name}
-              </div>
-            ))}
-          </div>
-        )}
-        {outputs.length > 0 && (
-          <div className="skill-node-ports outputs">
-            {outputs.map((p, i) => (
-              <div key={`out-label-${i}`} className="port-label output-label">
-                {p.name} →
-              </div>
-            ))}
-          </div>
-        )}
-        {inputs.length === 0 && outputs.length === 0 && (
-          <div className="skill-node-no-ports">no ports</div>
-        )}
+        <span className="skill-node-phase">{phase}</span>
         {data?.interaction_prompt && (
-          <div className="skill-node-interaction" title={data.interaction_prompt}>
-            💬 HITL
-          </div>
+          <span className="skill-node-has-hitl" title={data.interaction_prompt}>💬</span>
         )}
       </div>
 
-      {/* Output handles - right side */}
-      {outputs.map((port, i) => (
-        <Handle
-          key={`out-${i}`}
-          type="source"
-          position={Position.Right}
-          id={port.name}
-          style={{ top: `${28 + i * 24}px`, background: phaseColor }}
-          title={`${port.name} (${port.type})`}
-        />
-      ))}
+      {/* Single output — right side, vertically centered */}
+      <Handle
+        type="source"
+        position={Position.Right}
+        id="out"
+        style={{ background: phaseColor }}
+      />
     </div>
   );
 });

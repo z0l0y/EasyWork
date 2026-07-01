@@ -80,8 +80,6 @@ export default function App() {
           emoji: skillDef.emoji,
           config: {},
           interaction_prompt: '',
-          inputs: skillDef.inputs,
-          outputs: skillDef.outputs,
         },
       };
 
@@ -105,17 +103,7 @@ export default function App() {
       setNodes((nds) =>
         nds.map((n) => {
           if (n.id !== nodeId) return n;
-          // Rebuild input/output handles when skill changes
-          const newSkillId = newData.skill || n.data.skill;
-          const skillDef = SKILLS[newSkillId];
-          return {
-            ...n,
-            data: {
-              ...newData,
-              inputs: skillDef?.inputs || [],
-              outputs: skillDef?.outputs || [],
-            },
-          };
+          return { ...n, data: { ...n.data, ...newData } };
         })
       );
     },
@@ -259,8 +247,6 @@ export default function App() {
             emoji: skillDef.emoji || '',
             config: n.config || {},
             interaction_prompt: n.interaction_point?.prompt || '',
-            inputs: skillDef.inputs || [],
-            outputs: skillDef.outputs || [],
           },
         });
       });
@@ -269,14 +255,12 @@ export default function App() {
         const fromId = nodeMap[e.from];
         const toId = nodeMap[e.to];
         if (fromId && toId) {
-          const fromNode = newNodes.find((n) => n.id === fromId);
-          const toNode = newNodes.find((n) => n.id === toId);
           newEdges.push({
             id: `e-${fromId}-${toId}`,
             source: fromId,
             target: toId,
-            sourceHandle: fromNode?.data?.outputs?.[0]?.name || undefined,
-            targetHandle: toNode?.data?.inputs?.[0]?.name || undefined,
+            sourceHandle: 'out',
+            targetHandle: 'in',
             ...defaultEdgeOptions,
           });
         }
