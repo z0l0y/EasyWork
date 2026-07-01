@@ -28,51 +28,11 @@ const defaultEdgeOptions = {
   style: { stroke: '#6c5ce7', strokeWidth: 3 },
 };
 
-// Starter nodes for demo
-const STARTER_NODES = [
-  {
-    id: 'starter-1',
-    type: 'skillNode',
-    position: { x: 150, y: 180 },
-    data: {
-      skill: 'read-project', label: '理解项目', phase: 'understand', emoji: '📐',
-      config: { focus: 'architecture' }, interaction_prompt: '',
-      inputs: SKILLS['read-project'].inputs, outputs: SKILLS['read-project'].outputs,
-    },
-  },
-  {
-    id: 'starter-2',
-    type: 'skillNode',
-    position: { x: 520, y: 180 },
-    data: {
-      skill: 'trace-code', label: '追踪调用链', phase: 'deep-dive', emoji: '🔬',
-      config: {}, interaction_prompt: '要追踪哪个函数？',
-      inputs: SKILLS['trace-code'].inputs, outputs: SKILLS['trace-code'].outputs,
-    },
-  },
-  {
-    id: 'starter-3',
-    type: 'skillNode',
-    position: { x: 340, y: 440 },
-    data: {
-      skill: 'sum-session', label: '生成报告', phase: 'summarize', emoji: '📋',
-      config: {}, interaction_prompt: '',
-      inputs: SKILLS['sum-session'].inputs, outputs: SKILLS['sum-session'].outputs,
-    },
-  },
-];
-
-const STARTER_EDGES = [
-  { id: 'se-1-2', source: 'starter-1', target: 'starter-2', sourceHandle: 'architecture', targetHandle: 'entry_function', ...defaultEdgeOptions },
-  { id: 'se-1-3', source: 'starter-1', target: 'starter-3', sourceHandle: 'architecture', targetHandle: 'findings', ...defaultEdgeOptions },
-  { id: 'se-2-3', source: 'starter-2', target: 'starter-3', sourceHandle: 'trace_report', targetHandle: 'visuals', ...defaultEdgeOptions },
-];
-
 export default function App() {
-  const [nodes, setNodes, onNodesChange] = useNodesState(STARTER_NODES);
-  const [edges, setEdges, onEdgesChange] = useEdgesState(STARTER_EDGES);
+  const [nodes, setNodes, onNodesChange] = useNodesState([]);
+  const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const [selectedNodeId, setSelectedNodeId] = useState(null);
-  const [scenarioName, setScenarioName] = useState('new-project-handover');
+  const [scenarioName, setScenarioName] = useState('my-scenario');
   const { toasts, addToast } = useToast();
 
   // Get selected node

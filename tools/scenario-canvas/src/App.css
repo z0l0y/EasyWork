@@ -618,3 +618,51 @@ body {
   background: rgba(108, 92, 231, 0.08) !important;
   border: 1px solid rgba(108, 92, 231, 0.3) !important;
 }
+
+/* ═══════════════════════════════════════════════════════
+   Empty Canvas Hint
+   ═══════════════════════════════════════════════════════ */
+
+.canvas-empty-hint {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  pointer-events: none;
+  z-index: 5;
+  opacity: 0.6;
+}
+
+.canvas-empty-icon {
+  font-size: 56px;
+  margin-bottom: 16px;
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+.canvas-empty-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--panel-text);
+  margin-bottom: 16px;
+}
+
+.canvas-empty-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 13px;
+  color: #888;
+}
+
+.canvas-empty-steps span {
+  padding: 4px 16px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}

@@ -93,6 +93,17 @@ function CanvasInner({ nodes, edges, onNodesChange, onEdgesChange, onConnect, on
           pannable
           zoomable
         />
+        {nodes.length === 0 && (
+          <div className="canvas-empty-hint">
+            <div className="canvas-empty-icon">🎨</div>
+            <div className="canvas-empty-title">从左侧面板拖入技能开始编排</div>
+            <div className="canvas-empty-steps">
+              <span>① 拖拽或双击左侧技能</span>
+              <span>② 从右端口拖线到下个节点左端口</span>
+              <span>③ Ctrl+S 保存场景</span>
+            </div>
+          </div>
+        )}
       </ReactFlow>
     </div>
   );
